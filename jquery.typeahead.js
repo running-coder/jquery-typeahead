@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 0.1.0 Beta (2014-08-1)
+ * @version 0.1.0 Beta (2014-08-22)
  *
  * @copyright
  * Copyright (C) 2014 Tom Bertrand.
@@ -57,8 +57,6 @@
             ttl: 3600,
             backdrop: false,
             input: null,
-            trigger: "change",
-            action: "click",
             searchListClass: "typeahead-search",
             jsonList: {}
         },
@@ -66,9 +64,7 @@
             onInit: null,
             onHover: null,
             onHoverOut: null,
-            onClick: null/*,
-            onBeforeSubmit: null,
-            onSubmit: null*/
+            onClick: null
         },
         debug: false
     };
@@ -83,8 +79,6 @@
             order: [null, 'asc', 'desc'],
             group: [true, false],
             backdrop: [true, false],
-            //trigger: ["keypress", "keydown", "keyup"], // onChange?
-            action: ["click", "dblclick", "mousedown", "mouseup"],
             jsonList: ["storage", "pattern", "data", "url"]
         },
         debug: [true, false]
@@ -280,10 +274,12 @@
 
             });
 
-
-
         }
 
+        /**
+         *
+         * @returns {boolean}
+         */
         function search () {
 
             if (query.trim() === "") {
@@ -304,7 +300,6 @@
                 }
             }
 
-
             var foundItems = [],
                 html = '<div class="' + options.settings.searchListClass + '" ' + _data.searchList + '><ul></ul></div>',
                 itemsHtml = "",
@@ -324,17 +319,9 @@
                         ))
                     {
 
-
-
-
                         storageJsonList[list][i].list = list;
 
                         foundItems.push(storageJsonList[list][i]);
-
-                        //console.log("list")
-                        //console.log(list)
-                        //console.log("object")
-                        //console.log(storageJsonList[list][i])
 
                     }
                 }
@@ -358,7 +345,6 @@
             var searchContainer = $(node).parent(),
                 object;
 
-
             searchContainer.append(html).find("ul").html(itemsHtml);
 
             searchContainer.find('[' + _data.searchList + '] a').hover(function () {
@@ -373,9 +359,6 @@
             }, function () {
                 _executeCallback(options.callback.onHoverOut, [node, this, object]);
             });
-
-
-
 
             searchContainer.find('[' + _data.searchList + '] a').on("click", function (e) {
 
@@ -395,25 +378,18 @@
                     //console.log('no callback set')
                 }
 
-
             });
-
-
-
-
-
 
         }
 
+        /**
+         *
+         */
         function resetSearch () {
 
             $(node).parent().find('[' + _data.searchList + ']').remove();
 
-
         }
-
-
-
 
         /**
          *
@@ -485,32 +461,7 @@
                             ajaxPath: path
                         }).done( function(data) {
 
-
                             _populateJsonList(data, this.ajaxList, this.ajaxPath);
-
-
-
-                            //storageJsonList[list] = storageJsonList[list].concat(jsonList[list].data);
-
-                            //console.log('coucou :D')
-/*
-                            // Status in not needed anymore
-                            delete response.status;
-
-                            window.log(_class.name + '._ajax - Populating storage with type: ' + this.ajaxI);
-
-                            _class.urlPattern[this.ajaxI] = response.urlPattern;
-
-                            if (_class.options.compression) {
-                                window.time('compression');
-                                response = base64_encode(RawDeflate.deflate(escape(JSON.stringify(response))));
-                                window.timeEnd('compression');
-                                window.log(_class.name + '._ajax - Compressed response.');
-                            }
-
-                            $.jStorage.set(jsonList[this.ajaxI].storage, response);
-                            $.jStorage.setTTL(jsonList[this.ajaxI].storage, _class.options.ttl);
-*/
 
                             counter++;
                             if (counter === length) {
@@ -518,7 +469,7 @@
                             }
 
                         }).fail( function (response) {
-                            //window.debug(_class.name + '._ajax - Error in ajax response for url ' + jsonList[this.ajaxI].url + ' ignoring type: ' + this.ajaxI);
+
                             counter++;
                             //if (counter === length) {
                             //    _class._object.properties._overrideTypeahead(jsonList);
@@ -527,8 +478,6 @@
 
 
                     }
-
-                    //
 
                 }
 
@@ -550,13 +499,40 @@
 
         }
 
+        /**
+         * @public
+         * This method will be called by the jsonP callback to populate the JSON list
+         *
+         * @param {object} data JSON response from the jsonP call
+         */
+        function populate (data) {
 
+            var list = data.list || 'list',
+                path = (options.settings.jsonList[list].url instanceof Array) ?
+                    options.settings.jsonList[list].url[1] : null;
+
+
+            _populateJsonList(data, list, path);
+
+            ++counter;
+
+            if (counter === listLength) {
+                isListGenerated = true;
+                console.log('ALL LIST FETCHED')
+            }
+
+        }
+
+        /**
+         * @private
+         * Common method to build the JSON lists to be cycled for matched results from data, url or cross domain url.
+         *
+         * @param {array} data The raw data to be formatted
+         * @param {string} list The list name
+         * @param {string} [path] Optional path if the list is not on the data root
+         *
+         */
         var _populateJsonList = function (data, list, path) {
-
-            //console.log(data)
-            //console.log(list)
-            //console.log(path)
-
 
             var _isValid = true;
 
@@ -672,7 +648,7 @@
 
         /**
          * @private
-         * Private function to retreive data from a crossdomain jsonP call
+         * Private function to retrieve data from a cross domain jsonP call
          *
          * @type {{fetch: fetch, evalJSONP: evalJSONP}}
          * @url http://javascriptweblog.wordpress.com/2010/11/29/json-and-jsonp/
@@ -719,61 +695,6 @@
             window.Debug && window.Debug.print();
 
         }();
-
-        function populate (data) {
-
-            var list = data.list || 'list',
-                path = (options.settings.jsonList[list].url instanceof Array) ?
-                    options.settings.jsonList[list].url[1] : null;
-
-
-            _populateJsonList(data, list, path);
-
-            /*
-            if (!data) {
-                return false;
-            }
-
-            var list = data.list || 'list';
-
-            if (storageJsonList[list]) {
-
-                if (options.settings.jsonList[list].url instanceof Array) {
-
-                    var jsonPath = options.settings.jsonList[list].url[1];
-
-                    if (jsonPath) {
-
-                        var _exploded = jsonPath.split('.'),
-                            _splitIndex = 0,
-                            _isValid = true;
-
-                        while (_splitIndex < _exploded.length) {
-                            if (typeof data !== 'undefined') {
-                                data = data[_exploded[_splitIndex++]];
-                            } else {
-                                _isValid = false;
-                                break;
-                            }
-                        }
-
-                        if (_isValid) {
-                            storageJsonList[list] = storageJsonList[list].concat(data);
-                        }
-                    }
-                }
-
-            }
-            */
-
-            ++counter;
-
-            if (counter === listLength) {
-                isListGenerated = true;
-                console.log('ALL LIST FETCHED')
-            }
-
-        }
 
         return {
 

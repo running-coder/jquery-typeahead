@@ -1,8 +1,8 @@
-jQuery Form Validation
+jQuery Typeahead
 ======================
 
-The jQuery Typeahead plugin unifies the way to validate HTML forms using JavaScript.
-It is a simple clientside library that will save you a lot of time when it comes to adding validation on your HTML form inputs or selects!
+The jQuery Typeahead plugin provides autocomplete preview on search inputs similar to google search with builtin options and deep customization.
+It is a simple clientside library that will add a better user experience to your website search input!
 
 The jQuery Typeahead plugin is released under the MIT License.
 
