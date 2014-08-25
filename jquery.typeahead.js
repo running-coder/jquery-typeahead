@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 0.1.1 Beta (2014-08-25)
+ * @version 0.1.2 Beta (2014-08-25)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -59,6 +59,7 @@
             input: null,
             groupListClass: "typeahead-search-group",
             searchListClass: "typeahead-search",
+            backdropListClass: "typeahead-search-backdrop",
             jsonList: {}
         },
         callback: {
@@ -79,7 +80,6 @@
             compression: [true, false],
             order: [null, 'asc', 'desc'],
             group: [true, false],
-            backdrop: [true, false],
             jsonList: ["storage", "pattern", "data", "url"]
         },
         debug: [true, false]
@@ -246,14 +246,13 @@
                 'keydown.ac'
             ];
 
-
             $('html').on("click.wtf", function() {
                 resetSearch();
             });
+
             $(node).parent().on("click.wtf", function(e) {
                 e.stopPropagation();
             });
-
 
             $(node).on(event.join(' '), function (e) {
 
@@ -396,6 +395,43 @@
 
             $(node).parent().append(template);
 
+            if (options.settings.backdrop) {
+
+                var css = $.extend(
+                    {
+                        "opacity": 0.6,
+                        "filter": 'alpha(opacity=60)',
+                        "position": 'fixed',
+                        "top": 0,
+                        "right": 0,
+                        "bottom": 0,
+                        "left": 0,
+                        "z-index": 1040,
+                        "background-color": "#000"
+                    },
+                    options.settings.backdrop
+                );
+
+                $(node).parent()
+                    .children()
+                    .css({
+                        "z-index": css["z-index"] + 1,
+                        "position": "relative"
+                    });
+
+                $(node).parent()
+                    .append(
+                        $("<div/>", {
+                            "class": options.settings.backdropListClass,
+                            "css": css,
+                            "click": function () {
+                                resetSearch();
+                            }
+                        })
+                    );
+
+            }
+
         }
 
         /**
@@ -405,7 +441,8 @@
 
             resultList = [];
 
-            $(node).parent().find('.' + options.settings.searchListClass).remove();
+            $(node).siblings('.' + options.settings.searchListClass).remove();
+            $(node).siblings('.' +options.settings.backdropListClass).remove();
 
         }
 
