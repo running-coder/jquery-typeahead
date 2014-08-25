@@ -5,7 +5,7 @@
  * @version 0.1.0 Beta (2014-08-22)
  *
  * @copyright
- * Copyright (C) 2014 Tom Bertrand.
+ * Copyright (C) 2014 RunningCoder.
  *
  * @link
  * http://www.runningcoder.org/jquerytypeahead/
@@ -49,7 +49,7 @@
         settings: {
             compression: false,
             order: null,
-            minCharacter: 2,
+            minLength: 2,
             maxItem: 8,
             startCharacter: false,
             group: false,
@@ -57,13 +57,14 @@
             ttl: 3600,
             backdrop: false,
             input: null,
+            groupListClass: "typeahead-search-group",
             searchListClass: "typeahead-search",
             jsonList: {}
         },
         callback: {
             onInit: null,
-            onHover: null,
-            onHoverOut: null,
+            onMouseEnter: null,
+            onMouseLeave: null,
             onClick: null
         },
         debug: false
@@ -90,7 +91,7 @@
      * @constructor
      * Typeahead Class
      *
-     * @param {object} node jQuery form object
+     * @param {object} node jQuery input object
      * @param {object} options User defined options
      */
     var Typeahead = function (node, options) {
@@ -98,14 +99,15 @@
         var query = "",
             isListGenerated = false,
             storageJsonList = {},
+            resultList = [],
             jsonpCallback = "window.Typeahead.jsonList['" + '#search_v1-game' + "'].populate",
             counter = 0,
             listLength = 0;
 
         /**
-         * Extends user-defined "options" into the default Validation "_options".
+         * Extends user-defined "options" into the default Typeahead "_options".
          * Notes:
-         *  - preventExtensions prevents from modifying the Validation "_options" object structure
+         *  - preventExtensions prevents from modifying the Typeahead "_options" object structure
          *  - filter through the "_supported" to delete unsupported "options"
          */
         function extendOptions () {
@@ -221,6 +223,9 @@
 
         }
 
+        /**
+         * Attach events to the search input to trigger the Typeahead Search
+         */
         function delegateTypeahead () {
 
             _executeCallback(options.callback.onInit, [node]);
@@ -234,19 +239,29 @@
 
             var event = [
                 'focus.ac',
-                'blur.ac',
+                //'focusout.ac',
+                //'blur.ac',
                 'keyup.ac',
                 'keypress.ac',
                 'keydown.ac'
             ];
 
 
+            $('html').on("click.wtf", function() {
+                resetSearch();
+            });
+            $(node).parent().on("click.wtf", function(e) {
+                e.stopPropagation();
+            });
+
+
             $(node).on(event.join(' '), function (e) {
 
                 // Simply hide the search on blur
-                if (e.type === "blur") {
-                    return false;
-                }
+                //if ((e.type === "blur" || e.type === "focusout") && !listBlur) {
+                //    resetSearch();
+                //    return false;
+                //}
 
                 if (e.type === "focus" && !isListGenerated) {
                     generateList();
@@ -254,20 +269,19 @@
 
                 var input = this;
 
-                // Namespaced events need a setTimeout function ...
-                // @TODO: investigate this weird behavior
                 setTimeout( function () {
 
                     if ($(input).val() === query) {
                         return false;
                     }
 
-                    query = $(input).val();
+                    query = $(input).val().toLowerCase().trim();
 
                     resetSearch();
 
-                    if (query.length >= options.settings.minCharacter) {
+                    if (query.length >= options.settings.minLength && query !== "") {
                         search();
+                        buildHtml();
                     }
 
                 }, 0, e, input);
@@ -277,129 +291,134 @@
         }
 
         /**
-         *
-         * @returns {boolean}
+         * Search the json lists to match the search query and build the HTML and bind
+         * the callbacks on the result(s) if they are set inside the configuration options
          */
         function search () {
-
-            if (query.trim() === "") {
-                return false;
-            }
-
-
-            var sort_by = function(field, reverse, primer){
-
-                var key = primer ?
-                    function(x) {return primer(x[field])} :
-                    function(x) {return x[field]};
-
-                reverse = [-1, 1][+!!reverse];
-
-                return function (a, b) {
-                    return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
-                }
-            }
-
-            var foundItems = [],
-                html = '<div class="' + options.settings.searchListClass + '" ' + _data.searchList + '><ul></ul></div>',
-                itemsHtml = "",
-                match;
 
             for (var list in storageJsonList) {
 
                 for (var i in storageJsonList[list]) {
 
-                    if (foundItems.length >= options.settings.maxItem) {
+                    if (resultList.length >= options.settings.maxItem) {
                         break;
                     }
 
                     if (storageJsonList[list][i].display &&
-                        storageJsonList[list][i].display.toLowerCase().indexOf(query.toLowerCase()) !== -1 && (
-                            !options.settings.startCharacter || storageJsonList[list][i].display.toLowerCase().indexOf(query.toLowerCase()) === 0
+                        storageJsonList[list][i].display.toLowerCase().indexOf(query) !== -1 && (
+                            !options.settings.startCharacter ||
+                            storageJsonList[list][i].display.toLowerCase().indexOf(query) === 0
                         ))
                     {
-
                         storageJsonList[list][i].list = list;
-
-                        foundItems.push(storageJsonList[list][i]);
-
+                        resultList.push(storageJsonList[list][i]);
                     }
                 }
             }
 
             if (options.settings.order) {
-                foundItems.sort(sort_by('display', (options.settings.order === "desc") ? false : true, function(a){return a.toUpperCase()}))
+                resultList.sort(
+                    sort_by(
+                        'display',
+                        (options.settings.group && !(options.settings.order === "asc")) || !!(options.settings.order === "asc"),
+                        function(a){return a.toUpperCase()}
+                    )
+                );
             }
-
-            for (var i in foundItems) {
-
-                match = foundItems[i].display.match(new RegExp(query,"i"));
-
-                itemsHtml += "<li>" +
-                    "<a href='javascript:;' data-list='" + foundItems[i].list + "'>" +
-                        foundItems[i].display.replace(new RegExp(query,"i"), '<strong>' + match[0] + '</strong>') +
-                        ((options.settings.list) ? "<small>" + foundItems[i].list + "</small>" : "") +
-                    "</a></li>";
-            }
-
-            var searchContainer = $(node).parent(),
-                object;
-
-            searchContainer.append(html).find("ul").html(itemsHtml);
-
-            searchContainer.find('[' + _data.searchList + '] a').hover(function () {
-
-                object = foundItems[
-                        $(
-                            $(this).closest('[' + _data.searchList + ']').find('li')
-                        ).index($(this).parent())
-                    ] || {};
-
-                _executeCallback(options.callback.onHover, [node, this, object]);
-            }, function () {
-                _executeCallback(options.callback.onHoverOut, [node, this, object]);
-            });
-
-            searchContainer.find('[' + _data.searchList + '] a').on("click", function (e) {
-
-                e.preventDefault();
-
-                object = foundItems[
-                    $(
-                        $(this).closest('[' + _data.searchList + ']').find('li')
-                    ).index($(this).parent())
-                    ] || {};
-
-                $(node).val(object.display);
-
-                resetSearch();
-
-                if (!_executeCallback(options.callback.onClick, [node, this, object])) {
-                    //console.log('no callback set')
-                }
-
-            });
 
         }
 
         /**
-         *
+         * Builds the search result list html and delegate the callbacks
+         */
+        function buildHtml () {
+
+            var match,
+                template = $("<div/>", {
+                "class": options.settings.searchListClass,
+                "html": $("<ul/>", {
+                    "html": function() {
+
+                        for (var i in resultList) {
+                            (function (result, scope) {
+
+                                if (options.settings.group && !$(scope).find('li[data-search-group="' + result.list + '"]')[0]) {
+                                    $(scope).append(
+                                        $("<li/>", {
+                                            "class": options.settings.groupListClass,
+                                            "html":  $("<a/>", {
+                                                "html": result.list
+                                            }),
+                                            "data-search-group": result.list
+                                        })
+                                    );
+                                }
+
+                                match = result.display.match(new RegExp(query,"i"));
+
+                                var li = $("<li/>", {
+                                    "html":  $("<a/>", {
+                                        "href": "javascript:;",
+                                        "data-list": result.list,
+                                        "html": result.display.replace(new RegExp(query,"i"), '<strong>' + match[0] + '</strong>') +
+                                            ((options.settings.list) ? "<small>" + result.list + "</small>" : ""),
+                                        "click": ({"result": result}, function (e) {
+
+                                            e.preventDefault();
+
+                                            $(node).val(result.display).focus();
+
+                                            query = result.display;
+
+                                            resetSearch();
+
+                                            _executeCallback(options.callback.onClick, [node, this, result])
+                                        }),
+                                        "mouseenter": function () { _executeCallback(options.callback.onMouseEnter, [node, this, result]); },
+                                        "mouseleave": function () { _executeCallback(options.callback.onMouseLeave, [node, this, result]); }
+
+                                    })
+                                });
+
+                                if (options.settings.group) {
+                                    $(li).insertAfter($(scope).find('li[data-search-group="' + result.list + '"]'));
+
+                                } else {
+                                    $(scope).append(li);
+                                }
+
+                            }(resultList[i], this));
+                        }
+
+                    }
+                })
+            });
+
+            $(node).parent().append(template);
+
+        }
+
+        /**
+         * Clears the search result list
          */
         function resetSearch () {
 
-            $(node).parent().find('[' + _data.searchList + ']').remove();
+            resultList = [];
+
+            $(node).parent().find('.' + options.settings.searchListClass).remove();
 
         }
 
         /**
-         *
+         * Depending on the list format given by the initialization, this method
+         * concats (if needed) and build unified json Lists.
+         * Supports inline data, same-domain ajax and crossdomain ajax (jsonP)
          */
         function generateList () {
 
             var jsonList = options.settings.jsonList,
                 url,
-                path,
-                data;
+                path;
 
             if (listLength === 0) {
                 for (var k in jsonList) {
@@ -475,7 +494,6 @@
                             //    _class._object.properties._overrideTypeahead(jsonList);
                             //}
                         });
-
 
                     }
 
@@ -567,6 +585,29 @@
             }
 
         };
+
+        /**
+         * @private
+         * Sort list of object by key
+         *
+         * @param field
+         * @param reverse
+         * @param primer
+         *
+         * @returns {Function}
+         */
+        var sort_by = function(field, reverse, primer){
+
+            var key = primer ?
+                function(x) {return primer(x[field])} :
+                function(x) {return x[field]};
+
+            reverse = [-1, 1][+!!reverse];
+
+            return function (a, b) {
+                return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+            }
+        }
 
         /**
          * @private
