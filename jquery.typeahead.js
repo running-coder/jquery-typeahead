@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 0.1.2 Beta (2014-08-25)
+ * @version 0.1.3 Beta (2014-08-26)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -33,20 +33,13 @@
 
     /**
      * @private
-     * HTML5 data attributes
-     */
-    var _data = {
-        searchList: 'data-search-list'
-    };
-
-    /**
-     * @private
      * Default options
      *
      * @link http://www.runningcoder.org/jquerytypeahead/documentation/
      */
     var _options = {
         settings: {
+            jStorage: false,
             compression: false,
             order: null,
             minLength: 2,
@@ -54,7 +47,7 @@
             startCharacter: false,
             group: false,
             list: false,
-            ttl: 3600,
+            ttl: 3600000,
             backdrop: false,
             input: null,
             groupListClass: "typeahead-search-group",
@@ -77,6 +70,7 @@
      */
     var _supported = {
         settings: {
+            jStorage: [true, false],
             compression: [true, false],
             order: [null, 'asc', 'desc'],
             group: [true, false],
@@ -100,7 +94,7 @@
             isListGenerated = false,
             storageJsonList = {},
             resultList = [],
-            jsonpCallback = "window.Typeahead.jsonList['" + '#search_v1-game' + "'].populate",
+            jsonpCallback = "window.Typeahead.jsonList['" + node.selector + "'].populate",
             counter = 0,
             listLength = 0;
 
@@ -247,7 +241,7 @@
             ];
 
             $('html').on("click.wtf", function() {
-                resetSearch();
+                reset();
             });
 
             $(node).parent().on("click.wtf", function(e) {
@@ -258,7 +252,7 @@
 
                 // Simply hide the search on blur
                 //if ((e.type === "blur" || e.type === "focusout") && !listBlur) {
-                //    resetSearch();
+                //    reset();
                 //    return false;
                 //}
 
@@ -270,13 +264,13 @@
 
                 setTimeout( function () {
 
-                    if ($(input).val() === query) {
+                    if (!isListGenerated || $(input).val() === query) {
                         return false;
                     }
 
                     query = $(input).val().toLowerCase().trim();
 
-                    resetSearch();
+                    reset();
 
                     if (query.length >= options.settings.minLength && query !== "") {
                         search();
@@ -369,7 +363,7 @@
 
                                             query = result.display;
 
-                                            resetSearch();
+                                            reset();
 
                                             _executeCallback(options.callback.onClick, [node, this, result])
                                         }),
@@ -395,49 +389,48 @@
 
             $(node).parent().append(template);
 
-            if (options.settings.backdrop) {
-
-                var css = $.extend(
-                    {
-                        "opacity": 0.6,
-                        "filter": 'alpha(opacity=60)',
-                        "position": 'fixed',
-                        "top": 0,
-                        "right": 0,
-                        "bottom": 0,
-                        "left": 0,
-                        "z-index": 1040,
-                        "background-color": "#000"
-                    },
-                    options.settings.backdrop
-                );
-
-                $(node).parent()
-                    .children()
-                    .css({
-                        "z-index": css["z-index"] + 1,
-                        "position": "relative"
-                    });
-
-                $(node).parent()
-                    .append(
-                        $("<div/>", {
-                            "class": options.settings.backdropListClass,
-                            "css": css,
-                            "click": function () {
-                                resetSearch();
-                            }
-                        })
-                    );
-
+            if (!options.settings.backdrop) {
+                return;
             }
+
+            var css = $.extend(
+                {
+                    "opacity": 0.6,
+                    "filter": 'alpha(opacity=60)',
+                    "position": 'fixed',
+                    "top": 0,
+                    "right": 0,
+                    "bottom": 0,
+                    "left": 0,
+                    "z-index": 1040,
+                    "background-color": "#000"
+                },
+                options.settings.backdrop
+            );
+
+            $(node).parent().children()
+                .css({
+                    "z-index": css["z-index"] + 1,
+                    "position": "relative"
+                });
+
+            $(node).parent()
+                .append(
+                    $("<div/>", {
+                        "class": options.settings.backdropListClass,
+                        "css": css,
+                        "click": function () {
+                            reset();
+                        }
+                    })
+                );
 
         }
 
         /**
          * Clears the search result list
          */
-        function resetSearch () {
+        function reset () {
 
             resultList = [];
 
@@ -453,9 +446,7 @@
          */
         function generateList () {
 
-            var jsonList = options.settings.jsonList,
-                url,
-                path;
+            var jsonList = options.settings.jsonList;
 
             if (listLength === 0) {
                 for (var k in jsonList) {
@@ -470,13 +461,29 @@
                     continue;
                 }
 
-                if ((storageJsonList[list] && storageJsonList[list] !== {}) || (jsonList[list].storage && $.jStorage.get(jsonList[list].storage))) {
-                    console.log(list + ': already stored')
+                // Lists are loaded
+                if ((storageJsonList[list] && storageJsonList[list] !== [])) {
+                    counter++;
                     continue;
+                }
+
+                // Lists from jStorage
+                if (options.settings.jStorage && $.jStorage) {
+                    storageJsonList[list] = $.jStorage.get(node.selector + ":" + list);
+                    if (storageJsonList[list]) {
+
+                        if (options.settings.compression && typeof LZString === "object") {
+                            storageJsonList[list] = JSON.parse(LZString.decompress(storageJsonList[list]));
+                        }
+
+                        counter++;
+                        continue;
+                    }
                 }
 
                 storageJsonList[list] = [];
 
+                // Lists from configuration
                 if (jsonList[list].data && jsonList[list].data instanceof Array) {
 
                     for (var i in jsonList[list].data) {
@@ -487,25 +494,28 @@
                         jsonList[list].data[i] = {
                             display: jsonList[list].data[i]
                         }
-
                     }
 
                     storageJsonList[list] = storageJsonList[list].concat(jsonList[list].data);
 
                     if (!jsonList[list].url) {
+
+                        _populateStorage(list);
+
                         counter++;
+                        continue;
                     }
                 }
 
                 if (jsonList[list].url) {
 
-                    url = (jsonList[list].url instanceof Array && jsonList[list].url[0]) || jsonList[list].url;
-                    path = (jsonList[list].url instanceof Array && jsonList[list].url[1]) || null;
+                    var url = (jsonList[list].url instanceof Array && jsonList[list].url[0]) || jsonList[list].url,
+                        path = (jsonList[list].url instanceof Array && jsonList[list].url[1]) || null;
 
                     // Cross Domain
                     if (/https?:\/\//.test(url) && url.indexOf(window.location.host) === -1) {
 
-                        _jsonp.fetch(url + "/" + encodeURIComponent(jsonpCallback) + "/", function (data) {});
+                        _jsonp.fetch(url.replace("{callback}", encodeURIComponent(jsonpCallback)), function (data) {});
 
                     } else {
                     // Same Domain
@@ -521,15 +531,17 @@
 
                             counter++;
                             if (counter === length) {
-                                //_class._object.properties._overrideTypeahead(jsonList);
+                                isListGenerated = true;
+                                console.log('ALL LIST FETCHED (done ajax)')
                             }
 
                         }).fail( function (response) {
 
                             counter++;
-                            //if (counter === length) {
-                            //    _class._object.properties._overrideTypeahead(jsonList);
-                            //}
+                            if (counter === length) {
+                                isListGenerated = true;
+                                console.log('ALL LIST FETCHED (fail ajax)')
+                            }
                         });
 
                     }
@@ -540,18 +552,8 @@
 
             if (counter === listLength) {
                 isListGenerated = true;
-                console.log('ALL LIST FETCHED')
+                console.log('ALL LIST FETCHED (regular function)')
             }
-        }
-
-        /**
-         * Submits the form once it succeeded the validation process.
-         * Note: This function will be overridden if "options.submit.settings.onSubmit" is defined
-         */
-        function submitForm () {
-
-            node.submit();
-
         }
 
         /**
@@ -561,6 +563,17 @@
          * @param {object} data JSON response from the jsonP call
          */
         function populate (data) {
+
+            if (!data || !data.list) {
+
+                options.debug && window.Debug.log({
+                    'node': node,
+                    'function': 'populate()',
+                    'message': 'ERROR - Empty data or Missing {data.list} parameter"'
+                });
+
+                return false;
+            }
 
             var list = data.list || 'list',
                 path = (options.settings.jsonList[list].url instanceof Array) ?
@@ -582,8 +595,8 @@
          * @private
          * Common method to build the JSON lists to be cycled for matched results from data, url or cross domain url.
          *
-         * @param {array} data The raw data to be formatted
-         * @param {string} list The list name
+         * @param {array} data Raw data to be formatted
+         * @param {string} list List name
          * @param {string} [path] Optional path if the list is not on the data root
          *
          */
@@ -619,7 +632,38 @@
 
                 storageJsonList[list] = storageJsonList[list].concat(data);
 
+                _populateStorage(list);
             }
+
+        };
+
+        /**
+         * @private
+         * Store the data inside jStorage so the urls are not fetched on every pageloads
+         *
+         * @param {string} list
+         */
+        var _populateStorage = function (list) {
+
+            if (!options.settings.jStorage || !$.jStorage) {
+                return false;
+            }
+
+            var data = storageJsonList[list];
+
+            if (options.settings.compression && typeof LZString === "object") {
+                data = LZString.compress(JSON.stringify(data));
+            }
+
+            //response = base64_encode(RawDeflate.deflate(escape(JSON.stringify(response))));
+
+            $.jStorage.set(
+                node.selector + ":" + list,
+                data,
+                {
+                    TTL: options.settings.ttl
+                }
+            );
 
         };
 
@@ -841,7 +885,6 @@
 
                 node = $(options.settings.input);
 
-
                 if (!node[0] || node.length > 1) {
                     window.Debug.log({
                         'node': node,
@@ -868,7 +911,7 @@
             }
 
             return node.each(function () {
-                window.Typeahead.jsonList[node.selector] = new Typeahead(this, options);
+                window.Typeahead.jsonList[node.selector] = new Typeahead(node, options);
             });
 
         }

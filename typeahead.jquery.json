@@ -4,11 +4,11 @@
     "description": "jQuery plugin that provides Typeahead (autocomplete) preview on search inputs such a the google search with builtin options and deep customization.",
     "keywords": [
         "search",
+        "typeahead",
         "input",
-        "autocomplete",
-        "input"
+        "autocomplete"
     ],
-    "version": "0.1.2",
+    "version": "0.1.3",
     "author": {
         "name": "Tom Bertrand",
         "url": "http://www.runningcoder.org/jquerytypeahead/"
