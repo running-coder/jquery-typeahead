@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 0.1.3 Beta (2014-08-26)
+ * @version 0.1.4 Beta (2014-08-26)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -17,7 +17,7 @@
 {
 
     window.Typeahead = {
-        jsonList: {}
+        source: {}
     };
 
     /**
@@ -28,7 +28,7 @@
     }
 
     // Not using strict to avoid throwing a window error on bad config extend.
-    // console.debug is used instead to debug Validation
+    // window.Debug function is used instead
     //"use strict";
 
     /**
@@ -38,23 +38,21 @@
      * @link http://www.runningcoder.org/jquerytypeahead/documentation/
      */
     var _options = {
-        settings: {
-            jStorage: false,
-            compression: false,
-            order: null,
-            minLength: 2,
-            maxItem: 8,
-            startCharacter: false,
-            group: false,
-            list: false,
-            ttl: 3600000,
-            backdrop: false,
-            input: null,
-            groupListClass: "typeahead-search-group",
-            searchListClass: "typeahead-search",
-            backdropListClass: "typeahead-search-backdrop",
-            jsonList: {}
-        },
+        input: null,
+        minLength: 2,
+        maxItem: 8,
+        order: null,
+        position: "any",
+        list: false,
+        group: false,
+        backdrop: false,
+        jStorage: false,
+        compression: false,
+        ttl: 3600000,
+        searchListClass: "typeahead-search",
+        groupListClass: "typeahead-search-group",
+        backdropListClass: "typeahead-search-backdrop",
+        source: null,
         callback: {
             onInit: null,
             onMouseEnter: null,
@@ -69,13 +67,13 @@
      * Limit the supported options on matching keys
      */
     var _supported = {
-        settings: {
-            jStorage: [true, false],
-            compression: [true, false],
-            order: [null, 'asc', 'desc'],
-            group: [true, false],
-            jsonList: ["storage", "pattern", "data", "url"]
-        },
+        order: ["asc", "desc"],
+        position: ["any", "start"],
+        group: [true, false],
+        jStorage: [true, false],
+        compression: [true, false],
+        //source: ["data", "url"],
+        //callback: ["onInit", "onMouseEnter", "onMouseLeave", "onClick"],
         debug: [true, false]
     };
 
@@ -91,12 +89,12 @@
     var Typeahead = function (node, options) {
 
         var query = "",
-            isListGenerated = false,
-            storageJsonList = {},
-            resultList = [],
-            jsonpCallback = "window.Typeahead.jsonList['" + node.selector + "'].populate",
+            isGenerated = false,
+            storage = {},
+            result = [],
+            jsonpCallback = "window.Typeahead.source['" + node.selector + "'].populate",
             counter = 0,
-            listLength = 0;
+            length = 0;
 
         /**
          * Extends user-defined "options" into the default Typeahead "_options".
@@ -106,114 +104,60 @@
          */
         function extendOptions () {
 
-            if (!(options instanceof Object)) {
-                options = {};
-            }
-
-            if (!$.jStorage) {
+            if (!$.jStorage || !options.jStorage) {
                 options.debug && window.Debug.log({
-                    'node': node,
+                    'node': node.selector,
                     'function': 'extendOptions()',
-                    'arguments': '$.jStorage',
-                    'message': 'WARNING - It is strongly recommended to have $.jStorage available on your page to store the result set(s)'
+                    'arguments': 'options.jStorage',
+                    'message': 'WARNING - It is strongly recommended to have $.jStorage available and the option activated to store the results'
                 });
             }
 
-            var tpmOptions = Object.preventExtensions($.extend(true, {}, _options));
-
-            for (var type in options) {
-                if (!options.hasOwnProperty(type) || type === "debug") {
+            for (var option in options) {
+                if (!options.hasOwnProperty(option)) {
                     continue;
                 }
 
-                if (typeof _options[type] === "undefined") {
+                if (option === "source") {
 
-                    options.debug && window.Debug.log({
-                        'node': node,
-                        'function': 'extendOptions()',
-                        'arguments': '{' + type + ': ' + JSON.stringify(options[type]) + '}',
-                        'message': 'WARNING - Invalid option: ' + type
-                    });
-
-                    delete options[type];
-
-                    break;
-                }
-
-                for (var option in options[type]) {
-                    if (!options[type].hasOwnProperty(option)) {
-                        continue;
-                    }
-
-                    if (typeof _options[type][option] === "undefined") {
-                        options.debug && window.Debug.log({
-                            'node': node,
-                            'function': 'extendOptions()',
-                            'arguments': '{' + option + ': ' + JSON.stringify(options[type][option]) + '}',
-                            'message': 'WARNING - Invalid option: ' + option
-                        });
-
-                        delete options[type][option];
-
-                        continue;
-                    }
-
-                    if (option === "jsonList" && options[type][option] instanceof Object) {
-
-                        for (var list in options[type][option]) {
-                            if (!options[type][option].hasOwnProperty(list)) {
-                                continue;
-                            }
-
-                            if (!(options[type][option][list] instanceof Object) || list === "data") {
-                                list = "list";
-                                options[type][option] = {
-                                    list: options[type][option]
-                                };
-                            }
-
-                            for (var listOption in options[type][option][list]) {
-
-                                if (!options[type][option][list].hasOwnProperty(listOption)) {
-                                    continue;
-                                }
-
-                                if ($.inArray(listOption, _supported[type][option]) === -1) {
-
-                                    options.debug && window.Debug.log({
-                                        'node': node,
-                                        'function': 'extendOptions()',
-                                        'arguments': '{' + listOption + ': ' + JSON.stringify(options[type][option][list][listOption]) + '}',
-                                        'message': 'WARNING - Invalid jsonList option: ' + listOption
-                                    });
-
-                                    delete options[type][option][list][listOption];
-
-                                    continue;
-
-                                }
-                            }
+                    for (var list in options[option]) {
+                        if (!options[option].hasOwnProperty(list)) {
+                            continue;
                         }
 
-                    } else if (_supported[type] &&
-                        _supported[type][option] &&
-                        $.inArray(options[type][option], _supported[type][option]) === -1) {
-
-                        options.debug && window.Debug.log({
-                            'node': node,
-                            'function': 'extendOptions()',
-                            'arguments': "{" + option + ":" + JSON.stringify(options[option]) + "}",
-                            'message': 'WARNING - Unsupported option: ' + option
-                        });
-
-                        delete options[type][option];
-
+                        if (!(options[option][list] instanceof Object) || list === "data") {
+                            list = "list";
+                            options[option] = {
+                                list: options[option]
+                            };
+                        }
                     }
+
+                } else if (_supported[option] && $.inArray(options[option], _supported[option]) === -1) {
+
+                    options.debug && window.Debug.log({
+                        'node': node.selector,
+                        'function': 'extendOptions()',
+                        'arguments': "{" + option + ":" + JSON.stringify(options[option]) + "}",
+                        'message': 'WARNING - Unsupported option: ' + option
+                    });
+
+                    delete options[option];
 
                 }
             }
 
-            options = $.extend(true, tpmOptions, options);
+            options = $.extend(
+                true,
+                Object.preventExtensions(
+                    $.extend(
+                        true,
+                        {},
+                        _options
+                    )
+                ),
+                options
+            );
 
         }
 
@@ -225,38 +169,30 @@
             _executeCallback(options.callback.onInit, [node]);
 
             options.debug && window.Debug.log({
-                'node': node,
+                'node': node.selector,
                 'function': 'delegateTypeahead()',
                 'arguments': JSON.stringify(options),
-                'message': 'OK - Typeahead activated on ' + (options.settings.input || '#' + node.id || '[name="' + node.name + '"]')
+                'message': 'OK - Typeahead activated on ' + node.selector
             });
 
             var event = [
                 'focus.ac',
-                //'focusout.ac',
-                //'blur.ac',
                 'keyup.ac',
                 'keypress.ac',
                 'keydown.ac'
             ];
 
-            $('html').on("click.wtf", function() {
+            $('html').on("click.ta", function() {
                 reset();
             });
 
-            $(node).parent().on("click.wtf", function(e) {
+            $(node).parent().on("click.ta", function(e) {
                 e.stopPropagation();
             });
 
             $(node).on(event.join(' '), function (e) {
 
-                // Simply hide the search on blur
-                //if ((e.type === "blur" || e.type === "focusout") && !listBlur) {
-                //    reset();
-                //    return false;
-                //}
-
-                if (e.type === "focus" && !isListGenerated) {
+                if (e.type === "focus" && !isGenerated) {
                     generateList();
                 }
 
@@ -264,7 +200,7 @@
 
                 setTimeout( function () {
 
-                    if (!isListGenerated || $(input).val() === query) {
+                    if (!isGenerated || $(input).val() === query) {
                         return false;
                     }
 
@@ -272,7 +208,7 @@
 
                     reset();
 
-                    if (query.length >= options.settings.minLength && query !== "") {
+                    if (query.length >= options.minLength && query !== "") {
                         search();
                         buildHtml();
                     }
@@ -289,31 +225,31 @@
          */
         function search () {
 
-            for (var list in storageJsonList) {
+            for (var list in storage) {
 
-                for (var i in storageJsonList[list]) {
+                for (var i in storage[list]) {
 
-                    if (resultList.length >= options.settings.maxItem) {
+                    if (result.length >= options.maxItem) {
                         break;
                     }
 
-                    if (storageJsonList[list][i].display &&
-                        storageJsonList[list][i].display.toLowerCase().indexOf(query) !== -1 && (
-                            !options.settings.startCharacter ||
-                            storageJsonList[list][i].display.toLowerCase().indexOf(query) === 0
+                    if (storage[list][i].display &&
+                        storage[list][i].display.toLowerCase().indexOf(query) !== -1 && (
+                            options.position === "any" ||
+                            storage[list][i].display.toLowerCase().indexOf(query) === 0
                         ))
                     {
-                        storageJsonList[list][i].list = list;
-                        resultList.push(storageJsonList[list][i]);
+                        storage[list][i].list = list;
+                        result.push(storage[list][i]);
                     }
                 }
             }
 
-            if (options.settings.order) {
-                resultList.sort(
+            if (options.order) {
+                result.sort(
                     sort_by(
                         'display',
-                        (options.settings.group && !(options.settings.order === "asc")) || !!(options.settings.order === "asc"),
+                        (options.group && !(options.order === "asc")) || !!(options.order === "asc"),
                         function(a){return a.toUpperCase()}
                     )
                 );
@@ -328,17 +264,17 @@
 
             var match,
                 template = $("<div/>", {
-                "class": options.settings.searchListClass,
+                "class": options.searchListClass,
                 "html": $("<ul/>", {
                     "html": function() {
 
-                        for (var i in resultList) {
+                        for (var i in result) {
                             (function (result, scope) {
 
-                                if (options.settings.group && !$(scope).find('li[data-search-group="' + result.list + '"]')[0]) {
+                                if (options.group && !$(scope).find('li[data-search-group="' + result.list + '"]')[0]) {
                                     $(scope).append(
                                         $("<li/>", {
-                                            "class": options.settings.groupListClass,
+                                            "class": options.groupListClass,
                                             "html":  $("<a/>", {
                                                 "html": result.list
                                             }),
@@ -354,7 +290,7 @@
                                         "href": "javascript:;",
                                         "data-list": result.list,
                                         "html": result.display.replace(new RegExp(query,"i"), '<strong>' + match[0] + '</strong>') +
-                                            ((options.settings.list) ? "<small>" + result.list + "</small>" : ""),
+                                            ((options.list) ? "<small>" + result.list + "</small>" : ""),
                                         "click": ({"result": result}, function (e) {
 
                                             e.preventDefault();
@@ -367,20 +303,24 @@
 
                                             _executeCallback(options.callback.onClick, [node, this, result])
                                         }),
-                                        "mouseenter": function () { _executeCallback(options.callback.onMouseEnter, [node, this, result]); },
-                                        "mouseleave": function () { _executeCallback(options.callback.onMouseLeave, [node, this, result]); }
+                                        "mouseenter": function () {
+                                            _executeCallback(options.callback.onMouseEnter, [node, this, result]);
+                                        },
+                                        "mouseleave": function () {
+                                            _executeCallback(options.callback.onMouseLeave, [node, this, result]);
+                                        }
 
                                     })
                                 });
 
-                                if (options.settings.group) {
+                                if (options.group) {
                                     $(li).insertAfter($(scope).find('li[data-search-group="' + result.list + '"]'));
 
                                 } else {
                                     $(scope).append(li);
                                 }
 
-                            }(resultList[i], this));
+                            }(result[i], this));
                         }
 
                     }
@@ -389,7 +329,7 @@
 
             $(node).parent().append(template);
 
-            if (!options.settings.backdrop) {
+            if (!options.backdrop) {
                 return;
             }
 
@@ -405,7 +345,7 @@
                     "z-index": 1040,
                     "background-color": "#000"
                 },
-                options.settings.backdrop
+                options.backdrop
             );
 
             $(node).parent().children()
@@ -417,7 +357,7 @@
             $(node).parent()
                 .append(
                     $("<div/>", {
-                        "class": options.settings.backdropListClass,
+                        "class": options.backdropListClass,
                         "css": css,
                         "click": function () {
                             reset();
@@ -432,10 +372,10 @@
          */
         function reset () {
 
-            resultList = [];
+            result = [];
 
-            $(node).siblings('.' + options.settings.searchListClass).remove();
-            $(node).siblings('.' +options.settings.backdropListClass).remove();
+            $(node).siblings('.' + options.searchListClass).remove();
+            $(node).siblings('.' +options.backdropListClass).remove();
 
         }
 
@@ -446,34 +386,34 @@
          */
         function generateList () {
 
-            var jsonList = options.settings.jsonList;
+            var source = options.source;
 
-            if (listLength === 0) {
-                for (var k in jsonList) {
-                    if (jsonList.hasOwnProperty(k)) {
-                        ++listLength;
+            if (length === 0) {
+                for (var k in source) {
+                    if (source.hasOwnProperty(k)) {
+                        ++length;
                     }
                 }
             }
 
-            for (var list in jsonList) {
-                if (!jsonList.hasOwnProperty(list)) {
+            for (var list in source) {
+                if (!source.hasOwnProperty(list)) {
                     continue;
                 }
 
                 // Lists are loaded
-                if ((storageJsonList[list] && storageJsonList[list] !== [])) {
+                if ((storage[list] && storage[list] !== [])) {
                     counter++;
                     continue;
                 }
 
                 // Lists from jStorage
-                if (options.settings.jStorage && $.jStorage) {
-                    storageJsonList[list] = $.jStorage.get(node.selector + ":" + list);
-                    if (storageJsonList[list]) {
+                if (options.jStorage && $.jStorage) {
+                    storage[list] = $.jStorage.get(node.selector + ":" + list);
+                    if (storage[list]) {
 
-                        if (options.settings.compression && typeof LZString === "object") {
-                            storageJsonList[list] = JSON.parse(LZString.decompress(storageJsonList[list]));
+                        if (options.compression && typeof LZString === "object") {
+                            storage[list] = JSON.parse(LZString.decompress(storage[list]));
                         }
 
                         counter++;
@@ -481,24 +421,24 @@
                     }
                 }
 
-                storageJsonList[list] = [];
+                storage[list] = [];
 
                 // Lists from configuration
-                if (jsonList[list].data && jsonList[list].data instanceof Array) {
+                if (source[list].data && source[list].data instanceof Array) {
 
-                    for (var i in jsonList[list].data) {
-                        if (jsonList[list].data[i] instanceof Object) {
+                    for (var i in source[list].data) {
+                        if (source[list].data[i] instanceof Object) {
                             break;
                         }
 
-                        jsonList[list].data[i] = {
-                            display: jsonList[list].data[i]
+                        source[list].data[i] = {
+                            display: source[list].data[i]
                         }
                     }
 
-                    storageJsonList[list] = storageJsonList[list].concat(jsonList[list].data);
+                    storage[list] = storage[list].concat(source[list].data);
 
-                    if (!jsonList[list].url) {
+                    if (!source[list].url) {
 
                         _populateStorage(list);
 
@@ -507,10 +447,10 @@
                     }
                 }
 
-                if (jsonList[list].url) {
+                if (source[list].url) {
 
-                    var url = (jsonList[list].url instanceof Array && jsonList[list].url[0]) || jsonList[list].url,
-                        path = (jsonList[list].url instanceof Array && jsonList[list].url[1]) || null;
+                    var url = (source[list].url instanceof Array && source[list].url[0]) || source[list].url,
+                        path = (source[list].url instanceof Array && source[list].url[1]) || null;
 
                     // Cross Domain
                     if (/https?:\/\//.test(url) && url.indexOf(window.location.host) === -1) {
@@ -527,11 +467,11 @@
                             ajaxPath: path
                         }).done( function(data) {
 
-                            _populateJsonList(data, this.ajaxList, this.ajaxPath);
+                            _populateSource(data, this.ajaxList, this.ajaxPath);
 
                             counter++;
                             if (counter === length) {
-                                isListGenerated = true;
+                                isGenerated = true;
                                 console.log('ALL LIST FETCHED (done ajax)')
                             }
 
@@ -539,7 +479,7 @@
 
                             counter++;
                             if (counter === length) {
-                                isListGenerated = true;
+                                isGenerated = true;
                                 console.log('ALL LIST FETCHED (fail ajax)')
                             }
                         });
@@ -550,8 +490,8 @@
 
             }
 
-            if (counter === listLength) {
-                isListGenerated = true;
+            if (counter === length) {
+                isGenerated = true;
                 console.log('ALL LIST FETCHED (regular function)')
             }
         }
@@ -567,25 +507,27 @@
             if (!data || !data.list) {
 
                 options.debug && window.Debug.log({
-                    'node': node,
+                    'node': node.selector,
                     'function': 'populate()',
                     'message': 'ERROR - Empty data or Missing {data.list} parameter"'
                 });
+
+                window.Debug.print();
 
                 return false;
             }
 
             var list = data.list || 'list',
-                path = (options.settings.jsonList[list].url instanceof Array) ?
-                    options.settings.jsonList[list].url[1] : null;
+                path = (options.source[list].url instanceof Array) ?
+                    options.source[list].url[1] : null;
 
 
-            _populateJsonList(data, list, path);
+            _populateSource(data, list, path);
 
             ++counter;
 
-            if (counter === listLength) {
-                isListGenerated = true;
+            if (counter === length) {
+                isGenerated = true;
                 console.log('ALL LIST FETCHED')
             }
 
@@ -600,7 +542,7 @@
          * @param {string} [path] Optional path if the list is not on the data root
          *
          */
-        var _populateJsonList = function (data, list, path) {
+        var _populateSource = function (data, list, path) {
 
             var _isValid = true;
 
@@ -630,7 +572,7 @@
                     }
                 }
 
-                storageJsonList[list] = storageJsonList[list].concat(data);
+                storage[list] = storage[list].concat(data);
 
                 _populateStorage(list);
             }
@@ -645,23 +587,21 @@
          */
         var _populateStorage = function (list) {
 
-            if (!options.settings.jStorage || !$.jStorage) {
+            if (!options.jStorage || !$.jStorage) {
                 return false;
             }
 
-            var data = storageJsonList[list];
+            var data = storage[list];
 
-            if (options.settings.compression && typeof LZString === "object") {
+            if (options.compression && typeof LZString === "object") {
                 data = LZString.compress(JSON.stringify(data));
             }
-
-            //response = base64_encode(RawDeflate.deflate(escape(JSON.stringify(response))));
 
             $.jStorage.set(
                 node.selector + ":" + list,
                 data,
                 {
-                    TTL: options.settings.ttl
+                    TTL: options.ttl
                 }
             );
 
@@ -752,7 +692,7 @@
                 if (!_isValid || typeof _callback !== "function") {
 
                     options.debug && window.Debug.log({
-                        'node': node,
+                        'node': node.selector,
                         'function': '_executeCallback()',
                         'arguments': JSON.stringify(callback),
                         'message': 'WARNING - Invalid callback function"'
@@ -868,28 +808,39 @@
          */
         typeahead: function (node, options) {
 
+            if (!options || !options.source) {
+                window.Debug.log({
+                    'node': node.selector,
+                    'function': '$.typeahead()',
+                    'arguments': '',
+                    'message': 'Missing source option - Typeahead dropped'
+                });
+
+                window.Debug.print();
+                return;
+            }
+
             if (typeof node === "function") {
 
-                if (!options.settings.input) {
-
+                if (!options.input) {
                     window.Debug.log({
-                        'node': node,
+                        'node': node.selector,
                         'function': '$.typeahead()',
                         'arguments': '',
-                        'message': 'Undefined property "options.settings.input - Typeahead dropped'
+                        'message': 'Undefined property "options.input - Typeahead dropped'
                     });
 
                     window.Debug.print();
                     return;
                 }
 
-                node = $(options.settings.input);
+                node = $(options.input);
 
                 if (!node[0] || node.length > 1) {
                     window.Debug.log({
-                        'node': node,
+                        'node': node.selector,
                         'function': '$.typeahead()',
-                        'arguments': JSON.stringify(options.settings.input),
+                        'arguments': JSON.stringify(options.input),
                         'message': 'Unable to find jQuery input element OR more than 1 input is found - Typeahead dropped'
                     });
 
@@ -900,7 +851,7 @@
             } else if (typeof node[0] === 'undefined' || node.length > 1/* || node[0].nodeName.toLowerCase() !== "input"*/) {
 
                 window.Debug.log({
-                    'node': node,
+                    'node': node.selector,
                     'function': '$.typeahead()',
                     'arguments': '$("' + node['selector'] + '").typeahead()',
                     'message': 'Unable to find jQuery input element OR more than 1 input is found - Typeahead dropped'
@@ -911,11 +862,10 @@
             }
 
             return node.each(function () {
-                window.Typeahead.jsonList[node.selector] = new Typeahead(node, options);
+                window.Typeahead.source[node.selector] = new Typeahead(node, options);
             });
 
         }
-
 
     };
 
