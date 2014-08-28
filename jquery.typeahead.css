@@ -191,7 +191,7 @@ input {
     position: relative;
 }
 
-.typeahead-search-result > ul > li > a:hover {
+.typeahead-search-result > ul > li.active > a {
     background-color: #ebebeb;
 }
 
@@ -401,6 +401,11 @@ input {
     top: 3.4em;
     -webkit-box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.25) inset;
     box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.25) inset;
+}
+
+.typeahead-search-container.layout2 .typeahead-search-result > ul > li > a {
+    font-size: 14px;
+    text-transform: capitalize;
 }
 
 .typeahead-search-container.layout2 .typeahead-search-result > ul > li.typeahead-search-group > a {

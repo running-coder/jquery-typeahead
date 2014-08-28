@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 0.1.5 Beta (2014-08-28)
+ * @version 0.1.6 Beta (2014-08-28)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -132,7 +132,16 @@
 
                 if (option === "source") {
 
+                    if (JSON.stringify(options[option]) === "{}") {
+                        options.debug && window.Debug.log({
+                            'node': node.selector,
+                            'function': 'extendOptions()',
+                            'arguments': "{options.source}",
+                            'message': 'ERROR - source.list.url or source.list.data is Required'
+                        });
+                    }
                     for (var list in options[option]) {
+
                         if (!options[option].hasOwnProperty(list)) {
                             continue;
                         }
@@ -142,6 +151,15 @@
                             options[option] = {
                                 list: options[option]
                             };
+                        }
+
+                        if (!options[option][list].url && !options[option][list].data) {
+                            _options.debug && window.Debug.log({
+                                'node': node.selector,
+                                'function': 'extendOptions()',
+                                'arguments': "{options.source}",
+                                'message': 'ERROR - source.list.url or source.list.data is Required'
+                            });
                         }
                     }
 
@@ -190,9 +208,10 @@
             // Namespace events to avoid conflicts
             var namespace = ".typeahead",
                 event = [
+                    'filter' + namespace,
                     'focus' + namespace,
-                    'keyup' + namespace,
-                    'keypress' + namespace,
+                    //'keyup' + namespace,
+                    //'keypress' + namespace,
                     'keydown' + namespace
                 ];
 
@@ -205,6 +224,11 @@
             });
 
             $(node).on(event.join(' '), function (e) {
+
+                if (e.keyCode && $.inArray(e.keyCode, [38,39,40]) !== -1) {
+                    move(e);
+                    return;
+                }
 
                 if (e.type === "focus" && !isGenerated) {
                     generateList();
@@ -243,7 +267,7 @@
          * Search the json lists to match the search query and build the HTML and bind
          * the callbacks on the result(s) if they are set inside the configuration options
          *
-         * @param {string} filter If options.filter is enables and a filter is selected
+         * @param {string} [filter] If options.filter is enables and a filter is selected
          * only search through a selected data set
          */
         function search (filter) {
@@ -341,13 +365,22 @@
                                                 _executeCallback(options.callback.onClick, [node, this, result])
                                             }),
                                             "mouseenter": function () {
+
+                                                $(this).parents('.' + options.resultClass).find('.active').removeClass('active');
+
                                                 _executeCallback(options.callback.onMouseEnter, [node, this, result]);
                                             },
                                             "mouseleave": function () {
                                                 _executeCallback(options.callback.onMouseLeave, [node, this, result]);
                                             }
 
-                                        })
+                                        }),
+                                        "mouseenter": function () {
+
+                                            $(this).siblings('li.active').removeClass('active');
+                                            $(this).addClass('active');
+
+                                        }
                                     });
 
                                     if (options.group) {
@@ -368,10 +401,7 @@
                     .append(template);
             }
 
-            //$(node).parents('.' + options.containerClass)
-            //    .addClass('active')
-
-            if (!options.backdrop) {
+            if (!options.backdrop || query === "") {
                 return;
             }
 
@@ -406,6 +436,69 @@
                     }
                 }
             ).insertAfter($(node).parents('.' + options.containerClass))
+
+        }
+
+        /**
+         * Arrow key navigation
+         *
+         * @param {object} e Triggered keydown Event object
+         */
+        function move (e) {
+
+            if (result.length === 0) {
+                return false;
+            }
+
+            var lis = $(node).parents('.' + options.containerClass)
+                .find('.' + options.resultClass)
+                .find('li:not([data-search-group])'),
+                li = lis.siblings('.active');
+
+            li.removeClass('active');
+
+            if (e.keyCode === 40) {
+
+                e.preventDefault();
+
+                if (li[0]) {
+                    li.next().addClass('active')
+                } else {
+                    $(lis[0]).addClass('active')
+                }
+
+            } else if (e.keyCode === 38) {
+
+                e.preventDefault();
+
+                if (li[0]) {
+                    li.prev().addClass('active')
+                } else {
+                    $(lis[result.length - 1]).addClass('active')
+                }
+
+            } else if (e.keyCode === 39) {
+                reset();
+                return;
+            }
+
+            // Skip "group" selection
+            if (options.group) {
+
+                var tmpLi = lis.siblings('.active');
+                if (tmpLi.attr('data-search-group')) {
+
+                    tmpLi.removeClass('active');
+
+                    if (e.keyCode === 40) {
+                        tmpLi.next().addClass('active')
+                    } else if (e.keyCode === 38) {
+                        tmpLi.prev().addClass('active')
+                    }
+                }
+            }
+
+            $(node).val(lis.siblings('.active').text().toLowerCase() || query)
 
         }
 
@@ -514,6 +607,17 @@
                     // Cross Domain
                     if (/https?:\/\//.test(url) && url.indexOf(window.location.host) === -1) {
 
+                        if (url.indexOf('{callback}') === -1) {
+                            options.debug && window.Debug.log({
+                                'node': node.selector,
+                                'function': 'generateList()',
+                                'arguments': 'url',
+                                'message': 'ERROR - Missing {callback} string inside url, " + list + " skipped.'
+                            });
+                            counter++;
+                            continue;
+                        }
+
                         _jsonp.fetch(url.replace("{callback}", encodeURIComponent(jsonpCallback)), function (data) {});
 
                     } else {
@@ -595,20 +699,7 @@
                                                 "html": i,
                                                 "click": ({"i": i}, function (e) {
                                                     e.preventDefault();
-
-                                                    $(node).parents('.' + options.containerClass)
-                                                        .find('.' + _selector.filter)
-                                                        .text(i);
-
-                                                    $(node).parents('.' + options.containerClass)
-                                                        .find('.' + _selector.dropdown)
-                                                        .hide()
-
-                                                    reset();
-                                                    search(i);
-                                                    buildHtml();
-
-
+                                                    _selectFilter(i);
                                                 })
 
                                             })
@@ -629,22 +720,8 @@
                                             "href": "javascript:;",
                                             "html": options.filter,
                                             "click": function (e) {
-
                                                 e.preventDefault();
-
-                                                $(this).parents('.' + options.containerClass)
-                                                    .find('.' + _selector.filter)
-                                                    .text($(this).text());
-
-                                                $(node).parents('.' + options.containerClass)
-                                                    .find('.' + _selector.dropdown)
-                                                    .hide()
-
-                                                reset();
-                                                search();
-                                                buildHtml();
-
-
+                                                _selectFilter();
                                             }
                                         })
                                     })
@@ -656,6 +733,30 @@
             }).insertAfter(
                 $(node).parents('.' + options.containerClass).find('.query')
             )
+
+            /**
+             * @private
+             * Select the filter and rebuild the result list
+             *
+             * @param {string} [filter]
+             */
+            function _selectFilter(filter) {
+
+                $(node).parents('.' + options.containerClass)
+                    .find('.' + _selector.filter)
+                    .text(filter || options.filter);
+
+                $(node).parents('.' + options.containerClass)
+                    .find('.' + _selector.dropdown)
+                    .hide()
+
+                reset();
+                search(filter);
+                buildHtml();
+
+                $(node).focus();
+
+            }
 
         }
 
