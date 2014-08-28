@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 0.1.4 Beta (2014-08-26)
+ * @version 0.1.5 Beta (2014-08-28)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -45,13 +45,16 @@
         position: "any",
         list: false,
         group: false,
+        filter: false,
         backdrop: false,
         jStorage: false,
-        compression: false,
         ttl: 3600000,
-        searchListClass: "typeahead-search",
-        groupListClass: "typeahead-search-group",
-        backdropListClass: "typeahead-search-backdrop",
+        compression: false,
+        containerClass: "typeahead-search-container",
+        fieldClass: "typeahead-search-field",
+        groupClass: "typeahead-search-group",
+        resultClass: "typeahead-search-result",
+        backdropClass: "typeahead-search-backdrop",
         source: null,
         callback: {
             onInit: null,
@@ -72,9 +75,18 @@
         group: [true, false],
         jStorage: [true, false],
         compression: [true, false],
-        //source: ["data", "url"],
+        //source: ["data", "url", "ignore"],
         //callback: ["onInit", "onMouseEnter", "onMouseLeave", "onClick"],
         debug: [true, false]
+    }
+
+    /**
+     * @private
+     * Class selectors to reach class-constructed elements
+     */
+    var _selector = {
+        filter: "typeahead-filter",
+        dropdown: "typeahead-dropdown"
     };
 
     // =================================================================================================================
@@ -175,18 +187,20 @@
                 'message': 'OK - Typeahead activated on ' + node.selector
             });
 
-            var event = [
-                'focus.ac',
-                'keyup.ac',
-                'keypress.ac',
-                'keydown.ac'
-            ];
+            // Namespace events to avoid conflicts
+            var namespace = ".typeahead",
+                event = [
+                    'focus' + namespace,
+                    'keyup' + namespace,
+                    'keypress' + namespace,
+                    'keydown' + namespace
+                ];
 
-            $('html').on("click.ta", function() {
+            $('html').on("click" + namespace, function() {
                 reset();
             });
 
-            $(node).parent().on("click.ta", function(e) {
+            $(node).parents('.' + options.containerClass).on("click" + namespace, function(e) {
                 e.stopPropagation();
             });
 
@@ -196,7 +210,13 @@
                     generateList();
                 }
 
-                var input = this;
+                var input = this,
+                    filter = options.filter &&
+                        $(node).parents('.' + options.containerClass).find('.' + _selector.filter).text();
+
+                if (filter && filter.toLowerCase() === options.filter.toLowerCase()) {
+                    filter = null;
+                }
 
                 setTimeout( function () {
 
@@ -209,7 +229,7 @@
                     reset();
 
                     if (query.length >= options.minLength && query !== "") {
-                        search();
+                        search(filter);
                         buildHtml();
                     }
 
@@ -222,10 +242,21 @@
         /**
          * Search the json lists to match the search query and build the HTML and bind
          * the callbacks on the result(s) if they are set inside the configuration options
+         *
+         * @param {string} filter If options.filter is enables and a filter is selected
+         * only search through a selected data set
          */
-        function search () {
+        function search (filter) {
+
+            if (query === "") {
+                return false;
+            }
 
             for (var list in storage) {
+
+                if (filter && list !== filter) {
+                    continue;
+                }
 
                 for (var i in storage[list]) {
 
@@ -239,6 +270,10 @@
                             storage[list][i].display.toLowerCase().indexOf(query) === 0
                         ))
                     {
+                        if (options.source[list].ignore && $.inArray(storage[list][i].display, options.source[list].ignore) !== -1) {
+                            continue;
+                        }
+
                         storage[list][i].list = list;
                         result.push(storage[list][i]);
                     }
@@ -249,7 +284,7 @@
                 result.sort(
                     sort_by(
                         'display',
-                        (options.group && !(options.order === "asc")) || !!(options.order === "asc"),
+                        (options.group) ? !(options.order === "asc") : !!(options.order === "asc"),
                         function(a){return a.toUpperCase()}
                     )
                 );
@@ -262,72 +297,79 @@
          */
         function buildHtml () {
 
-            var match,
-                template = $("<div/>", {
-                "class": options.searchListClass,
-                "html": $("<ul/>", {
-                    "html": function() {
+            if (result.length !== 0) {
 
-                        for (var i in result) {
-                            (function (result, scope) {
+                var match,
+                    template = $("<div/>", {
+                    "class": options.resultClass,
+                    "html": $("<ul/>", {
+                        "html": function() {
 
-                                if (options.group && !$(scope).find('li[data-search-group="' + result.list + '"]')[0]) {
-                                    $(scope).append(
-                                        $("<li/>", {
-                                            "class": options.groupListClass,
-                                            "html":  $("<a/>", {
-                                                "html": result.list
+                            for (var i in result) {
+                                (function (result, scope) {
+
+                                    if (options.group && !$(scope).find('li[data-search-group="' + result.list + '"]')[0]) {
+                                        $(scope).append(
+                                            $("<li/>", {
+                                                "class": options.groupClass,
+                                                "html":  $("<a/>", {
+                                                    "html": result.list
+                                                }),
+                                                "data-search-group": result.list
+                                            })
+                                        );
+                                    }
+
+                                    match = result.display.match(new RegExp(query,"i"));
+
+                                    var li = $("<li/>", {
+                                        "html":  $("<a/>", {
+                                            "href": "javascript:;",
+                                            "data-list": result.list,
+                                            "html": result.display.replace(new RegExp(query,"i"), '<strong>' + match[0] + '</strong>') +
+                                                ((options.list) ? "<small>" + result.list + "</small>" : ""),
+                                            "click": ({"result": result}, function (e) {
+
+                                                e.preventDefault();
+
+                                                $(node).val(result.display).focus();
+
+                                                query = result.display;
+
+                                                reset();
+
+                                                _executeCallback(options.callback.onClick, [node, this, result])
                                             }),
-                                            "data-search-group": result.list
+                                            "mouseenter": function () {
+                                                _executeCallback(options.callback.onMouseEnter, [node, this, result]);
+                                            },
+                                            "mouseleave": function () {
+                                                _executeCallback(options.callback.onMouseLeave, [node, this, result]);
+                                            }
+
                                         })
-                                    );
-                                }
+                                    });
 
-                                match = result.display.match(new RegExp(query,"i"));
+                                    if (options.group) {
+                                        $(li).insertAfter($(scope).find('li[data-search-group="' + result.list + '"]'));
+                                    } else {
+                                        $(scope).append(li);
+                                    }
 
-                                var li = $("<li/>", {
-                                    "html":  $("<a/>", {
-                                        "href": "javascript:;",
-                                        "data-list": result.list,
-                                        "html": result.display.replace(new RegExp(query,"i"), '<strong>' + match[0] + '</strong>') +
-                                            ((options.list) ? "<small>" + result.list + "</small>" : ""),
-                                        "click": ({"result": result}, function (e) {
+                                }(result[i], this));
+                            }
 
-                                            e.preventDefault();
-
-                                            $(node).val(result.display).focus();
-
-                                            query = result.display;
-
-                                            reset();
-
-                                            _executeCallback(options.callback.onClick, [node, this, result])
-                                        }),
-                                        "mouseenter": function () {
-                                            _executeCallback(options.callback.onMouseEnter, [node, this, result]);
-                                        },
-                                        "mouseleave": function () {
-                                            _executeCallback(options.callback.onMouseLeave, [node, this, result]);
-                                        }
-
-                                    })
-                                });
-
-                                if (options.group) {
-                                    $(li).insertAfter($(scope).find('li[data-search-group="' + result.list + '"]'));
-
-                                } else {
-                                    $(scope).append(li);
-                                }
-
-                            }(result[i], this));
                         }
+                    })
+                });
 
-                    }
-                })
-            });
+                $(node).parents('.' + options.containerClass)
+                    .addClass('result')
+                    .append(template);
+            }
 
-            $(node).parent().append(template);
+            //$(node).parents('.' + options.containerClass)
+            //    .addClass('active')
 
             if (!options.backdrop) {
                 return;
@@ -348,22 +390,22 @@
                 options.backdrop
             );
 
-            $(node).parent().children()
+            $(node).parents('.' + options.containerClass)
+                .addClass('backdrop')
                 .css({
                     "z-index": css["z-index"] + 1,
                     "position": "relative"
                 });
 
-            $(node).parent()
-                .append(
-                    $("<div/>", {
-                        "class": options.backdropListClass,
-                        "css": css,
-                        "click": function () {
-                            reset();
-                        }
-                    })
-                );
+
+            $("<div/>", {
+                    "class": options.backdropClass,
+                    "css": css,
+                    "click": function () {
+                        reset();
+                    }
+                }
+            ).insertAfter($(node).parents('.' + options.containerClass))
 
         }
 
@@ -374,8 +416,25 @@
 
             result = [];
 
-            $(node).siblings('.' + options.searchListClass).remove();
-            $(node).siblings('.' +options.backdropListClass).remove();
+            var containerClass = $(node).parents('.' + options.containerClass);
+
+            if (options.filter) {
+                containerClass
+                    .removeClass('filter')
+                    .find('.' + _selector.dropdown)
+                    .hide();
+            }
+
+            containerClass
+                .removeClass('result')
+                .find('.' + options.resultClass)
+                .remove();
+
+            containerClass
+                .removeClass('backdrop')
+                .removeAttr('style')
+                .siblings('.' + options.backdropClass)
+                .remove();
 
         }
 
@@ -494,6 +553,110 @@
                 isGenerated = true;
                 console.log('ALL LIST FETCHED (regular function)')
             }
+        }
+
+        /**
+         * Attach events to the dropdown list when options.filter is activated
+         */
+        function delegateDropdown () {
+
+            if (!options.filter) {
+                return false;
+            }
+
+            $('<span/>', {
+                "class": "list",
+                "html": function () {
+
+                    $(this).append(
+                        $('<button/>', {
+                            "type": "button",
+                            "html": "<span class='" + _selector.filter + "'>" + options.filter + "</span> <span class='caret'></span>",
+                            "click": function () {
+                                $(this).parents('.' + options.containerClass)
+                                    .addClass('filter')
+                                    .find('.' + _selector.dropdown).show()
+                            }
+                        })
+                    )
+
+                    $(this).append(
+                        $('<ul/>', {
+                            "class": _selector.dropdown,
+                            "html": function () {
+
+                                for (var i in options.source) {
+                                    (function (i, scope) {
+
+
+                                        var li = $("<li/>", {
+                                            "html":  $("<a/>", {
+                                                "href": "javascript:;",
+                                                "html": i,
+                                                "click": ({"i": i}, function (e) {
+                                                    e.preventDefault();
+
+                                                    $(node).parents('.' + options.containerClass)
+                                                        .find('.' + _selector.filter)
+                                                        .text(i);
+
+                                                    $(node).parents('.' + options.containerClass)
+                                                        .find('.' + _selector.dropdown)
+                                                        .hide()
+
+                                                    reset();
+                                                    search(i);
+                                                    buildHtml();
+
+
+                                                })
+
+                                            })
+                                        });
+                                        $(scope).append(li);
+                                    }(i, this));
+                                }
+
+                                $(this).append(
+                                    $("<li/>", {
+                                        "class": "divider"
+                                    })
+                                );
+
+                                $(this).append(
+                                    $("<li/>", {
+                                        "html":  $("<a/>", {
+                                            "href": "javascript:;",
+                                            "html": options.filter,
+                                            "click": function (e) {
+
+                                                e.preventDefault();
+
+                                                $(this).parents('.' + options.containerClass)
+                                                    .find('.' + _selector.filter)
+                                                    .text($(this).text());
+
+                                                $(node).parents('.' + options.containerClass)
+                                                    .find('.' + _selector.dropdown)
+                                                    .hide()
+
+                                                reset();
+                                                search();
+                                                buildHtml();
+
+
+                                            }
+                                        })
+                                    })
+                                );
+                            }
+                        })
+                    )
+                }
+            }).insertAfter(
+                $(node).parents('.' + options.containerClass).find('.query')
+            )
+
         }
 
         /**
@@ -753,6 +916,7 @@
 
             extendOptions();
             delegateTypeahead();
+            delegateDropdown();
 
             window.Debug && window.Debug.print();
 
