@@ -208,7 +208,6 @@
             // Namespace events to avoid conflicts
             var namespace = ".typeahead",
                 event = [
-                    'filter' + namespace,
                     'focus' + namespace,
                     //'keyup' + namespace,
                     //'keypress' + namespace,
