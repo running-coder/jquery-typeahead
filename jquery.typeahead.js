@@ -497,6 +497,7 @@
                     }
                 }
             }
+
             $(node).val(lis.filter('.active').clone().find('small').remove().end().text().toLowerCase() || query)
 
         }
