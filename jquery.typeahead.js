@@ -498,7 +498,7 @@
                 }
             }
 
-            $(node).val(lis.siblings('.active').text().toLowerCase() || query)
+            $(node).val(lis.filter('.active').text().toLowerCase() || query)
 
         }
 
