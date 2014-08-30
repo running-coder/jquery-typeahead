@@ -209,9 +209,7 @@
             var namespace = ".typeahead.input",
                 event = [
                     'focus' + namespace,
-                    //'keyup' + namespace,
-                    //'keypress' + namespace,
-                    'keydown' + namespace
+                    'keyup' + namespace
                 ];
 
             $('html').on("click" + namespace, function(e) {
@@ -241,30 +239,25 @@
                     return;
                 }
 
-                var input = this,
-                    filter = options.filter &&
+                var filter = options.filter &&
                         $(node).parents('.' + options.containerClass).find('.' + _selector.filter).text();
 
                 if (filter && filter.toLowerCase() === options.filter.toLowerCase()) {
                     filter = null;
                 }
 
-                setTimeout( function () {
+                if (!isGenerated || $(this).val() === query) {
+                    return false;
+                }
 
-                    if (!isGenerated || $(input).val() === query) {
-                        return false;
-                    }
+                query = $(this).val().toLowerCase().trim();
 
-                    query = $(input).val().toLowerCase().trim();
+                reset();
 
-                    reset();
-
-                    if (query.length >= options.minLength && query !== "") {
-                        search(filter);
-                        buildHtml();
-                    }
-
-                }, 0, e, input);
+                if (query.length >= options.minLength && query !== "") {
+                    search(filter);
+                    buildHtml();
+                }
 
             });
 
