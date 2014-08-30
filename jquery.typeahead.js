@@ -100,13 +100,13 @@
      */
     var Typeahead = function (node, options) {
 
-        var query = "",
-            isGenerated = false,
-            storage = {},
-            result = [],
+        var query = "",         // user query
+            isGenerated = null, // null: not yet generating, false: generating, true generated
+            storage = [],       // generated source
+            result = [],        // matched result(s) (source vs query)
             jsonpCallback = "window.Typeahead.source['" + node.selector + "'].populate",
-            counter = 0,
-            length = 0;
+            counter = 0,        // generated source counter
+            length = 0;         // source length
 
         /**
          * Extends user-defined "options" into the default Typeahead "_options".
@@ -206,7 +206,7 @@
             });
 
             // Namespace events to avoid conflicts
-            var namespace = ".typeahead",
+            var namespace = ".typeahead.input",
                 event = [
                     'focus' + namespace,
                     //'keyup' + namespace,
@@ -214,12 +214,19 @@
                     'keydown' + namespace
                 ];
 
-            $('html').on("click" + namespace, function() {
+            $('html').on("click" + namespace, function(e) {
                 reset();
             });
 
             $(node).parents('.' + options.containerClass).on("click" + namespace, function(e) {
+
                 e.stopPropagation();
+
+                if (options.filter) {
+                    $(node).parents('.' + options.containerClass)
+                        .find('.' + _selector.dropdown)
+                        .hide();
+                }
             });
 
             $(node).on(event.join(' '), function (e) {
@@ -229,8 +236,9 @@
                     return;
                 }
 
-                if (e.type === "focus" && !isGenerated) {
-                    generateList();
+                if (e.type === "focus" && isGenerated === null) {
+                    generate();
+                    return;
                 }
 
                 var input = this,
@@ -305,7 +313,7 @@
 
             if (options.order) {
                 result.sort(
-                    sort_by(
+                    _sort(
                         'display',
                         (options.group) ? !(options.order === "asc") : !!(options.order === "asc"),
                         function(a){return a.toUpperCase()}
@@ -531,30 +539,29 @@
         }
 
         /**
-         * Depending on the list format given by the initialization, this method
-         * concats (if needed) and build unified json Lists.
-         * Supports inline data, same-domain ajax and crossdomain ajax (jsonP)
+         * Depending on the source option format given by the initialization,
+         * this method will build unified source list(s).
          */
-        function generateList () {
+        function generate () {
 
-            var source = options.source;
+            isGenerated = false;
 
             if (length === 0) {
-                for (var k in source) {
-                    if (source.hasOwnProperty(k)) {
+                for (var k in options.source) {
+                    if (options.source.hasOwnProperty(k)) {
                         ++length;
                     }
                 }
             }
 
-            for (var list in source) {
-                if (!source.hasOwnProperty(list)) {
+            for (var list in options.source) {
+                if (!options.source.hasOwnProperty(list)) {
                     continue;
                 }
 
                 // Lists are loaded
-                if ((storage[list] && storage[list] !== [])) {
-                    counter++;
+                if ((storage[list] && storage[list].length !== 0)) {
+                    _increment();
                     continue;
                 }
 
@@ -566,8 +573,8 @@
                         if (options.compression && typeof LZString === "object") {
                             storage[list] = JSON.parse(LZString.decompress(storage[list]));
                         }
+                        _increment();
 
-                        counter++;
                         continue;
                     }
                 }
@@ -575,33 +582,33 @@
                 storage[list] = [];
 
                 // Lists from configuration
-                if (source[list].data && source[list].data instanceof Array) {
+                if (options.source[list].data && options.source[list].data instanceof Array) {
 
-                    for (var i in source[list].data) {
-                        if (source[list].data[i] instanceof Object) {
+                    for (var i in options.source[list].data) {
+                        if (options.source[list].data[i] instanceof Object) {
                             break;
                         }
 
-                        source[list].data[i] = {
-                            display: source[list].data[i]
+                        options.source[list].data[i] = {
+                            display: options.source[list].data[i]
                         }
                     }
 
-                    storage[list] = storage[list].concat(source[list].data);
+                    storage[list] = storage[list].concat(options.source[list].data);
 
-                    if (!source[list].url) {
+                    if (!options.source[list].url) {
 
                         _populateStorage(list);
+                        _increment();
 
-                        counter++;
                         continue;
                     }
                 }
 
-                if (source[list].url) {
+                if (options.source[list].url) {
 
-                    var url = (source[list].url instanceof Array && source[list].url[0]) || source[list].url,
-                        path = (source[list].url instanceof Array && source[list].url[1]) || null;
+                    var url = (options.source[list].url instanceof Array && options.source[list].url[0]) || options.source[list].url,
+                        path = (options.source[list].url instanceof Array && options.source[list].url[1]) || null;
 
                     // Cross Domain
                     if (/https?:\/\//.test(url) && url.indexOf(window.location.host) === -1) {
@@ -609,11 +616,13 @@
                         if (url.indexOf('{callback}') === -1) {
                             options.debug && window.Debug.log({
                                 'node': node.selector,
-                                'function': 'generateList()',
+                                'function': 'generate()',
                                 'arguments': 'url',
                                 'message': 'ERROR - Missing {callback} string inside url, " + list + " skipped.'
                             });
-                            counter++;
+
+                            _increment();
+
                             continue;
                         }
 
@@ -630,20 +639,19 @@
                         }).done( function(data) {
 
                             _populateSource(data, this.ajaxList, this.ajaxPath);
-
-                            counter++;
-                            if (counter === length) {
-                                isGenerated = true;
-                                console.log('ALL LIST FETCHED (done ajax)')
-                            }
+                            _increment();
 
                         }).fail( function (response) {
 
-                            counter++;
-                            if (counter === length) {
-                                isGenerated = true;
-                                console.log('ALL LIST FETCHED (fail ajax)')
-                            }
+                            options.debug && window.Debug.log({
+                                'node': node.selector,
+                                'function': 'generate()',
+                                'arguments': '{source: ' + this.ajaxList + '}',
+                                'message': 'ERROR - Ajax request failed.'
+                            });
+
+                            _increment();
+
                         });
 
                     }
@@ -652,10 +660,21 @@
 
             }
 
-            if (counter === length) {
-                isGenerated = true;
-                console.log('ALL LIST FETCHED (regular function)')
+            /**
+             * @private
+             * Increment the list count until all the source(s) are found and trigger a "ready" state
+             * Note: ajax / jsonp request might have a delay depending on the connectivity
+             */
+            function _increment () {
+
+                counter++;
+
+                if (counter === length) {
+                    isGenerated = true;
+                }
+
             }
+
         }
 
         /**
@@ -675,10 +694,21 @@
                         $('<button/>', {
                             "type": "button",
                             "html": "<span class='" + _selector.filter + "'>" + options.filter + "</span> <span class='caret'></span>",
-                            "click": function () {
-                                $(this).parents('.' + options.containerClass)
-                                    .addClass('filter')
-                                    .find('.' + _selector.dropdown).show()
+                            "click": function (e) {
+
+                                e.stopPropagation();
+
+                                var container = $(this).parents('.' + options.containerClass),
+                                    filter = container.find('.' + _selector.dropdown);
+
+                                if (!filter.is(':visible')) {
+                                    container.addClass('filter')
+                                    filter.show();
+                                } else {
+                                    container.removeClass('filter')
+                                    filter.hide();
+                                }
+
                             }
                         })
                     )
@@ -880,7 +910,7 @@
          *
          * @returns {Function}
          */
-        var sort_by = function(field, reverse, primer){
+        var _sort = function(field, reverse, primer){
 
             var key = primer ?
                 function(x) {return primer(x[field])} :
@@ -1056,7 +1086,13 @@
      * API to handles Enabling the Typeahead via jQuery.
      *
      * @example
-     * $.typeahead({})
+     * $.typeahead({
+     *     maxItem: 10,
+     *     order: "asc",
+     *     source: {
+     *         data: ["country1", "country2", "country3"]
+     *     }
+     * })
      *
      * @returns {object} Updated DOM object
      */
