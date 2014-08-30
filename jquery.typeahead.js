@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 0.1.6 Beta (2014-08-28)
+ * @version 0.1.7 Beta (2014-08-30)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
