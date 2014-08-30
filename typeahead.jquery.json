@@ -8,7 +8,7 @@
         "input",
         "autocomplete"
     ],
-    "version": "0.1.7",
+    "version": "1.0.0",
     "author": {
         "name": "Tom Bertrand",
         "url": "http://www.runningcoder.org/jquerytypeahead/"

@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 0.1.7 Beta (2014-08-30)
+ * @version 1.0.0 (2014-08-30)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -12,6 +12,9 @@
  *
  * @license
  * Licensed under the MIT license.
+ *
+ * @note
+ * Remove debug code: //\s?\{debug\}[\s\S]*?\{/debug\}
  */
 (function (window, document, $, undefined)
 {
@@ -78,7 +81,7 @@
         //source: ["data", "url", "ignore"],
         //callback: ["onInit", "onMouseEnter", "onMouseLeave", "onClick"],
         debug: [true, false]
-    }
+    };
 
     /**
      * @private
@@ -119,6 +122,7 @@
          */
         function extendOptions () {
 
+            // {debug}
             if (!$.jStorage || !options.jStorage) {
                 options.debug && window.Debug.log({
                     'node': node.selector,
@@ -127,6 +131,7 @@
                     'message': 'WARNING - It is strongly recommended to have $.jStorage available and the option activated to store the results'
                 });
             }
+            // {/debug}
 
             for (var option in options) {
                 if (!options.hasOwnProperty(option)) {
@@ -135,6 +140,7 @@
 
                 if (option === "source") {
 
+                    // {debug}
                     if (JSON.stringify(options[option]) === "{}") {
                         options.debug && window.Debug.log({
                             'node': node.selector,
@@ -143,6 +149,8 @@
                             'message': 'ERROR - source.list.url or source.list.data is Required'
                         });
                     }
+                    // {/debug}
+
                     for (var list in options[option]) {
 
                         if (!options[option].hasOwnProperty(list)) {
@@ -156,6 +164,7 @@
                             };
                         }
 
+                        // {debug}
                         if (!options[option][list].url && !options[option][list].data) {
                             _options.debug && window.Debug.log({
                                 'node': node.selector,
@@ -164,16 +173,19 @@
                                 'message': 'ERROR - source.list.url or source.list.data is Required'
                             });
                         }
+                        // {/debug}
                     }
 
                 } else if (_supported[option] && $.inArray(options[option], _supported[option]) === -1) {
 
+                    // {debug}
                     options.debug && window.Debug.log({
                         'node': node.selector,
                         'function': 'extendOptions()',
                         'arguments': "{" + option + ":" + JSON.stringify(options[option]) + "}",
                         'message': 'WARNING - Unsupported option: ' + option
                     });
+                    // {/debug}
 
                     delete options[option];
 
@@ -201,18 +213,21 @@
 
             _executeCallback(options.callback.onInit, [node]);
 
+            // {debug}
             options.debug && window.Debug.log({
                 'node': node.selector,
                 'function': 'delegateTypeahead()',
                 'arguments': JSON.stringify(options),
                 'message': 'OK - Typeahead activated on ' + node.selector
             });
+            // {/debug}
 
             // Namespace events to avoid conflicts
             var namespace = ".typeahead.input",
                 event = [
                     'focus' + namespace,
-                    'keyup' + namespace
+                    'keyup' + namespace,
+                    'input' + namespace
                 ];
 
             $('html').on("click" + namespace, function(e) {
@@ -232,21 +247,16 @@
 
             $(node).on(event.join(' '), function (e) {
 
-                if (e.keyCode && $.inArray(e.keyCode, [38,39,40]) !== -1) {
-                    move(e);
+                if (e.type === "keyup") {
+                    if (e.keyCode && $.inArray(e.keyCode, [38,39,40]) !== -1) {
+                        move(e);
+                    }
                     return;
                 }
 
                 if (e.type === "focus" && isGenerated === null) {
                     generate();
                     return;
-                }
-
-                var filter = options.filter &&
-                        $(node).parents('.' + options.containerClass).find('.' + _selector.filterValue).text();
-
-                if (filter && filter.toLowerCase() === options.filter.toLowerCase()) {
-                    filter = null;
                 }
 
                 if (!isGenerated || $(this).val() === query) {
@@ -258,11 +268,21 @@
                 reset();
 
                 if (query.length >= options.minLength && query !== "") {
-                    search(filter);
+                    search(detectFilter());
                     buildHtml();
                 }
 
             });
+
+            function detectFilter () {
+
+                if (!options.filter) {
+                    return false;
+                }
+
+                return $(node).parents('.' + options.containerClass).find('.' + _selector.filterValue).text();
+
+            }
 
         }
 
@@ -270,13 +290,17 @@
          * Search the json lists to match the search query and build the HTML and bind
          * the callbacks on the result(s) if they are set inside the configuration options
          *
-         * @param {string} [filter] If options.filter is enables and a filter is selected
+         * @param {string|boolean} [filter] If options.filter is enables and a filter is selected
          * only search through a selected data set
          */
         function search (filter) {
 
             if (query === "") {
                 return false;
+            }
+
+            if (filter && !options.source[filter]) {
+                filter = false;
             }
 
             for (var list in storage) {
@@ -444,8 +468,11 @@
 
         /**
          * Arrow key navigation
+         * Top: scroll top, skip "group" item
+         * Bottom: scroll bottom, skip "group" item
+         * Right: select item
          *
-         * @param {object} e Triggered keydown Event object
+         * @param {object} e Triggered keyup Event object
          */
         function move (e) {
 
@@ -458,7 +485,9 @@
                 .find('li:not([data-search-group])'),
                 li = lis.siblings('.active');
 
-            li.removeClass('active');
+            if (lis.length > 1) {
+                li.removeClass('active');
+            }
 
             if (e.keyCode === 40) {
 
@@ -467,7 +496,7 @@
                 if (li[0]) {
                     li.next().addClass('active')
                 } else {
-                    $(lis[0]).addClass('active')
+                    $(lis[0]).toggleClass('active')
                 }
 
             } else if (e.keyCode === 38) {
@@ -477,7 +506,7 @@
                 if (li[0]) {
                     li.prev().addClass('active')
                 } else {
-                    $(lis[result.length - 1]).addClass('active')
+                    $(lis[result.length - 1]).toggleClass('active')
                 }
 
             } else if (e.keyCode === 39) {
@@ -485,7 +514,6 @@
                 return;
             }
 
-            // Skip "group" selection
             if (options.group) {
 
                 var tmpLi = lis.siblings('.active');
@@ -501,12 +529,13 @@
                 }
             }
 
-            $(node).val(lis.filter('.active').clone().find('small').remove().end().text().toLowerCase() || query)
+            $(node).val(lis.filter('.active').clone().find('small').remove().end().text().toLowerCase() || query);
 
         }
 
         /**
-         * Clears the search result list
+         * Reset Typeahead to it's initial state.
+         * Clear filter, result and backdrop
          */
         function reset () {
 
@@ -536,7 +565,7 @@
 
         /**
          * Depending on the source option format given by the initialization,
-         * this method will build unified source list(s).
+         * generates unified source list(s).
          */
         function generate () {
 
@@ -610,12 +639,15 @@
                     if (/https?:\/\//.test(url) && url.indexOf(window.location.host) === -1) {
 
                         if (url.indexOf('{callback}') === -1) {
+
+                            // {debug}
                             options.debug && window.Debug.log({
                                 'node': node.selector,
                                 'function': 'generate()',
                                 'arguments': 'url',
                                 'message': 'ERROR - Missing {callback} string inside url, " + list + " skipped.'
                             });
+                            // {/debug}
 
                             _increment();
 
@@ -639,12 +671,14 @@
 
                         }).fail( function (response) {
 
+                            // {debug}
                             options.debug && window.Debug.log({
                                 'node': node.selector,
                                 'function': 'generate()',
                                 'arguments': '{source: ' + this.ajaxList + '}',
                                 'message': 'ERROR - Ajax request failed.'
                             });
+                            // {/debug}
 
                             _increment();
 
@@ -656,25 +690,10 @@
 
             }
 
-            /**
-             * @private
-             * Increment the list count until all the source(s) are found and trigger a "ready" state
-             * Note: ajax / jsonp request might have a delay depending on the connectivity
-             */
-            function _increment () {
-
-                counter++;
-
-                if (counter === length) {
-                    isGenerated = true;
-                }
-
-            }
-
         }
 
         /**
-         * Attach events to the dropdown list when options.filter is activated
+         * Builds Html and attach events to the dropdown list when options.filter is activated
          */
         function delegateDropdown () {
 
@@ -789,12 +808,13 @@
          * @public
          * This method will be called by the jsonP callback to populate the JSON list
          *
-         * @param {object} data JSON response from the jsonP call
+         * @param {array|object} data JSON response from the jsonP call
          */
         function populate (data) {
 
             if (!data || !data.list) {
 
+                // {debug}
                 options.debug && window.Debug.log({
                     'node': node.selector,
                     'function': 'populate()',
@@ -802,6 +822,7 @@
                 });
 
                 window.Debug.print();
+                // {/debug}
 
                 return false;
             }
@@ -813,12 +834,7 @@
 
             _populateSource(data, list, path);
 
-            ++counter;
-
-            if (counter === length) {
-                isGenerated = true;
-                console.log('ALL LIST FETCHED')
-            }
+            _increment();
 
         }
 
@@ -826,7 +842,7 @@
          * @private
          * Common method to build the JSON lists to be cycled for matched results from data, url or cross domain url.
          *
-         * @param {array} data Raw data to be formatted
+         * @param {array|object} data Raw data to be formatted
          * @param {string} list List name
          * @param {string} [path] Optional path if the list is not on the data root
          *
@@ -895,6 +911,21 @@
             );
 
         };
+
+        /**
+         * @private
+         * Increment the list count until all the source(s) are found and trigger a "ready" state
+         * Note: ajax / jsonp request might have a delay depending on the connectivity
+         */
+        function _increment () {
+
+            counter++;
+
+            if (counter === length) {
+                isGenerated = true;
+            }
+
+        }
 
         /**
          * @private
@@ -980,12 +1011,14 @@
 
                 if (!_isValid || typeof _callback !== "function") {
 
+                    // {debug}
                     options.debug && window.Debug.log({
                         'node': node.selector,
                         'function': '_executeCallback()',
                         'arguments': JSON.stringify(callback),
                         'message': 'WARNING - Invalid callback function"'
                     });
+                    // {/debug}
 
                     return false;
                 }
@@ -1044,7 +1077,9 @@
             delegateTypeahead();
             delegateDropdown();
 
+            // {debug}
             window.Debug && window.Debug.print();
+            // {/debug}
 
         }();
 
@@ -1082,7 +1117,7 @@
      * API to handles Enabling the Typeahead via jQuery.
      *
      * @example
-     * $.typeahead({
+     * $("#myInput").typeahead({
      *     maxItem: 10,
      *     order: "asc",
      *     source: {
@@ -1105,6 +1140,8 @@
         typeahead: function (node, options) {
 
             if (!options || !options.source) {
+
+                // {debug}
                 window.Debug.log({
                     'node': node.selector,
                     'function': '$.typeahead()',
@@ -1113,12 +1150,16 @@
                 });
 
                 window.Debug.print();
+                // {/debug}
+
                 return;
             }
 
             if (typeof node === "function") {
 
                 if (!options.input) {
+
+                    // {debug}
                     window.Debug.log({
                         'node': node.selector,
                         'function': '$.typeahead()',
@@ -1127,12 +1168,16 @@
                     });
 
                     window.Debug.print();
+                    // {/debug}
+
                     return;
                 }
 
                 node = $(options.input);
 
                 if (!node[0] || node.length > 1) {
+
+                    // {debug}
                     window.Debug.log({
                         'node': node.selector,
                         'function': '$.typeahead()',
@@ -1141,11 +1186,14 @@
                     });
 
                     window.Debug.print();
+                    // {/debug}
+
                     return;
                 }
 
-            } else if (typeof node[0] === 'undefined' || node.length > 1/* || node[0].nodeName.toLowerCase() !== "input"*/) {
+            } else if (typeof node[0] === 'undefined' || node.length > 1) {
 
+                // {debug}
                 window.Debug.log({
                     'node': node.selector,
                     'function': '$.typeahead()',
@@ -1154,6 +1202,8 @@
                 });
 
                 window.Debug.print();
+                // {/debug}
+
                 return;
             }
 
@@ -1165,6 +1215,7 @@
 
     };
 
+    // {debug}
     window.Debug = {
 
         table: {},
@@ -1214,5 +1265,6 @@
         }
 
     };
+    // {/debug}
 
 }(window, document, window.jQuery));
