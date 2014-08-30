@@ -85,7 +85,10 @@
      * Class selectors to reach class-constructed elements
      */
     var _selector = {
+        query: "typeahead-query",
         filter: "typeahead-filter",
+        button: "typeahead-button",
+        filterValue: "typeahead-filter-value",
         dropdown: "typeahead-dropdown"
     };
 
@@ -240,7 +243,7 @@
                 }
 
                 var filter = options.filter &&
-                        $(node).parents('.' + options.containerClass).find('.' + _selector.filter).text();
+                        $(node).parents('.' + options.containerClass).find('.' + _selector.filterValue).text();
 
                 if (filter && filter.toLowerCase() === options.filter.toLowerCase()) {
                     filter = null;
@@ -680,13 +683,13 @@
             }
 
             $('<span/>', {
-                "class": "list",
+                "class": _selector.filter,
                 "html": function () {
 
                     $(this).append(
                         $('<button/>', {
                             "type": "button",
-                            "html": "<span class='" + _selector.filter + "'>" + options.filter + "</span> <span class='caret'></span>",
+                            "html": "<span class='" + _selector.filterValue + "'>" + options.filter + "</span> <span class='caret'></span>",
                             "click": function (e) {
 
                                 e.stopPropagation();
@@ -753,8 +756,8 @@
                     )
                 }
             }).insertAfter(
-                $(node).parents('.' + options.containerClass).find('.query')
-            )
+                $(node).parents('.' + options.containerClass).find('.' + _selector.query)
+            );
 
             /**
              * @private
@@ -765,7 +768,7 @@
             function _selectFilter(filter) {
 
                 $(node).parents('.' + options.containerClass)
-                    .find('.' + _selector.filter)
+                    .find('.' + _selector.filterValue)
                     .text(filter || options.filter);
 
                 $(node).parents('.' + options.containerClass)

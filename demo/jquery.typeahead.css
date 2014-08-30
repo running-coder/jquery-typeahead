@@ -116,6 +116,7 @@ input {
     border-radius: 0.25em;
     -webkit-box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset;
     box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset;
+    line-height: 1.2em;
 }
 
 .typeahead-search-container.result {
@@ -129,6 +130,7 @@ input {
     text-align: left;
     border-spacing: 0;
     border-collapse: separate;
+
 }
 
 .typeahead-search-field > span {
@@ -136,16 +138,16 @@ input {
     vertical-align: middle;
 }
 
-.typeahead-search-field .query {
+.typeahead-search-field .typeahead-query {
     width: 96%;
 }
 
-.typeahead-search-field .list {
+.typeahead-search-field .typeahead-filter {
     width: 2%;
     min-width: 5em;
 }
 
-.typeahead-search-field .button {
+.typeahead-search-field .typeahead-button {
     width: 2%;
     min-width: 4em;
 }
@@ -226,7 +228,7 @@ input {
 }
 
 .typeahead-search-container input[type="search"],
-.typeahead-search-container .list button {
+.typeahead-search-container .typeahead-filter button {
     outline: 0 none;
     display: inline;
     width: 100%;
@@ -241,7 +243,7 @@ input {
     border-right-width: 0;
 }
 
-.typeahead-search-container .list button {
+.typeahead-search-container .typeahead-filter button {
     white-space: nowrap;
     background-color: #fff;
     border-radius: 0;
@@ -250,16 +252,16 @@ input {
     border-left-width: 0;
     padding-left: 0;
     padding-right: 1.25em;
-    line-height: normal;
+    /*line-height: normal;*/
 }
 
-.typeahead-search-container .list button:before {
+.typeahead-search-container .typeahead-filter button:before {
     content: "";
     border-left: 1px solid rgba(0, 0, 0, 0.15);
     padding-left: 0.8em;
 }
 
-.typeahead-search-container .list {
+.typeahead-search-container .typeahead-filter {
     position: relative;
 }
 
@@ -374,11 +376,12 @@ input {
     font-size: 13px;
     padding: 0.4em;
     background-color: #e6e6e6;
-    border: none
+    border: none;
+    line-height: 1.3em;
 }
 
 .typeahead-search-container.layout2 input[type="search"],
-.typeahead-search-container.layout2 .list button {
+.typeahead-search-container.layout2 .typeahead-filter button {
     border-color: rgba(0, 0, 0, 0.4);
 }
 
