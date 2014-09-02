@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.1.0 (2014-09-01)
+ * @version 1.2.0 (2014-09-02)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -49,7 +49,7 @@
         position: "any",
         hint: false,
         highlight: true,
-        list: false,
+        list: false, // @deprecated  options.list
         group: false,
         filter: false,
         backdrop: false,
@@ -61,6 +61,8 @@
         groupClass: "typeahead-search-group",
         resultClass: "typeahead-search-result",
         backdropClass: "typeahead-search-backdrop",
+        display: "display",
+        template: null,
         source: null,
         callback: {
             onInit: null,
@@ -79,12 +81,11 @@
     var _supported = {
         order: ["asc", "desc"],
         position: ["any", "start"],
-        hint: [true, false],
-        group: [true, false],
+        highlight: [true, false],
         jStorage: [true, false],
         compression: [true, false],
         //source: ["data", "url", "ignore"],
-        //callback: ["onInit", "onMouseEnter", "onMouseLeave", "onClick"],
+        //callback: ["onInit", "onMouseEnter", "onMouseLeave", "onClick", "onSubmit"],
         debug: [true, false]
     };
 
@@ -324,14 +325,13 @@
                         break;
                     }
 
-                    if (storage[list][i].display &&
-                        //storage[list][i].display.toLowerCase().indexOf(query) !== -1 && (
-                        storage[list][i].display.toLowerCase().indexOf(query.toLowerCase()) !== -1 && (
+                    if (storage[list][i][options.display] &&
+                        storage[list][i][options.display].toLowerCase().indexOf(query.toLowerCase()) !== -1 && (
                         options.position === "any" ||
-                            storage[list][i].display.toLowerCase().indexOf(query.toLowerCase()) === 0
+                            storage[list][i][options.display].toLowerCase().indexOf(query.toLowerCase()) === 0
                         ))
                     {
-                        if (options.source[list].ignore && ~options.source[list].ignore.indexOf(storage[list][i].display)) {
+                        if (options.source[list].ignore && ~options.source[list].ignore.indexOf(storage[list][i][options.display])) {
                             continue;
                         }
 
@@ -344,7 +344,7 @@
             if (options.order) {
                 result.sort(
                     _sort(
-                        'display',
+                        options.display,
                         (options.group) ? !(options.order === "asc") : options.order === "asc",
                         function(a){return a.toUpperCase()}
                     )
@@ -374,38 +374,70 @@
 
                                     (function (result, scope) {
 
-                                        if (options.group && !$(scope).find('li[data-search-group="' + result.list + '"]')[0]) {
+                                        if (options.group) {
+                                            var _group = result.list;
+                                            if (typeof options.group !== "boolean" && result[options.group]) {
+                                                _group = result[options.group];
+                                            }
+                                        }
+
+                                        // @deprecated  options.list
+                                        if (options.list) {
+                                            var _list = result.list;
+                                            if (typeof options.list !== "boolean" && result[options.list]) {
+                                                _list = result[options.list];
+                                            }
+                                        }
+
+                                        if (options.group && !$(scope).find('li[data-search-group="' + _group + '"]')[0]) {
                                             $(scope).append(
                                                 $("<li/>", {
                                                     "class": options.groupClass,
                                                     "html":  $("<a/>", {
-                                                        "html": result.list
+                                                        "html": _group
                                                     }),
-                                                    "data-search-group": result.list
+                                                    "data-search-group": _group
                                                 })
                                             );
                                         }
 
-                                        match = result.display.match(new RegExp(query,"i"));
+                                        match = result[options.display].match(new RegExp(query,"i"));
 
                                         var li = $("<li/>", {
                                             "html":  $("<a/>", {
                                                 "href": "javascript:;",
-                                                "data-list": result.list,
-                                                "html": result.display.replace(
-                                                    new RegExp(query,"i"),
+                                                "data-list": _group,
+                                                "html": function () {
+
+                                                    var _display = '<span class="typeahead-display">' +
+                                                        result[options.display].replace(
+                                                        new RegExp(query,"i"),
                                                         ((options.highlight) ?
-                                                        '<strong>' + match[0] + '</strong>' :
-                                                        match[0])
-                                                    ) +
-                                                    ((options.list) ? "<small>" + result.list + "</small>" : ""),
+                                                            '<strong>' + match[0] + '</strong>' :
+                                                            match[0])
+                                                    ) + '</span>' +
+                                                    ((_list) ? "<small>" + _list + "</small>" : "")
+
+                                                    if (options.template) {
+                                                        _display = options.template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
+                                                            if (index === options.display) {
+                                                                return _display;
+                                                            }
+
+                                                            return result[index] || "null";
+                                                        });
+                                                    }
+
+                                                    $(this).append(_display);
+
+                                                },
                                                 "click": ({"result": result}, function (e) {
 
                                                     e.preventDefault();
 
-                                                    node.val(result.display).focus();
+                                                    node.val(result[options.display]).focus();
 
-                                                    query = result.display;
+                                                    query = result[options.display];
 
                                                     reset();
 
@@ -431,7 +463,7 @@
                                         });
 
                                         if (options.group) {
-                                            $(li).insertAfter($(scope).find('li[data-search-group="' + result.list + '"]'));
+                                            $(li).insertAfter($(scope).find('li[data-search-group="' + _group + '"]'));
                                         } else {
                                             $(scope).append(li);
                                         }
@@ -548,12 +580,12 @@
                 oneResult = result[result.length - 1];
             }
 
-            if (oneResult.display.toLowerCase().indexOf(query.toLowerCase()) === 0) {
+            if (oneResult[options.display].toLowerCase().indexOf(query.toLowerCase()) === 0) {
                 node.siblings("." + _selector.hint)
-                    .val(query + oneResult.display.substring(query.length))
+                    .val(query + oneResult[options.display].substring(query.length))
                     .show();
 
-                return oneResult.display;
+                return oneResult[options.display];
             }
 
         }
@@ -656,7 +688,7 @@
                 }
             }
 
-            node.val(lis.filter('.active').clone().find('small').remove().end().text() || query);
+            node.val(lis.filter('.active').find('.typeahead-display').text() || query);
 
             return true;
 
@@ -716,6 +748,7 @@
             }
 
             for (var list in options.source) {
+
                 if (!options.source.hasOwnProperty(list)) {
                     continue;
                 }
@@ -738,6 +771,12 @@
 
                         continue;
                     }
+                }
+
+                if (!options.source[list].data && !options.source[list].url) {
+                    options.source[list] = {
+                        url: options.source[list]
+                    };
                 }
 
                 storage[list] = [];
@@ -777,32 +816,20 @@
                         path = (options.source[list].url instanceof Array && options.source[list].url[1]) || null;
 
                     // Cross Domain
-                    if (/https?:\/\//.test(url) && url.indexOf(window.location.host) === -1) {
-
-                        if (url.indexOf('{callback}') === -1) {
-
-                            // {debug}
-                            options.debug && window.Debug.log({
-                                'node': node.selector,
-                                'function': 'generate()',
-                                'arguments': 'url',
-                                'message': 'ERROR - Missing {callback} string inside url, " + list + " skipped.'
-                            });
-                            // {/debug}
-
-                            _increment();
-
-                            continue;
-                        }
+                    if (/https?:\/\//.test(url) &&
+                        !~url.indexOf(window.location.host) &&
+                        !!~url.indexOf('{callback}')) {
 
                         _jsonp.fetch(url.replace("{callback}", encodeURIComponent(jsonpCallback)), function (data) {});
 
                     } else {
-                        // Same Domain
+
+                        // Same Domain / public API
 
                         $.ajax({
                             async: true,
                             url: url,
+                            dataType: 'json',
                             ajaxList: list,
                             ajaxPath: path
                         }).done( function(data) {
@@ -826,9 +853,7 @@
                         });
 
                     }
-
                 }
-
             }
 
         }
