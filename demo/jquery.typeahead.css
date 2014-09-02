@@ -109,23 +109,23 @@ input {
     background-color: #fff;
     font-family: "Helvetica Neue", "Helvetica", Arial;
     color: rgba(0, 0, 0, 0.7);
-    font-size: 1em;
-    padding: 1em;
+    font-size: 16px;
+    padding: 16px;
     width: 100%;
     max-width: 500px;
-    border-radius: 0.25em;
+    border-radius: 4px;
     -webkit-box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset;
     box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset;
-    line-height: 1.2em;
+    line-height: 16px;
 }
 
 .typeahead-search-container.result {
-    border-radius: 0.25em 0.25em 0 0;
+    border-radius: 4px 4px 0 0;
 }
 
 .typeahead-search-field {
     width: 100%;
-    font-size: 1em;
+    font-size: 16px;
     display: table-row;
     text-align: left;
     border-spacing: 0;
@@ -144,17 +144,17 @@ input {
 
 .typeahead-search-field .typeahead-filter {
     width: 2%;
-    min-width: 5em;
+    min-width: 60px;
 }
 
 .typeahead-search-field .typeahead-button {
     width: 2%;
-    min-width: 4em;
+    min-width: 50px;
 }
 
 .typeahead-search-result {
     position: absolute;
-    top: 4.5em;
+    top: 72px;
     left: 0;
     background-color: #fff;
     width: 100%;
@@ -167,7 +167,7 @@ input {
     width: 100%;
     padding: 0;
     margin: 0;
-    font-size: 1em;
+    font-size: 16px;
     text-align: left;
     list-style: none;
     -webkit-background-clip: padding-box;
@@ -184,7 +184,7 @@ input {
 
 .typeahead-search-result > ul > li > a {
     display: block;
-    padding: 0.7em 1em;
+    padding: 10px 16px;
     white-space: nowrap;
     text-decoration: none;
     color: #333;
@@ -202,7 +202,7 @@ input {
     background: -webkit-linear-gradient(top, #37a3eb 0, #2181cf 100%);
     background: linear-gradient(to bottom, #37a3eb 0, #2181cf 100%);
 
-    font-size: 0.85em;
+    font-size: 13px;
     color: #fff;
     text-transform: uppercase;
     font-weight: bold;
@@ -212,7 +212,7 @@ input {
 }
 
 .typeahead-search-result > ul > li > a small {
-    padding-left: 1em;
+    padding-left: 16px;
     color: #b6b6b6;
 }
 
@@ -228,18 +228,19 @@ input {
 }
 
 .typeahead-search-container input[type="search"],
+.typeahead-search-container input.typeahead-hint,
 .typeahead-search-container .typeahead-filter button {
     outline: 0 none;
     display: inline;
     width: 100%;
     margin: 0;
-    padding: 0.65em 1em;
+    padding: 10px 16px;
     vertical-align: middle;
     border: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 .typeahead-search-container input[type="search"] {
-    border-radius: 0.25em 0 0 0.25em;
+    border-radius: 4px 0 0 4px;
     border-right-width: 0;
 }
 
@@ -251,14 +252,14 @@ input {
     border-right-width: 0;
     border-left-width: 0;
     padding-left: 0;
-    padding-right: 1.25em;
-    /*line-height: normal;*/
+    padding-right: 18px;
+    line-height: normal;
 }
 
 .typeahead-search-container .typeahead-filter button:before {
     content: "";
     border-left: 1px solid rgba(0, 0, 0, 0.15);
-    padding-left: 0.8em;
+    padding-left: 10px;
 }
 
 .typeahead-search-container .typeahead-filter {
@@ -272,10 +273,10 @@ input {
     z-index: 1000;
     display: none;
     float: left;
-    min-width: 10em;
+    min-width: 140px;
     padding: 0.5em 0;
     margin: 2px 0 0;
-    font-size: 1em;
+    font-size: 16px;
     text-align: left;
     list-style: none;
     background-color: #fff;
@@ -294,7 +295,7 @@ input {
 
 .typeahead-search-container .typeahead-dropdown a {
     display: block;
-    padding: 0.5em 1em;
+    padding: 7px 16px;
     white-space: nowrap;
     text-decoration: none;
     color: #333;
@@ -325,12 +326,11 @@ input {
 }
 
 .typeahead-search-container button[type="submit"] {
-    padding: 0.8em 1em;
-    margin: 0em;
+    padding: 12px 16px;
+    margin: 0;
     cursor: pointer;
     vertical-align: middle;
-    min-height: 1em;
-    min-width: 4em;
+    min-width: 60px;
     outline: none;
     border: none;
     background-color: #FAFAFA;
@@ -339,7 +339,7 @@ input {
     background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0, 0, 0, 0)), to(rgba(0, 0, 0, 0.05)));
     background-image: -webkit-linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.05));
     background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.05));
-    border-radius: 0 0.25em 0.25em 0;
+    border-radius: 0 4px 4px 0;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -360,8 +360,8 @@ input {
 }
 
 .typeahead-search-container .search-icon {
-    width: 1em;
-    height: 1em;
+    width: 16px;
+    height: 17px;
     display: block;
     margin: 0 auto;
     background:url(icon-search-16px.png) no-repeat scroll left top transparent;
@@ -374,7 +374,7 @@ input {
 
 .typeahead-search-container.layout2 {
     font-size: 13px;
-    padding: 0.4em;
+    padding: 6px;
     background-color: #e6e6e6;
     border: none;
     line-height: 1.3em;
@@ -385,8 +385,19 @@ input {
     border-color: rgba(0, 0, 0, 0.4);
 }
 
+.typeahead-search-container.layout2 .typeahead-query {
+    background: #fff;
+    border-radius: 4px 0 0 4px;
+}
+
+.typeahead-search-container.layout2 input[type="search"],
+.typeahead-search-container.layout2 input.typeahead-hint,
+.typeahead-search-container.layout2 .typeahead-filter button {
+    padding: 6px 10px;
+}
+
 .typeahead-search-container.layout2 button[type="submit"] {
-    padding: 0.7em 2em;
+    padding: 8px 10px;
     background-color: #8b8d90;
     background: -webkit-linear-gradient(top, #eceded 0, #8b8d90 3%, #64676b 100%);
     background: linear-gradient(to bottom, #eceded 0, #8b8d90 3%, #64676b 100%);
@@ -407,7 +418,7 @@ input {
 }
 
 .typeahead-search-container.layout2 .typeahead-search-result > ul > li > a {
-    font-size: 14px;
+    font-size: 16px;
     text-transform: capitalize;
 }
 
@@ -419,8 +430,8 @@ input {
 }
 
 .typeahead-search-container.layout2 .search-icon {
-    width: 1.2em;
-    height: 1.3em;
+    width: 16px;
+    height: 17px;
     background-position: -16px top;
 }
 

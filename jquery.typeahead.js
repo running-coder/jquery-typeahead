@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.0.0 (2014-08-30)
+ * @version 1.1.0 (2014-09-01)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -42,10 +42,13 @@
      */
     var _options = {
         input: null,
+        submit: null,
         minLength: 2,
         maxItem: 8,
         order: null,
         position: "any",
+        hint: false,
+        highlight: true,
         list: false,
         group: false,
         filter: false,
@@ -63,7 +66,8 @@
             onInit: null,
             onMouseEnter: null,
             onMouseLeave: null,
-            onClick: null
+            onClick: null,
+            onSubmit: null
         },
         debug: false
     };
@@ -75,6 +79,7 @@
     var _supported = {
         order: ["asc", "desc"],
         position: ["any", "start"],
+        hint: [true, false],
         group: [true, false],
         jStorage: [true, false],
         compression: [true, false],
@@ -92,7 +97,8 @@
         filter: "typeahead-filter",
         button: "typeahead-button",
         filterValue: "typeahead-filter-value",
-        dropdown: "typeahead-dropdown"
+        dropdown: "typeahead-dropdown",
+        hint: "typeahead-hint"
     };
 
     // =================================================================================================================
@@ -110,6 +116,7 @@
             isGenerated = null, // null: not yet generating, false: generating, true generated
             storage = [],       // generated source
             result = [],        // matched result(s) (source vs query)
+            filter,             // matched result(s) (source vs query)
             jsonpCallback = "window.Typeahead.source['" + node.selector + "'].populate",
             counter = 0,        // generated source counter
             length = 0;         // source length
@@ -226,74 +233,72 @@
             var namespace = ".typeahead.input",
                 event = [
                     'focus' + namespace,
-                    'keyup' + namespace,
-                    'input' + namespace
+                    'input' + namespace,
+                    'keydown' + namespace
                 ];
 
-            $('html').on("click" + namespace, function(e) {
+            $('html').on("click" + namespace, function() {
                 reset();
             });
 
-            $(node).parents('.' + options.containerClass).on("click" + namespace, function(e) {
+            node.parents('.' + options.containerClass).on("click" + namespace, function(e) {
 
                 e.stopPropagation();
 
                 if (options.filter) {
-                    $(node).parents('.' + options.containerClass)
+                    node.parents('.' + options.containerClass)
                         .find('.' + _selector.dropdown)
                         .hide();
                 }
             });
 
-            $(node).on(event.join(' '), function (e) {
-
-                if (e.type === "keyup") {
-                    if (e.keyCode && $.inArray(e.keyCode, [38,39,40]) !== -1) {
-                        move(e);
-                    }
-                    return;
-                }
-
-                if (e.type === "focus" && isGenerated === null) {
-                    generate();
-                    return;
-                }
-
-                if (!isGenerated || $(this).val() === query) {
+            node.parents('form').on("submit", function (e) {
+                if (_executeCallback(options.callback.onSubmit, [node, this, e])) {
                     return false;
                 }
+            });
+            node.on(event.join(' '), function (e) {
 
-                query = $(this).val().toLowerCase().trim();
+                switch (e.type) {
+                    case "keydown":
+                        if (e.keyCode && ~[9,13,27,38,39,40].indexOf(e.keyCode)) {
+                            move(e);
+                        }
+                        break;
+                    case "focus":
+                        if (isGenerated === null) {
+                            buildHintHtml();
+                            generate();
+                        }
+                        break;
+                    case "input":
+                    default:
 
-                reset();
+                        if (!isGenerated) {
+                            return;
+                        }
 
-                if (query.length >= options.minLength && query !== "") {
-                    search(detectFilter());
-                    buildHtml();
+                        query = $(this).val().trim();
+
+                        reset();
+
+                        if (query.length >= options.minLength && query !== "") {
+                            search();
+                            hint();
+                            buildHtml();
+                        }
+                        break;
                 }
 
             });
 
-            function detectFilter () {
-
-                if (!options.filter) {
-                    return false;
-                }
-
-                return $(node).parents('.' + options.containerClass).find('.' + _selector.filterValue).text();
-
-            }
-
         }
 
         /**
-         * Search the json lists to match the search query and build the HTML and bind
-         * the callbacks on the result(s) if they are set inside the configuration options
-         *
-         * @param {string|boolean} [filter] If options.filter is enables and a filter is selected
-         * only search through a selected data set
+         * Search the source lists to match the search query, build the HTML and bind
+         * the callbacks on the result(s) if they are set inside the configuration options.
          */
-        function search (filter) {
+        function search () {
 
             if (query === "") {
                 return false;
@@ -305,23 +310,28 @@
 
             for (var list in storage) {
 
-                if (filter && list !== filter) {
+                if (!storage.hasOwnProperty(list) || (filter && list !== filter)) {
                     continue;
                 }
 
                 for (var i in storage[list]) {
+
+                    if (!storage[list].hasOwnProperty(i)) {
+                        continue;
+                    }
 
                     if (result.length >= options.maxItem) {
                         break;
                     }
 
                     if (storage[list][i].display &&
-                        storage[list][i].display.toLowerCase().indexOf(query) !== -1 && (
-                            options.position === "any" ||
-                            storage[list][i].display.toLowerCase().indexOf(query) === 0
+                        //storage[list][i].display.toLowerCase().indexOf(query) !== -1 && (
+                        storage[list][i].display.toLowerCase().indexOf(query.toLowerCase()) !== -1 && (
+                        options.position === "any" ||
+                            storage[list][i].display.toLowerCase().indexOf(query.toLowerCase()) === 0
                         ))
                     {
-                        if (options.source[list].ignore && $.inArray(storage[list][i].display, options.source[list].ignore) !== -1) {
+                        if (options.source[list].ignore && ~options.source[list].ignore.indexOf(storage[list][i].display)) {
                             continue;
                         }
 
@@ -335,7 +345,7 @@
                 result.sort(
                     _sort(
                         'display',
-                        (options.group) ? !(options.order === "asc") : !!(options.order === "asc"),
+                        (options.group) ? !(options.order === "asc") : options.order === "asc",
                         function(a){return a.toUpperCase()}
                     )
                 );
@@ -352,78 +362,88 @@
 
                 var match,
                     template = $("<div/>", {
-                    "class": options.resultClass,
-                    "html": $("<ul/>", {
-                        "html": function() {
+                        "class": options.resultClass,
+                        "html": $("<ul/>", {
+                            "html": function() {
 
-                            for (var i in result) {
-                                (function (result, scope) {
+                                for (var i in result) {
 
-                                    if (options.group && !$(scope).find('li[data-search-group="' + result.list + '"]')[0]) {
-                                        $(scope).append(
-                                            $("<li/>", {
-                                                "class": options.groupClass,
-                                                "html":  $("<a/>", {
-                                                    "html": result.list
-                                                }),
-                                                "data-search-group": result.list
-                                            })
-                                        );
+                                    if (!result.hasOwnProperty(i)) {
+                                        continue;
                                     }
 
-                                    match = result.display.match(new RegExp(query,"i"));
+                                    (function (result, scope) {
 
-                                    var li = $("<li/>", {
-                                        "html":  $("<a/>", {
-                                            "href": "javascript:;",
-                                            "data-list": result.list,
-                                            "html": result.display.replace(new RegExp(query,"i"), '<strong>' + match[0] + '</strong>') +
-                                                ((options.list) ? "<small>" + result.list + "</small>" : ""),
-                                            "click": ({"result": result}, function (e) {
+                                        if (options.group && !$(scope).find('li[data-search-group="' + result.list + '"]')[0]) {
+                                            $(scope).append(
+                                                $("<li/>", {
+                                                    "class": options.groupClass,
+                                                    "html":  $("<a/>", {
+                                                        "html": result.list
+                                                    }),
+                                                    "data-search-group": result.list
+                                                })
+                                            );
+                                        }
 
-                                                e.preventDefault();
+                                        match = result.display.match(new RegExp(query,"i"));
 
-                                                $(node).val(result.display).focus();
+                                        var li = $("<li/>", {
+                                            "html":  $("<a/>", {
+                                                "href": "javascript:;",
+                                                "data-list": result.list,
+                                                "html": result.display.replace(
+                                                    new RegExp(query,"i"),
+                                                        ((options.highlight) ?
+                                                        '<strong>' + match[0] + '</strong>' :
+                                                        match[0])
+                                                    ) +
+                                                    ((options.list) ? "<small>" + result.list + "</small>" : ""),
+                                                "click": ({"result": result}, function (e) {
 
-                                                query = result.display;
+                                                    e.preventDefault();
 
-                                                reset();
+                                                    node.val(result.display).focus();
 
-                                                _executeCallback(options.callback.onClick, [node, this, result])
+                                                    query = result.display;
+
+                                                    reset();
+
+                                                    _executeCallback(options.callback.onClick, [node, this, result, e]);
+                                                }),
+                                                "mouseenter": function (e) {
+
+                                                    $(this).parents('.' + options.resultClass).find('.active').removeClass('active');
+
+                                                    _executeCallback(options.callback.onMouseEnter, [node, this, result, e]);
+                                                },
+                                                "mouseleave": function (e) {
+                                                    _executeCallback(options.callback.onMouseLeave, [node, this, result, e]);
+                                                }
+
                                             }),
                                             "mouseenter": function () {
 
-                                                $(this).parents('.' + options.resultClass).find('.active').removeClass('active');
+                                                $(this).siblings('li.active').removeClass('active');
+                                                $(this).addClass('active');
 
-                                                _executeCallback(options.callback.onMouseEnter, [node, this, result]);
-                                            },
-                                            "mouseleave": function () {
-                                                _executeCallback(options.callback.onMouseLeave, [node, this, result]);
                                             }
+                                        });
 
-                                        }),
-                                        "mouseenter": function () {
-
-                                            $(this).siblings('li.active').removeClass('active');
-                                            $(this).addClass('active');
-
+                                        if (options.group) {
+                                            $(li).insertAfter($(scope).find('li[data-search-group="' + result.list + '"]'));
+                                        } else {
+                                            $(scope).append(li);
                                         }
-                                    });
 
-                                    if (options.group) {
-                                        $(li).insertAfter($(scope).find('li[data-search-group="' + result.list + '"]'));
-                                    } else {
-                                        $(scope).append(li);
-                                    }
+                                    }(result[i], this));
+                                }
 
-                                }(result[i], this));
                             }
+                        })
+                    });
 
-                        }
-                    })
-                });
-
-                $(node).parents('.' + options.containerClass)
+                node.parents('.' + options.containerClass)
                     .addClass('result')
                     .append(template);
             }
@@ -447,7 +467,7 @@
                 options.backdrop
             );
 
-            $(node).parents('.' + options.containerClass)
+            node.parents('.' + options.containerClass)
                 .addClass('backdrop')
                 .css({
                     "z-index": css["z-index"] + 1,
@@ -456,13 +476,85 @@
 
 
             $("<div/>", {
-                    "class": options.backdropClass,
-                    "css": css,
-                    "click": function () {
-                        reset();
-                    }
+                "class": options.backdropClass,
+                "css": css,
+                "click": function () {
+                    reset();
                 }
-            ).insertAfter($(node).parents('.' + options.containerClass))
+            }).insertAfter(node.parents('.' + options.containerClass))
+
+        }
+
+        /**
+         * If options.hint is activated, build the disabled hint input
+         */
+        function buildHintHtml () {
+
+            if (!options.hint) {
+                return false;
+            }
+
+            node.css({
+                "position": "relative",
+                "z-index": 2,
+                "background-color": "transparent"
+            }).parent().css({
+                "position": "relative"
+            });
+
+            var border = {
+                top: node.css("border-top-width"),
+                right: node.css("border-right-width"),
+                bottom: node.css("border-bottom-width"),
+                left: node.css("border-left-width")
+            };
+
+            var css = $.extend(
+                {
+                    border: "none",
+                    display: node.css("display"),
+                    position: "absolute",
+                    top: (parseFloat(border.top)) ? border.top : "auto",
+                    left: (parseFloat(border.left)) ? border.left : "auto",
+                    "z-index": 1,
+                    width: node.outerWidth(true) - (parseFloat(border.right) + parseFloat(border.left)) + "px",
+                    height: node.outerHeight(true) - (parseFloat(border.top) + parseFloat(border.bottom)) + "px",
+                    "-webkit-text-fill-color": "silver",
+                    color: "silver",
+                    "background-color": "transparent",
+                    "user-select": "none"
+                },
+                options.hint
+            );
+
+            $("<input/>", {
+                "class": _selector.hint,
+                "readonly": true,
+                "tabindex": -1,
+                "css": css,
+                "type": "search"
+            }).insertBefore(node);
+
+        }
+
+        function hint () {
+
+            if (!options.hint || !result[0]) {
+                return false;
+            }
+
+            var oneResult = result[0];
+            if (options.group) {
+                oneResult = result[result.length - 1];
+            }
+
+            if (oneResult.display.toLowerCase().indexOf(query.toLowerCase()) === 0) {
+                node.siblings("." + _selector.hint)
+                    .val(query + oneResult.display.substring(query.length))
+                    .show();
+
+                return oneResult.display;
+            }
 
         }
 
@@ -476,60 +568,97 @@
          */
         function move (e) {
 
-            if (result.length === 0) {
+            if (result.length === 0 && e.keyCode !== 13) {
                 return false;
             }
 
-            var lis = $(node).parents('.' + options.containerClass)
-                .find('.' + options.resultClass)
-                .find('li:not([data-search-group])'),
+            var lis = node.parents('.' + options.containerClass)
+                    .find('.' + options.resultClass)
+                    .find('li:not([data-search-group])'),
                 li = lis.siblings('.active');
 
-            if (lis.length > 1) {
-                li.removeClass('active');
-            }
+            if (e.keyCode === 13) {
 
-            if (e.keyCode === 40) {
+                if (lis.filter('.active')[0]) {
 
-                e.preventDefault();
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                if (li[0]) {
-                    li.next().addClass('active')
-                } else {
-                    $(lis[0]).toggleClass('active')
+                    lis.filter('.active').find('a').click();
+
                 }
 
-            } else if (e.keyCode === 38) {
-
-                e.preventDefault();
-
-                if (li[0]) {
-                    li.prev().addClass('active')
-                } else {
-                    $(lis[result.length - 1]).toggleClass('active')
-                }
-
-            } else if (e.keyCode === 39) {
                 reset();
-                return;
-            }
 
-            if (options.group) {
+            } else {
 
-                var tmpLi = lis.siblings('.active');
-                if (tmpLi.attr('data-search-group')) {
+                e.preventDefault();
 
-                    tmpLi.removeClass('active');
+                if (lis.length > 1) {
+                    li.removeClass('active');
+                }
 
-                    if (e.keyCode === 40) {
-                        tmpLi.next().addClass('active')
-                    } else if (e.keyCode === 38) {
-                        tmpLi.prev().addClass('active')
+                if (e.keyCode === 40) {
+
+                    if (li[0]) {
+                        li.next().addClass('active')
+                    } else {
+                        $(lis[0]).toggleClass('active')
+                    }
+
+                } else if (e.keyCode === 38) {
+
+                    if (li[0]) {
+                        li.prev().addClass('active')
+                    } else {
+                        $(lis[result.length - 1]).toggleClass('active')
+                    }
+
+                } else if (e.keyCode === 39) {
+
+                    if (options.hint && !li[0]) {
+                        node.val(hint());
+                    }
+
+                    if (li[0]) {
+                        li.find('a').click();
+                    } else {
+                        lis.filter('.active').find('a').click();
+                    }
+
+                    query = node.val();
+
+                    reset();
+                    return;
+                }
+
+                if (options.group) {
+
+                    var tmpLi = lis.siblings('.active');
+                    if (tmpLi.attr('data-search-group')) {
+
+                        tmpLi.removeClass('active');
+
+                        if (e.keyCode === 40) {
+                            tmpLi.next().addClass('active')
+                        } else if (e.keyCode === 38) {
+                            tmpLi.prev().addClass('active')
+                        }
                     }
                 }
             }
+            
+            if (options.hint) {
+                if (lis.filter('.active')[0]) {
+                    node.siblings("." + _selector.hint).hide();
+                } else {
+                    node.siblings("." + _selector.hint).show();
+                }
+            }
 
-            $(node).val(lis.filter('.active').clone().find('small').remove().end().text().toLowerCase() || query);
+            node.val(lis.filter('.active').clone().find('small').remove().end().text() || query);
+
+            return true;
 
         }
 
@@ -541,21 +670,28 @@
 
             result = [];
 
-            var containerClass = $(node).parents('.' + options.containerClass);
+            var container = node.parents('.' + options.containerClass);
 
             if (options.filter) {
-                containerClass
+                container
                     .removeClass('filter')
                     .find('.' + _selector.dropdown)
                     .hide();
             }
 
-            containerClass
+            if (options.hint) {
+                container
+                    .removeClass('hint')
+                    .find('.' + _selector.hint)
+                    .val("");
+            }
+
+            container
                 .removeClass('result')
                 .find('.' + options.resultClass)
                 .remove();
 
-            containerClass
+            container
                 .removeClass('backdrop')
                 .removeAttr('style')
                 .siblings('.' + options.backdropClass)
@@ -610,6 +746,11 @@
                 if (options.source[list].data && options.source[list].data instanceof Array) {
 
                     for (var i in options.source[list].data) {
+
+                        if (!options.source[list].data.hasOwnProperty(i)) {
+                            continue;
+                        }
+
                         if (options.source[list].data[i] instanceof Object) {
                             break;
                         }
@@ -657,7 +798,7 @@
                         _jsonp.fetch(url.replace("{callback}", encodeURIComponent(jsonpCallback)), function (data) {});
 
                     } else {
-                    // Same Domain
+                        // Same Domain
 
                         $.ajax({
                             async: true,
@@ -669,7 +810,7 @@
                             _populateSource(data, this.ajaxList, this.ajaxPath);
                             _increment();
 
-                        }).fail( function (response) {
+                        }).fail( function () {
 
                             // {debug}
                             options.debug && window.Debug.log({
@@ -717,16 +858,16 @@
                                     filter = container.find('.' + _selector.dropdown);
 
                                 if (!filter.is(':visible')) {
-                                    container.addClass('filter')
+                                    container.addClass('filter');
                                     filter.show();
                                 } else {
-                                    container.removeClass('filter')
+                                    container.removeClass('filter');
                                     filter.hide();
                                 }
 
                             }
                         })
-                    )
+                    );
 
                     $(this).append(
                         $('<ul/>', {
@@ -734,8 +875,12 @@
                             "html": function () {
 
                                 for (var i in options.source) {
-                                    (function (i, scope) {
 
+                                    if (!options.source.hasOwnProperty(i)) {
+                                        continue;
+                                    }
+
+                                    (function (i, scope) {
 
                                         var li = $("<li/>", {
                                             "html":  $("<a/>", {
@@ -772,33 +917,36 @@
                                 );
                             }
                         })
-                    )
+                    );
                 }
             }).insertAfter(
-                $(node).parents('.' + options.containerClass).find('.' + _selector.query)
+                node.parents('.' + options.containerClass).find('.' + _selector.query)
             );
 
             /**
              * @private
              * Select the filter and rebuild the result list
              *
-             * @param {string} [filter]
+             * @param {string} [oneFilter]
              */
-            function _selectFilter(filter) {
+            function _selectFilter(oneFilter) {
 
-                $(node).parents('.' + options.containerClass)
+                filter = oneFilter;
+
+                node.parents('.' + options.containerClass)
                     .find('.' + _selector.filterValue)
                     .text(filter || options.filter);
 
-                $(node).parents('.' + options.containerClass)
+                node.parents('.' + options.containerClass)
                     .find('.' + _selector.dropdown)
-                    .hide()
+                    .hide();
 
                 reset();
-                search(filter);
+                search();
+                hint();
                 buildHtml();
 
-                $(node).focus();
+                node.focus();
 
             }
 
@@ -869,6 +1017,9 @@
             if (_isValid) {
 
                 for (var i in data) {
+                    if (!data.hasOwnProperty(i)) {
+                        continue;
+                    }
                     if (data[i] instanceof Object) {
                         break;
                     }
@@ -927,6 +1078,36 @@
 
         }
 
+        // {debug}
+        /**
+         * @private
+         * Validates the node container(s) for class attributes
+         */
+        function _validateHtml () {
+
+            var container = node.parents('.' + options.containerClass);
+
+            if (!container[0]) {
+                options.debug && window.Debug.log({
+                    'node': node.selector,
+                    'function': 'reset()',
+                    'arguments': options.containerClass,
+                    'message': 'ERROR - Missing input parent container class: ".' + options.containerClass + '"'
+                });
+                return false;
+            }
+
+            if (!container.find('.' + _selector.query)) {
+                options.debug && window.Debug.log({
+                    'node': node.selector,
+                    'function': 'reset()',
+                    'arguments': _selector.query,
+                    'message': 'ERROR - Missing input parent class: ".' + _selector.query + '"'
+                });
+            }
+        }
+        // {/debug}
+
         /**
          * @private
          * Sort list of object by key
@@ -948,7 +1129,7 @@
             return function (a, b) {
                 return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
             }
-        }
+        };
 
         /**
          * @private
@@ -1078,6 +1259,7 @@
             delegateDropdown();
 
             // {debug}
+            _validateHtml();
             window.Debug && window.Debug.print();
             // {/debug}
 
