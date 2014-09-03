@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.2.0 (2014-09-02)
+ * @version 1.2.1 (2014-09-02)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -42,11 +42,10 @@
      */
     var _options = {
         input: null,
-        submit: null,
         minLength: 2,
         maxItem: 8,
         order: null,
-        position: "any",
+        offset: false,
         hint: false,
         highlight: true,
         list: false, // @deprecated  options.list
@@ -80,7 +79,7 @@
      */
     var _supported = {
         order: ["asc", "desc"],
-        position: ["any", "start"],
+        offset: [true, false],
         highlight: [true, false],
         jStorage: [true, false],
         compression: [true, false],
@@ -94,6 +93,7 @@
      * Class selectors to reach class-constructed elements
      */
     var _selector = {
+        display: "typeahead-display",
         query: "typeahead-query",
         filter: "typeahead-filter",
         button: "typeahead-button",
@@ -327,7 +327,7 @@
 
                     if (storage[list][i][options.display] &&
                         storage[list][i][options.display].toLowerCase().indexOf(query.toLowerCase()) !== -1 && (
-                        options.position === "any" ||
+                        !options.offset ||
                             storage[list][i][options.display].toLowerCase().indexOf(query.toLowerCase()) === 0
                         ))
                     {
@@ -409,7 +409,7 @@
                                                 "data-list": _group,
                                                 "html": function () {
 
-                                                    var _display = '<span class="typeahead-display">' +
+                                                    var _display = '<span class="' + _selector.display + '">' +
                                                         result[options.display].replace(
                                                         new RegExp(query,"i"),
                                                         ((options.highlight) ?
@@ -688,7 +688,7 @@
                 }
             }
 
-            node.val(lis.filter('.active').find('.typeahead-display').text() || query);
+            node.val(lis.filter('.active').find('.' + _selector.display).text() || query);
 
             return true;
 
@@ -794,9 +794,10 @@
                             break;
                         }
 
-                        options.source[list].data[i] = {
-                            display: options.source[list].data[i]
-                        }
+                        var obj = {};
+                        obj[options.display] = options.source[list].data[i];
+                        options.source[list].data[i] = obj;
+
                     }
 
                     storage[list] = storage[list].concat(options.source[list].data);
@@ -1048,9 +1049,10 @@
                     if (data[i] instanceof Object) {
                         break;
                     }
-                    data[i] = {
-                        display: data[i]
-                    }
+
+                    var obj = {};
+                    obj[options.display] = data[i];
+                    data[i] = obj;
                 }
 
                 storage[list] = storage[list].concat(data);
