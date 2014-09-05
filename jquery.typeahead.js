@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.2.1 (2014-09-02)
+ * @version 1.2.2 (2014-09-05)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -52,7 +52,7 @@
         group: false,
         filter: false,
         backdrop: false,
-        jStorage: false,
+        cache: false,
         ttl: 3600000,
         compression: false,
         containerClass: "typeahead-search-container",
@@ -81,7 +81,7 @@
         order: ["asc", "desc"],
         offset: [true, false],
         highlight: [true, false],
-        jStorage: [true, false],
+        cache: [true, false],
         compression: [true, false],
         //source: ["data", "url", "ignore"],
         //callback: ["onInit", "onMouseEnter", "onMouseLeave", "onClick", "onSubmit"],
@@ -115,6 +115,7 @@
 
         var query = "",         // user query
             isGenerated = null, // null: not yet generating, false: generating, true generated
+            request = [],       // store the ajax requests / responses
             storage = [],       // generated source
             result = [],        // matched result(s) (source vs query)
             filter,             // matched result(s) (source vs query)
@@ -129,17 +130,6 @@
          *  - filter through the "_supported" to delete unsupported "options"
          */
         function extendOptions () {
-
-            // {debug}
-            if (!$.jStorage || !options.jStorage) {
-                options.debug && window.Debug.log({
-                    'node': node.selector,
-                    'function': 'extendOptions()',
-                    'arguments': 'options.jStorage',
-                    'message': 'WARNING - It is strongly recommended to have $.jStorage available and the option activated to store the results'
-                });
-            }
-            // {/debug}
 
             for (var option in options) {
                 if (!options.hasOwnProperty(option)) {
@@ -198,6 +188,21 @@
                     delete options[option];
 
                 }
+            }
+
+            if (options.cache) {
+                options.cache = (function () {
+                    var supported = typeof window.localStorage !== "undefined";
+                    if (supported) {
+                        try {
+                            localStorage.setItem("typeahead", "typeahead");
+                            localStorage.removeItem("typeahead");
+                        } catch (e) {
+                            supported = false;
+                        }
+                    }
+                    return supported;
+                })();
             }
 
             options = $.extend(
@@ -718,15 +723,17 @@
                     .val("");
             }
 
+            if (options.backdrop) {
+                container
+                    .removeClass('backdrop')
+                    .removeAttr('style')
+                    .siblings('.' + options.backdropClass)
+                    .remove();
+            }
+
             container
                 .removeClass('result')
                 .find('.' + options.resultClass)
-                .remove();
-
-            container
-                .removeClass('backdrop')
-                .removeAttr('style')
-                .siblings('.' + options.backdropClass)
                 .remove();
 
         }
@@ -759,17 +766,35 @@
                     continue;
                 }
 
-                // Lists from jStorage
-                if (options.jStorage && $.jStorage) {
-                    storage[list] = $.jStorage.get(node.selector + ":" + list);
+                // Lists from localstorage
+                if (options.cache) {
+                    storage[list] = localStorage.getItem(node.selector + ":" + list);
                     if (storage[list]) {
 
                         if (options.compression && typeof LZString === "object") {
-                            storage[list] = JSON.parse(LZString.decompress(storage[list]));
+                            storage[list] = LZString.decompress(storage[list]);
                         }
-                        _increment();
 
-                        continue;
+                        var ls = JSON.parse(storage[list]);
+
+                        if (ls.data && ls.ttl && ls.ttl > new Date().getTime()) {
+
+                            // {debug}
+                            options.debug && window.Debug.log({
+                                'node': node.selector,
+                                'function': 'generate()',
+                                'arguments': '{cache: true}',
+                                'message': 'OK - List: ' + node.selector + ":" + list + '" found in localStorage.'
+                            });
+                            window.Debug.print();
+                            // {/debug}
+
+                            storage[list] = ls.data;
+
+                            _increment();
+
+                            continue;
+                        }
                     }
                 }
 
@@ -814,7 +839,8 @@
                 if (options.source[list].url) {
 
                     var url = (options.source[list].url instanceof Array && options.source[list].url[0]) || options.source[list].url,
-                        path = (options.source[list].url instanceof Array && options.source[list].url[1]) || null;
+                        path = (options.source[list].url instanceof Array && options.source[list].url[1]) || null,
+                        request = _request.get(url);
 
                     // Cross Domain
                     if (/https?:\/\//.test(url) &&
@@ -825,8 +851,18 @@
 
                     } else {
 
-                        // Same Domain / public API
+                        if (typeof request === "undefined") {
+                            _request.set(url, []);
+                        } else if (request instanceof Array && request.length === 0) {
+                            _request.queue(url, list, path);
+                            continue;
+                        } else {
+                            _populateSource(request, list, path);
+                            _increment();
+                            continue;
+                        }
 
+                        // Same Domain / public API
                         $.ajax({
                             async: true,
                             url: url,
@@ -838,13 +874,16 @@
                             _populateSource(data, this.ajaxList, this.ajaxPath);
                             _increment();
 
+                            _request.set(url, data);
+                            _request.processQueue(url);
+
                         }).fail( function () {
 
                             // {debug}
                             options.debug && window.Debug.log({
                                 'node': node.selector,
                                 'function': 'generate()',
-                                'arguments': '{source: ' + this.ajaxList + '}',
+                                'arguments': '{url: ' + this.url + '}',
                                 'message': 'ERROR - Ajax request failed.'
                             });
                             // {/debug}
@@ -1064,30 +1103,62 @@
 
         /**
          * @private
-         * Store the data inside jStorage so the urls are not fetched on every pageloads
+         * Store the data inside localstorage so the urls are not fetched on every page loads
          *
          * @param {string} list
          */
         var _populateStorage = function (list) {
 
-            if (!options.jStorage || !$.jStorage) {
+            if (!options.cache) {
                 return false;
             }
 
-            var data = storage[list];
-
-            if (options.compression && typeof LZString === "object") {
-                data = LZString.compress(JSON.stringify(data));
+            var data = {
+                ttl: new Date().getTime() + options.ttl,
+                data: storage[list]
             }
 
-            $.jStorage.set(
+            data = JSON.stringify(data);
+
+            if (options.compression && typeof LZString === "object") {
+                data = LZString.compress(data);
+            }
+
+            localStorage.setItem(
                 node.selector + ":" + list,
-                data,
-                {
-                    TTL: options.ttl
-                }
+                data
             );
 
+        };
+
+        /**
+         * @private
+         * Namespace to temporary save the ajax request url and response to avoid doing multiple calls.
+         *
+         * @see http://www.runningcoder.org/jquerytypeahead/demo/#form-beer_v1
+         */
+        var _request = {
+            _queue: [],
+            "get": function (url) {
+                return request[url];
+            },
+            "set": function (url, data) {
+                request[url] = data;
+            },
+            "queue": function (url, list, path) {
+                this._queue.push({url: url, list: list, path: path});
+            },
+            "processQueue": function (url) {
+                for (var i in this._queue) {
+                    if (this._queue[i].url !== url) {
+                        continue;
+                    }
+                    _populateSource(request[url], this._queue[i].list, this._queue[i].path);
+                    _increment();
+
+                    delete this._queue[i];
+                }
+            }
         };
 
         /**
@@ -1101,6 +1172,7 @@
 
             if (counter === length) {
                 isGenerated = true;
+                delete request;
             }
 
         }

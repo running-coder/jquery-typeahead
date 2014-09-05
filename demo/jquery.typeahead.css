@@ -361,7 +361,7 @@ input {
 
 .typeahead-search-container .search-icon {
     width: 16px;
-    height: 17px;
+    height: 16px;
     display: block;
     margin: 0 auto;
     background:url(icon-search-16px.png) no-repeat scroll left top transparent;
@@ -393,7 +393,7 @@ input {
 .typeahead-search-container.layout2 input[type="search"],
 .typeahead-search-container.layout2 input.typeahead-hint,
 .typeahead-search-container.layout2 .typeahead-filter button {
-    padding: 6px 10px;
+    padding: 7px 10px;
 }
 
 .typeahead-search-container.layout2 button[type="submit"] {
@@ -431,7 +431,7 @@ input {
 
 .typeahead-search-container.layout2 .search-icon {
     width: 16px;
-    height: 17px;
+    height: 18px;
     background-position: -16px top;
 }
 
