@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.2.3 (2014-09-10)
+ * @version 1.3.0 (2014-09-10)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -47,6 +47,7 @@
         order: null,
         offset: false,
         hint: false,
+        accent: false,
         highlight: true,
         list: false, // @deprecated  options.list
         group: false,
@@ -80,6 +81,7 @@
     var _supported = {
         order: ["asc", "desc"],
         offset: [true, false],
+        accent: [true, false],
         highlight: [true, false],
         cache: [true, false],
         compression: [true, false],
@@ -100,6 +102,15 @@
         filterValue: "typeahead-filter-value",
         dropdown: "typeahead-dropdown",
         hint: "typeahead-hint"
+    };
+
+    /**
+     * @private
+     * Accent equivalents
+     */
+    var _accent = {
+        from:   "ãàáäâẽèéëêìíïîõòóöôùúüûñç",
+        to:     "aaaaaeeeeeiiiiooooouuuunc"
     };
 
     // =================================================================================================================
@@ -314,6 +325,11 @@
                 filter = false;
             }
 
+            var display;
+            if (options.accent) {
+                query = _removeAccent(query);
+            }
+
             for (var list in storage) {
 
                 if (!storage.hasOwnProperty(list) || (filter && list !== filter)) {
@@ -330,13 +346,19 @@
                         break;
                     }
 
-                    if (storage[list][i][options.display] &&
-                        storage[list][i][options.display].toLowerCase().indexOf(query.toLowerCase()) !== -1 && (
-                        !options.offset ||
-                            storage[list][i][options.display].toLowerCase().indexOf(query.toLowerCase()) === 0
+                    display = storage[list][i][options.display];
+
+                    if (options.accent) {
+                        display = _removeAccent(display);
+                    }
+
+                    if (display &&
+                        display.toLowerCase().indexOf(query.toLowerCase()) !== -1 && (
+                            !options.offset ||
+                            display.toLowerCase().indexOf(query.toLowerCase()) === 0
                         ))
                     {
-                        if (options.source[list].ignore && ~options.source[list].ignore.indexOf(storage[list][i][options.display])) {
+                        if (options.source[list].ignore && ~options.source[list].ignore.indexOf(display)) {
                             continue;
                         }
 
@@ -379,16 +401,25 @@
 
                                     (function (result, scope) {
 
+                                        var _group,
+                                            _list,
+                                            _liHtml,
+                                            _aHtml,
+                                            _display,
+                                            _query,
+                                            _offset,
+                                            _match;
+
                                         if (options.group) {
-                                            var _group = result.list;
+                                            _group = result.list;
                                             if (typeof options.group !== "boolean" && result[options.group]) {
                                                 _group = result[options.group];
                                             }
                                         }
 
-                                        // @deprecated  options.list
+                                        // @deprecated options.list
                                         if (options.list) {
-                                            var _list = result.list;
+                                            _list = result.list;
                                             if (typeof options.list !== "boolean" && result[options.list]) {
                                                 _list = result[options.list];
                                             }
@@ -406,34 +437,43 @@
                                             );
                                         }
 
-                                        match = result[options.display].match(new RegExp(query,"i"));
+                                        _display = result[options.display].toLowerCase();
+                                        _query = query.toLowerCase();
 
-                                        var li = $("<li/>", {
+                                        if (options.accent) {
+                                            _display = _removeAccent(_display);
+                                            _query = _removeAccent(_query);
+                                        }
+
+                                        _offset = _display.indexOf(_query);
+                                        _match = result[options.display].substr(_offset, _query.length);
+
+                                        if (options.highlight) {
+                                            _match = "<strong>" + _match + "</strong>";
+                                        }
+
+                                        _display = _replaceAt(result[options.display], _offset, _query.length, _match);
+
+                                        _liHtml = $("<li/>", {
                                             "html":  $("<a/>", {
                                                 "href": "javascript:;",
                                                 "data-list": _group,
                                                 "html": function () {
 
-                                                    var _display = '<span class="' + _selector.display + '">' +
-                                                        result[options.display].replace(
-                                                        new RegExp(query,"i"),
-                                                        ((options.highlight) ?
-                                                            '<strong>' + match[0] + '</strong>' :
-                                                            match[0])
-                                                    ) + '</span>' +
+                                                    _aHtml = '<span class="' + _selector.display + '">' + _display + '</span>' +
                                                     ((_list) ? "<small>" + _list + "</small>" : "")
 
                                                     if (options.template) {
-                                                        _display = options.template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
+                                                        _aHtml = options.template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
                                                             if (index === options.display) {
-                                                                return _display;
+                                                                return _aHtml;
                                                             }
 
                                                             return result[index] || "null";
                                                         });
                                                     }
 
-                                                    $(this).append(_display);
+                                                    $(this).append(_aHtml);
 
                                                 },
                                                 "click": ({"result": result}, function (e) {
@@ -468,9 +508,9 @@
                                         });
 
                                         if (options.group) {
-                                            $(li).insertAfter($(scope).find('li[data-search-group="' + _group + '"]'));
+                                            $(_liHtml).insertAfter($(scope).find('li[data-search-group="' + _group + '"]'));
                                         } else {
-                                            $(scope).append(li);
+                                            $(scope).append(_liHtml);
                                         }
 
                                     }(result[i], this));
@@ -1224,7 +1264,7 @@
          *
          * @returns {Function}
          */
-        var _sort = function(field, reverse, primer){
+        var _sort = function (field, reverse, primer){
 
             var key = primer ?
                 function(x) {return primer(x[field])} :
@@ -1235,6 +1275,44 @@
             return function (a, b) {
                 return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
             }
+        };
+
+        /**
+         * @private
+         * Remove every accent(s) from a string
+         *
+         * @param {string} string
+         *
+         * @returns {string}
+         */
+        var _removeAccent = function (string) {
+
+            if (!string || typeof string !== "string") {
+                return false;
+            }
+
+            string = string.toLowerCase();
+
+            for (var i=0, l=_accent.from.length ; i<l ; i++) {
+                string = string.replace(new RegExp(_accent.from.charAt(i), 'g'), _accent.to.charAt(i));
+            }
+
+            return string;
+        };
+
+        /**
+         * @private
+         * Replace a string from-to index
+         *
+         * @param {string} string The complete string to replace into
+         * @param {number} offset The cursor position to start replacing from
+         * @param {number} length The length of the replacing string
+         * @param {string} replace The replacing string
+         *
+         * @returns {string}
+         */
+        var _replaceAt = function (string, offset, length, replace) {
+            return string.substring(0, offset) + replace + string.substring(offset + length);
         };
 
         /**
