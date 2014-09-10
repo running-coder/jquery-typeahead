@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.2.2 (2014-09-05)
+ * @version 1.2.3 (2014-09-10)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -16,7 +16,7 @@
  * @note
  * Remove debug code: //\s?\{debug\}[\s\S]*?\{/debug\}
  */
-(function (window, document, $, undefined)
+;(function (window, document, $, undefined)
 {
 
     window.Typeahead = {
@@ -840,7 +840,14 @@
 
                     var url = (options.source[list].url instanceof Array && options.source[list].url[0]) || options.source[list].url,
                         path = (options.source[list].url instanceof Array && options.source[list].url[1]) || null,
-                        request = _request.get(url);
+                        ajaxObj = {};
+
+                    if (typeof url === "object") {
+                        ajaxObj = url;
+                        url = JSON.stringify(url);
+                    }
+
+                    var request = _request.get(url);
 
                     // Cross Domain
                     if (/https?:\/\//.test(url) &&
@@ -863,13 +870,13 @@
                         }
 
                         // Same Domain / public API
-                        $.ajax({
+                        $.ajax($.extend({
                             async: true,
                             url: url,
                             dataType: 'json',
                             ajaxList: list,
                             ajaxPath: path
-                        }).done( function(data) {
+                        }, ajaxObj)).done( function(data) {
 
                             _populateSource(data, this.ajaxList, this.ajaxPath);
                             _increment();
