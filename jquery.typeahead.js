@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.3.0 (2014-09-10)
+ * @version 1.4.0 (2014-09-11)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -44,12 +44,14 @@
         input: null,
         minLength: 2,
         maxItem: 8,
+        dynamic: false,
+        delay: 300,
         order: null,
         offset: false,
         hint: false,
         accent: false,
         highlight: true,
-        list: false, // @deprecated  options.list
+        list: false,
         group: false,
         filter: false,
         backdrop: false,
@@ -79,6 +81,7 @@
      * Limit the supported options on matching keys
      */
     var _supported = {
+        dynamic: [true, false],
         order: ["asc", "desc"],
         offset: [true, false],
         accent: [true, false],
@@ -201,6 +204,13 @@
                 }
             }
 
+            // If the Typeahead is dynamic, force no cache & no compression
+            if (options.dynamic) {
+                options.cache = false;
+                options.compression = false;
+            }
+
+            // Ensure Localstorage is available
             if (options.cache) {
                 options.cache = (function () {
                     var supported = typeof window.localStorage !== "undefined";
@@ -251,7 +261,9 @@
                 event = [
                     'focus' + namespace,
                     'input' + namespace,
-                    'keydown' + namespace
+                    'propertychange' + namespace, //propertychange IE <9
+                    'keydown' + namespace,
+                    'dynamic' + namespace
                 ];
 
             $('html').on("click" + namespace, function() {
@@ -285,15 +297,33 @@
                     case "focus":
                         if (isGenerated === null) {
                             buildHintHtml();
-                            generate();
+                            if (!options.dynamic) {
+                                generate();
+                            }
                         }
                         break;
                     case "input":
-                    default:
-
+                    case "propertychange":
                         if (!isGenerated) {
+                            if (options.dynamic) {
+
+                                query = $(this).val().trim();
+
+                                _typeWatch(function () {
+
+                                    reset();
+
+                                    if (query.length >= options.minLength && query !== "") {
+                                        generate();
+                                    }
+
+                                }, options.delay);
+
+                            }
                             return;
                         }
+                    case "dynamic":
+                    default:
 
                         query = $(this).val().trim();
 
@@ -303,6 +333,10 @@
                             search();
                             hint();
                             buildHtml();
+                        }
+                        if (e.type === "dynamic" && options.dynamic) {
+                            isGenerated = false;
+                            counter = 0;
                         }
                         break;
                 }
@@ -325,9 +359,10 @@
                 filter = false;
             }
 
-            var display;
+            var _display,
+                _query = query;
             if (options.accent) {
-                query = _removeAccent(query);
+                _query = _removeAccent(query);
             }
 
             for (var list in storage) {
@@ -346,19 +381,32 @@
                         break;
                     }
 
-                    display = storage[list][i][options.display];
+                    _display = storage[list][i][options.display];
 
-                    if (options.accent) {
-                        display = _removeAccent(display);
+                    if (!_display) {
+
+                        // {debug}
+                        options.debug && window.Debug.log({
+                            'node': node.selector,
+                            'function': 'search()',
+                            'arguments': '{display: "' + options.display + '"}',
+                            'message': 'WARNING - unable to find display: "' + options.display + '" inside ' + JSON.stringify(storage[list][i])
+                        });
+                        // {/debug}
+
+                        continue;
                     }
 
-                    if (display &&
-                        display.toLowerCase().indexOf(query.toLowerCase()) !== -1 && (
+                    if (options.accent) {
+                        _display = _removeAccent(_display);
+                    }
+
+                    if (_display.toLowerCase().indexOf(_query.toLowerCase()) !== -1 && (
                             !options.offset ||
-                            display.toLowerCase().indexOf(query.toLowerCase()) === 0
+                                _display.toLowerCase().indexOf(_query.toLowerCase()) === 0
                         ))
                     {
-                        if (options.source[list].ignore && ~options.source[list].ignore.indexOf(display)) {
+                        if (options.source[list].ignore && ~options.source[list].ignore.indexOf(_display)) {
                             continue;
                         }
 
@@ -367,6 +415,10 @@
                     }
                 }
             }
+
+            // {debug}
+            window.Debug.print();
+            // {/debug}
 
             if (options.order) {
                 result.sort(
@@ -614,6 +666,11 @@
 
         }
 
+        /**
+         * Update the hint input value
+         *
+         * @returns {boolean|string}
+         */
         function hint () {
 
             if (!options.hint || !result[0]) {
@@ -642,6 +699,8 @@
          * Right: select item
          *
          * @param {object} e Triggered keyup Event object
+         *
+         * @returns {boolean}
          */
         function move (e) {
 
@@ -801,7 +860,7 @@
                 }
 
                 // Lists are loaded
-                if ((storage[list] && storage[list].length !== 0)) {
+                if (!options.dynamic && (storage[list] && storage[list].length !== 0)) {
                     _increment();
                     continue;
                 }
@@ -883,7 +942,7 @@
                         ajaxObj = {};
 
                     if (typeof url === "object") {
-                        ajaxObj = url;
+                        ajaxObj = $.extend(true, {}, url);
                         url = JSON.stringify(url);
                     }
 
@@ -909,6 +968,16 @@
                             continue;
                         }
 
+                        // Pass the query to the request if {{query}} is specified
+                        if (ajaxObj && ajaxObj.data) {
+                            for (var x in ajaxObj.data) {
+                                if (ajaxObj.data[x] === "{{query}}") {
+                                    ajaxObj.data[x] = query;
+                                    break;
+                                }
+                            }
+                        }
+
                         // Same Domain / public API
                         $.ajax($.extend({
                             async: true,
@@ -918,11 +987,11 @@
                             ajaxPath: path
                         }, ajaxObj)).done( function(data) {
 
-                            _populateSource(data, this.ajaxList, this.ajaxPath);
-                            _increment();
-
                             _request.set(url, data);
                             _request.processQueue(url);
+
+                            _populateSource(data, this.ajaxList, this.ajaxPath);
+                            _increment();
 
                         }).fail( function () {
 
@@ -1218,8 +1287,14 @@
             counter++;
 
             if (counter === length) {
+
                 isGenerated = true;
-                delete request;
+                request = [];
+
+                if (options.dynamic) {
+                    node.trigger('dynamic.typeahead.input');
+                }
+
             }
 
         }
@@ -1314,6 +1389,15 @@
         var _replaceAt = function (string, offset, length, replace) {
             return string.substring(0, offset) + replace + string.substring(offset + length);
         };
+
+
+        var _typeWatch = (function(){
+            var timer = 0;
+            return function(callback, ms){
+                clearTimeout (timer);
+                timer = setTimeout(callback, ms);
+            }
+        })();
 
         /**
          * @private
@@ -1632,5 +1716,31 @@
 
     };
     // {/debug}
+
+    /**
+     * Array.indexof compatibility for older browsers
+     */
+    if (!Array.prototype.indexOf)
+    {
+        Array.prototype.indexOf = function(elt /*, from*/)
+        {
+            var len = this.length >>> 0;
+
+            var from = Number(arguments[1]) || 0;
+            from = (from < 0)
+                ? Math.ceil(from)
+                : Math.floor(from);
+            if (from < 0)
+                from += len;
+
+            for (; from < len; from++)
+            {
+                if (from in this &&
+                    this[from] === elt)
+                    return from;
+            }
+            return -1;
+        };
+    }
 
 }(window, document, window.jQuery));
