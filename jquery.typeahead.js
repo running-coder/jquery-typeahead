@@ -133,6 +133,9 @@
             storage = [],       // generated source
             result = [],        // matched result(s) (source vs query)
             filter,             // matched result(s) (source vs query)
+            container,          // the typeahead container
+            backdrop = {},      // the backdrop object if enabled
+            hint = {},          // the hint object if enabled
             jsonpCallback = "window.Typeahead.source['" + node.selector + "'].populate",
             counter = 0,        // generated source counter
             length = 0;         // source length
@@ -256,6 +259,8 @@
             });
             // {/debug}
 
+            container = node.parents('.' + options.containerClass);
+
             // Namespace events to avoid conflicts
             var namespace = ".typeahead.input",
                 event = [
@@ -270,12 +275,12 @@
                 reset();
             });
 
-            node.parents('.' + options.containerClass).on("click" + namespace, function(e) {
+            container.on("click" + namespace, function(e) {
 
                 e.stopPropagation();
 
                 if (options.filter) {
-                    node.parents('.' + options.containerClass)
+                    container
                         .find('.' + _selector.dropdown)
                         .hide();
                 }
@@ -296,7 +301,6 @@
                         break;
                     case "focus":
                         if (isGenerated === null) {
-                            buildHintHtml();
                             if (!options.dynamic) {
                                 generate();
                             }
@@ -331,7 +335,6 @@
 
                         if (query.length >= options.minLength && query !== "") {
                             search();
-                            hint();
                             buildHtml();
                         }
                         if (e.type === "dynamic" && options.dynamic) {
@@ -437,258 +440,243 @@
          */
         function buildHtml () {
 
-            if (result.length !== 0) {
+            if (query === "" || result.length === 0) {
+                return false;
+            }
 
-                var match,
-                    template = $("<div/>", {
-                        "class": options.resultClass,
-                        "html": $("<ul/>", {
-                            "html": function() {
+            var template = $("<div/>", {
+                "class": options.resultClass,
+                "html": $("<ul/>", {
+                    "html": function() {
 
-                                for (var i in result) {
+                        for (var i in result) {
 
-                                    if (!result.hasOwnProperty(i)) {
-                                        continue;
+                            if (!result.hasOwnProperty(i)) {
+                                continue;
+                            }
+
+                            (function (result, scope) {
+
+                                var _group,
+                                    _list,
+                                    _liHtml,
+                                    _aHtml,
+                                    _display,
+                                    _query,
+                                    _offset,
+                                    _match;
+
+                                if (options.group) {
+                                    _group = result.list;
+                                    if (typeof options.group !== "boolean" && result[options.group]) {
+                                        _group = result[options.group];
                                     }
-
-                                    (function (result, scope) {
-
-                                        var _group,
-                                            _list,
-                                            _liHtml,
-                                            _aHtml,
-                                            _display,
-                                            _query,
-                                            _offset,
-                                            _match;
-
-                                        if (options.group) {
-                                            _group = result.list;
-                                            if (typeof options.group !== "boolean" && result[options.group]) {
-                                                _group = result[options.group];
-                                            }
-                                        }
-
-                                        // @deprecated options.list
-                                        if (options.list) {
-                                            _list = result.list;
-                                            if (typeof options.list !== "boolean" && result[options.list]) {
-                                                _list = result[options.list];
-                                            }
-                                        }
-
-                                        if (options.group && !$(scope).find('li[data-search-group="' + _group + '"]')[0]) {
-                                            $(scope).append(
-                                                $("<li/>", {
-                                                    "class": options.groupClass,
-                                                    "html":  $("<a/>", {
-                                                        "html": _group
-                                                    }),
-                                                    "data-search-group": _group
-                                                })
-                                            );
-                                        }
-
-                                        _display = result[options.display].toLowerCase();
-                                        _query = query.toLowerCase();
-
-                                        if (options.accent) {
-                                            _display = _removeAccent(_display);
-                                            _query = _removeAccent(_query);
-                                        }
-
-                                        _offset = _display.indexOf(_query);
-                                        _match = result[options.display].substr(_offset, _query.length);
-
-                                        if (options.highlight) {
-                                            _match = "<strong>" + _match + "</strong>";
-                                        }
-
-                                        _display = _replaceAt(result[options.display], _offset, _query.length, _match);
-
-                                        _liHtml = $("<li/>", {
-                                            "html":  $("<a/>", {
-                                                "href": "javascript:;",
-                                                "data-list": _group,
-                                                "html": function () {
-
-                                                    _aHtml = '<span class="' + _selector.display + '">' + _display + '</span>' +
-                                                    ((_list) ? "<small>" + _list + "</small>" : "")
-
-                                                    if (options.template) {
-                                                        _aHtml = options.template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
-                                                            if (index === options.display) {
-                                                                return _aHtml;
-                                                            }
-
-                                                            return result[index] || "null";
-                                                        });
-                                                    }
-
-                                                    $(this).append(_aHtml);
-
-                                                },
-                                                "click": ({"result": result}, function (e) {
-
-                                                    e.preventDefault();
-
-                                                    node.val(result[options.display]).focus();
-
-                                                    query = result[options.display];
-
-                                                    reset();
-
-                                                    _executeCallback(options.callback.onClick, [node, this, result, e]);
-                                                }),
-                                                "mouseenter": function (e) {
-
-                                                    $(this).parents('.' + options.resultClass).find('.active').removeClass('active');
-
-                                                    _executeCallback(options.callback.onMouseEnter, [node, this, result, e]);
-                                                },
-                                                "mouseleave": function (e) {
-                                                    _executeCallback(options.callback.onMouseLeave, [node, this, result, e]);
-                                                }
-
-                                            }),
-                                            "mouseenter": function () {
-
-                                                $(this).siblings('li.active').removeClass('active');
-                                                $(this).addClass('active');
-
-                                            }
-                                        });
-
-                                        if (options.group) {
-                                            $(_liHtml).insertAfter($(scope).find('li[data-search-group="' + _group + '"]'));
-                                        } else {
-                                            $(scope).append(_liHtml);
-                                        }
-
-                                    }(result[i], this));
                                 }
 
-                            }
-                        })
-                    });
+                                // @deprecated options.list
+                                if (options.list) {
+                                    _list = result.list;
+                                    if (typeof options.list !== "boolean" && result[options.list]) {
+                                        _list = result[options.list];
+                                    }
+                                }
 
-                node.parents('.' + options.containerClass)
-                    .addClass('result')
-                    .append(template);
-            }
+                                if (options.group && !$(scope).find('li[data-search-group="' + _group + '"]')[0]) {
+                                    $(scope).append(
+                                        $("<li/>", {
+                                            "class": options.groupClass,
+                                            "html":  $("<a/>", {
+                                                "html": _group
+                                            }),
+                                            "data-search-group": _group
+                                        })
+                                    );
+                                }
 
-            if (!options.backdrop || query === "") {
-                return;
-            }
+                                _display = result[options.display].toLowerCase();
+                                _query = query.toLowerCase();
 
-            var css = $.extend(
-                {
-                    "opacity": 0.6,
-                    "filter": 'alpha(opacity=60)',
-                    "position": 'fixed',
-                    "top": 0,
-                    "right": 0,
-                    "bottom": 0,
-                    "left": 0,
-                    "z-index": 1040,
-                    "background-color": "#000"
-                },
-                options.backdrop
-            );
+                                if (options.accent) {
+                                    _display = _removeAccent(_display);
+                                    _query = _removeAccent(_query);
+                                }
 
-            node.parents('.' + options.containerClass)
-                .addClass('backdrop')
-                .css({
-                    "z-index": css["z-index"] + 1,
-                    "position": "relative"
-                });
+                                _offset = _display.indexOf(_query);
+                                _match = result[options.display].substr(_offset, _query.length);
 
+                                if (options.highlight) {
+                                    _match = "<strong>" + _match + "</strong>";
+                                }
 
-            $("<div/>", {
-                "class": options.backdropClass,
-                "css": css,
-                "click": function () {
-                    reset();
-                }
-            }).insertAfter(node.parents('.' + options.containerClass))
+                                _display = _replaceAt(result[options.display], _offset, _query.length, _match);
 
-        }
+                                _liHtml = $("<li/>", {
+                                    "html":  $("<a/>", {
+                                        "href": "javascript:;",
+                                        "data-list": _group,
+                                        "html": function () {
 
-        /**
-         * If options.hint is activated, build the disabled hint input
-         */
-        function buildHintHtml () {
+                                            _aHtml = '<span class="' + _selector.display + '">' + _display + '</span>' +
+                                            ((_list) ? "<small>" + _list + "</small>" : "")
 
-            if (!options.hint) {
-                return false;
-            }
+                                            if (options.template) {
+                                                _aHtml = options.template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
+                                                    if (index === options.display) {
+                                                        return _aHtml;
+                                                    }
 
-            node.css({
-                "position": "relative",
-                "z-index": 2,
-                "background-color": "transparent"
-            }).parent().css({
-                "position": "relative"
+                                                    return result[index] || "null";
+                                                });
+                                            }
+
+                                            $(this).append(_aHtml);
+
+                                        },
+                                        "click": ({"result": result}, function (e) {
+
+                                            e.preventDefault();
+
+                                            node.val(result[options.display]).focus();
+
+                                            query = result[options.display];
+
+                                            reset();
+
+                                            _executeCallback(options.callback.onClick, [node, this, result, e]);
+                                        }),
+                                        "mouseenter": function (e) {
+
+                                            $(this).parents('.' + options.resultClass).find('.active').removeClass('active');
+
+                                            _executeCallback(options.callback.onMouseEnter, [node, this, result, e]);
+                                        },
+                                        "mouseleave": function (e) {
+                                            _executeCallback(options.callback.onMouseLeave, [node, this, result, e]);
+                                        }
+
+                                    }),
+                                    "mouseenter": function () {
+
+                                        $(this).siblings('li.active').removeClass('active');
+                                        $(this).addClass('active');
+
+                                    }
+                                });
+
+                                if (options.group) {
+                                    $(_liHtml).insertAfter($(scope).find('li[data-search-group="' + _group + '"]'));
+                                } else {
+                                    $(scope).append(_liHtml);
+                                }
+
+                            }(result[i], this));
+                        }
+
+                    }
+                })
             });
 
-            var border = {
-                top: node.css("border-top-width"),
-                right: node.css("border-right-width"),
-                bottom: node.css("border-bottom-width"),
-                left: node.css("border-left-width")
-            };
+            container
+                .addClass('result')
+                .append(template);
 
-            var css = $.extend(
-                {
-                    border: "none",
-                    display: node.css("display"),
-                    position: "absolute",
-                    top: (parseFloat(border.top)) ? border.top : "auto",
-                    left: (parseFloat(border.left)) ? border.left : "auto",
-                    "z-index": 1,
-                    width: node.outerWidth(true) - (parseFloat(border.right) + parseFloat(border.left)) + "px",
-                    height: node.outerHeight(true) - (parseFloat(border.top) + parseFloat(border.bottom)) + "px",
-                    "-webkit-text-fill-color": "silver",
-                    color: "silver",
-                    "background-color": "transparent",
-                    "user-select": "none"
-                },
-                options.hint
-            );
+            if (options.backdrop) {
 
-            $("<input/>", {
-                "class": _selector.hint,
-                "readonly": true,
-                "tabindex": -1,
-                "css": css,
-                "type": "search"
-            }).insertBefore(node);
+                if (backdrop.container) {
+                    backdrop.container.show();
+                } else {
+                    backdrop.css = $.extend(
+                        {
+                            "opacity": 0.6,
+                            "filter": 'alpha(opacity=60)',
+                            "position": 'fixed',
+                            "top": 0,
+                            "right": 0,
+                            "bottom": 0,
+                            "left": 0,
+                            "z-index": 1040,
+                            "background-color": "#000"
+                        },
+                        options.backdrop
+                    );
 
-        }
+                    backdrop.container = $("<div/>", {
+                        "class": options.backdropClass,
+                        "css": backdrop.css,
+                        "click": function () {
+                            reset();
+                        }
+                    }).insertAfter(container);
 
-        /**
-         * Update the hint input value
-         *
-         * @returns {boolean|string}
-         */
-        function hint () {
+                }
+                container
+                    .addClass('backdrop')
+                    .css({
+                        "z-index": backdrop.css["z-index"] + 1,
+                        "position": "relative"
+                    });
 
-            if (!options.hint || !result[0]) {
-                return false;
             }
 
-            var oneResult = result[0];
-            if (options.group) {
-                oneResult = result[result.length - 1];
+            if (options.hint) {
+
+                if (!hint.container) {
+
+                    var border = {
+                        top: node.css("border-top-width"),
+                        right: node.css("border-right-width"),
+                        bottom: node.css("border-bottom-width"),
+                        left: node.css("border-left-width")
+                    };
+
+                    hint.css = $.extend(
+                        {
+                            border: "none",
+                            display: node.css("display"),
+                            position: "absolute",
+                            top: (parseFloat(border.top)) ? border.top : "auto",
+                            left: (parseFloat(border.left)) ? border.left : "auto",
+                            "z-index": 1,
+                            width: node.outerWidth(true) - (parseFloat(border.right) + parseFloat(border.left)) + "px",
+                            height: node.outerHeight(true) - (parseFloat(border.top) + parseFloat(border.bottom)) + "px",
+                            "-webkit-text-fill-color": "silver",
+                            color: "silver",
+                            "background-color": "transparent",
+                            "user-select": "none"
+                        },
+                        options.hint
+                    );
+
+                    hint.container = $("<input/>", {
+                        "class": _selector.hint,
+                        "readonly": true,
+                        "tabindex": -1,
+                        "css": hint.css,
+                        "type": "search"
+                    }).insertBefore(node);
+
+                    node.css({
+                        "position": "relative",
+                        "z-index": 2,
+                        "background-color": "transparent"
+                    }).parent().css({
+                        "position": "relative"
+                    });
+                }
+
+                var oneResult = result[0];
+                if (options.group) {
+                    oneResult = result[result.length - 1];
+                }
+
+                if (oneResult[options.display].toLowerCase().indexOf(query.toLowerCase()) === 0) {
+                    hint.container
+                        .val(query + oneResult[options.display].substring(query.length))
+                        .show();
+                }
             }
 
-            if (oneResult[options.display].toLowerCase().indexOf(query.toLowerCase()) === 0) {
-                node.siblings("." + _selector.hint)
-                    .val(query + oneResult[options.display].substring(query.length))
-                    .show();
-
-                return oneResult[options.display];
-            }
+            return true;
 
         }
 
@@ -708,7 +696,7 @@
                 return false;
             }
 
-            var lis = node.parents('.' + options.containerClass)
+            var lis = container
                     .find('.' + options.resultClass)
                     .find('li:not([data-search-group])'),
                 li = lis.siblings('.active');
@@ -753,7 +741,7 @@
                 } else if (e.keyCode === 39) {
 
                     if (options.hint && !li[0]) {
-                        node.val(hint());
+                        node.val(hint.container.val());
                     }
 
                     if (li[0]) {
@@ -786,9 +774,9 @@
             
             if (options.hint) {
                 if (lis.filter('.active')[0]) {
-                    node.siblings("." + _selector.hint).hide();
+                    hint.container.hide();
                 } else {
-                    node.siblings("." + _selector.hint).show();
+                    hint.container.show();
                 }
             }
 
@@ -806,8 +794,6 @@
 
             result = [];
 
-            var container = node.parents('.' + options.containerClass);
-
             if (options.filter) {
                 container
                     .removeClass('filter')
@@ -817,17 +803,21 @@
 
             if (options.hint) {
                 container
-                    .removeClass('hint')
-                    .find('.' + _selector.hint)
-                    .val("");
+                    .removeClass('hint');
+                if (hint.container) {
+                    hint.container
+                        .val("");
+                }
             }
 
             if (options.backdrop) {
                 container
                     .removeClass('backdrop')
-                    .removeAttr('style')
-                    .siblings('.' + options.backdropClass)
-                    .remove();
+                    .removeAttr('style');
+                if (backdrop.container) {
+                    backdrop.container
+                        .hide();
+                }
             }
 
             container
@@ -1101,7 +1091,7 @@
                     );
                 }
             }).insertAfter(
-                node.parents('.' + options.containerClass).find('.' + _selector.query)
+                container.find('.' + _selector.query)
             );
 
             /**
@@ -1114,17 +1104,16 @@
 
                 filter = oneFilter;
 
-                node.parents('.' + options.containerClass)
+                container
                     .find('.' + _selector.filterValue)
                     .text(filter || options.filter);
 
-                node.parents('.' + options.containerClass)
+                container
                     .find('.' + _selector.dropdown)
                     .hide();
 
                 reset();
                 search();
-                hint();
                 buildHtml();
 
                 node.focus();
@@ -1306,8 +1295,6 @@
          */
         function _validateHtml () {
 
-            var container = node.parents('.' + options.containerClass);
-
             if (!container[0]) {
                 options.debug && window.Debug.log({
                     'node': node.selector,
@@ -1326,6 +1313,7 @@
                     'message': 'ERROR - Missing input parent class: ".' + _selector.query + '"'
                 });
             }
+
         }
         // {/debug}
 
