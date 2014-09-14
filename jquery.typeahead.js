@@ -88,7 +88,6 @@
         highlight: [true, false],
         cache: [true, false],
         compression: [true, false],
-        //source: ["data", "url", "ignore"],
         //callback: ["onInit", "onMouseEnter", "onMouseLeave", "onClick", "onSubmit"],
         debug: [true, false]
     };
@@ -136,6 +135,7 @@
             container,          // the typeahead container
             backdrop = {},      // the backdrop object if enabled
             hint = {},          // the hint object if enabled
+            timestamp = null,   // dynamic option timestamp
             jsonpCallback = "window.Typeahead.source['" + node.selector + "'].populate",
             counter = 0,        // generated source counter
             length = 0;         // source length
@@ -314,15 +314,11 @@
                                 query = $(this).val().trim();
 
                                 _typeWatch(function () {
-
                                     reset();
-
                                     if (query.length >= options.minLength && query !== "") {
                                         generate();
                                     }
-
                                 }, options.delay);
-
                             }
                             return;
                         }
@@ -810,7 +806,7 @@
                 }
             }
 
-            if (options.backdrop) {
+            if (options.backdrop && query === "") {
                 container
                     .removeClass('backdrop')
                     .removeAttr('style');
@@ -834,6 +830,7 @@
         function generate () {
 
             isGenerated = false;
+            timestamp = (new Date()).getTime();
 
             if (length === 0) {
                 for (var k in options.source) {
@@ -974,14 +971,18 @@
                             url: url,
                             dataType: 'json',
                             ajaxList: list,
-                            ajaxPath: path
+                            ajaxPath: path,
+                            ajaxTimestamp: timestamp
                         }, ajaxObj)).done( function(data) {
+
+                            if (this.ajaxTimestamp !== timestamp) {
+                                return false;
+                            }
 
                             _request.set(url, data);
                             _request.processQueue(url);
 
                             _populateSource(data, this.ajaxList, this.ajaxPath);
-                            _increment();
 
                         }).fail( function () {
 
@@ -994,8 +995,10 @@
                             });
                             // {/debug}
 
-                            _increment();
-
+                        }).complete( function () {
+                            if (this.ajaxTimestamp === timestamp) {
+                                _increment();
+                            }
                         });
 
                     }
