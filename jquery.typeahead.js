@@ -53,16 +53,27 @@
         highlight: true,
         list: false,
         group: false,
+        groupMaxItem: false,
         filter: false,
         backdrop: false,
         cache: false,
         ttl: 3600000,
         compression: false,
-        containerClass: "typeahead-search-container",
-        fieldClass: "typeahead-search-field",
-        groupClass: "typeahead-search-group",
-        resultClass: "typeahead-search-result",
-        backdropClass: "typeahead-search-backdrop",
+        selector: {
+            container: "typeahead-container",
+            group: "typeahead-group",
+            result: "typeahead-result",
+            list: "typeahead-list",
+            display: "typeahead-display",
+            query: "typeahead-query",
+            filter: "typeahead-filter",
+            filterButton: "typeahead-filter-button",
+            filterValue: "typeahead-filter-value",
+            dropdown: "typeahead-dropdown",
+            button: "typeahead-button",
+            backdrop: "typeahead-backdrop",
+            hint: "typeahead-hint"
+        },
         display: "display",
         template: null,
         source: null,
@@ -92,19 +103,7 @@
         debug: [true, false]
     };
 
-    /**
-     * @private
-     * Class selectors to reach class-constructed elements
-     */
-    var _selector = {
-        display: "typeahead-display",
-        query: "typeahead-query",
-        filter: "typeahead-filter",
-        button: "typeahead-button",
-        filterValue: "typeahead-filter-value",
-        dropdown: "typeahead-dropdown",
-        hint: "typeahead-hint"
-    };
+    var _eventNamespace = ".typeahead.input";
 
     /**
      * @private
@@ -259,29 +258,28 @@
             });
             // {/debug}
 
-            container = node.parents('.' + options.containerClass);
+            container = node.parents('.' + options.selector.container);
 
             // Namespace events to avoid conflicts
-            var namespace = ".typeahead.input",
-                event = [
-                    'focus' + namespace,
-                    'input' + namespace,
-                    'propertychange' + namespace, //propertychange IE <9
-                    'keydown' + namespace,
-                    'dynamic' + namespace
+            var event = [
+                    'focus' + _eventNamespace,
+                    'input' + _eventNamespace,
+                    'propertychange' + _eventNamespace, //propertychange IE <9
+                    'keydown' + _eventNamespace,
+                    'dynamic' + _eventNamespace
                 ];
 
-            $('html').on("click" + namespace, function() {
-                reset();
+            $('html').on("click" + _eventNamespace, function() {
+                reset(true);
             });
 
-            container.on("click" + namespace, function(e) {
+            container.on("click" + _eventNamespace, function(e) {
 
                 e.stopPropagation();
 
                 if (options.filter) {
                     container
-                        .find('.' + _selector.dropdown)
+                        .find('.' + options.selector.dropdown.replace(" ", "."))
                         .hide();
                 }
             });
@@ -359,7 +357,10 @@
             }
 
             var _display,
-                _query = query;
+                _query = query,
+                _groupMaxItem = /\d/.test(options.groupMaxItem) && options.groupMaxItem,
+                _groupCounter;
+
             if (options.accent) {
                 _query = _removeAccent(query);
             }
@@ -370,13 +371,17 @@
                     continue;
                 }
 
+                if (_groupMaxItem) {
+                    _groupCounter = 0;
+                }
+
                 for (var i in storage[list]) {
 
                     if (!storage[list].hasOwnProperty(i)) {
                         continue;
                     }
 
-                    if (result.length >= options.maxItem) {
+                    if (result.length >= options.maxItem || (_groupMaxItem && _groupCounter >= _groupMaxItem)) {
                         break;
                     }
 
@@ -411,6 +416,10 @@
 
                         storage[list][i].list = list;
                         result.push(storage[list][i]);
+
+                        if (_groupMaxItem) {
+                            _groupCounter++;
+                        }
                     }
                 }
             }
@@ -441,8 +450,9 @@
             }
 
             var template = $("<div/>", {
-                "class": options.resultClass,
+                "class": options.selector.result,
                 "html": $("<ul/>", {
+                    "class": options.selector.list,
                     "html": function() {
 
                         for (var i in result) {
@@ -480,7 +490,7 @@
                                 if (options.group && !$(scope).find('li[data-search-group="' + _group + '"]')[0]) {
                                     $(scope).append(
                                         $("<li/>", {
-                                            "class": options.groupClass,
+                                            "class": options.selector.group,
                                             "html":  $("<a/>", {
                                                 "html": _group
                                             }),
@@ -512,7 +522,7 @@
                                         "data-list": _group,
                                         "html": function () {
 
-                                            _aHtml = '<span class="' + _selector.display + '">' + _display + '</span>' +
+                                            _aHtml = '<span class="' + options.selector.display + '">' + _display + '</span>' +
                                             ((_list) ? "<small>" + _list + "</small>" : "")
 
                                             if (options.template) {
@@ -542,7 +552,7 @@
                                         }),
                                         "mouseenter": function (e) {
 
-                                            $(this).parents('.' + options.resultClass).find('.active').removeClass('active');
+                                            $(this).parents('.' + options.selector.result).find('.active').removeClass('active');
 
                                             _executeCallback(options.callback.onMouseEnter, [node, this, result, e]);
                                         },
@@ -597,7 +607,7 @@
                     );
 
                     backdrop.container = $("<div/>", {
-                        "class": options.backdropClass,
+                        "class": options.selector.backdrop,
                         "css": backdrop.css,
                         "click": function () {
                             reset();
@@ -644,7 +654,7 @@
                     );
 
                     hint.container = $("<input/>", {
-                        "class": _selector.hint,
+                        "class": options.selector.hint,
                         "readonly": true,
                         "tabindex": -1,
                         "css": hint.css,
@@ -693,7 +703,7 @@
             }
 
             var lis = container
-                    .find('.' + options.resultClass)
+                    .find('.' + options.selector.result)
                     .find('li:not([data-search-group])'),
                 li = lis.siblings('.active');
 
@@ -748,8 +758,9 @@
 
                     query = node.val();
 
-                    reset();
-                    return;
+                    $("html").trigger("click" + _eventNamespace);
+
+                    return true;
                 }
 
                 if (options.group) {
@@ -776,7 +787,7 @@
                 }
             }
 
-            node.val(lis.filter('.active').find('.' + _selector.display).text() || query);
+            node.val(lis.filter('.active').find('.' + options.selector.display).text() || query);
 
             return true;
 
@@ -785,15 +796,17 @@
         /**
          * Reset Typeahead to it's initial state.
          * Clear filter, result and backdrop
+         *
+         * @param {boolean} [force] Will force certain action(s) depending on context
          */
-        function reset () {
+        function reset (force) {
 
             result = [];
 
             if (options.filter) {
                 container
                     .removeClass('filter')
-                    .find('.' + _selector.dropdown)
+                    .find('.' + options.selector.dropdown.replace(" ", "."))
                     .hide();
             }
 
@@ -806,7 +819,7 @@
                 }
             }
 
-            if (options.backdrop && query === "") {
+            if (options.backdrop && (query === "" || force)) {
                 container
                     .removeClass('backdrop')
                     .removeAttr('style');
@@ -818,7 +831,7 @@
 
             container
                 .removeClass('result')
-                .find('.' + options.resultClass)
+                .find('.' + options.selector.result)
                 .remove();
 
         }
@@ -1017,19 +1030,19 @@
             }
 
             $('<span/>', {
-                "class": _selector.filter,
+                "class": options.selector.filter,
                 "html": function () {
 
                     $(this).append(
                         $('<button/>', {
                             "type": "button",
-                            "html": "<span class='" + _selector.filterValue + "'>" + options.filter + "</span> <span class='caret'></span>",
+                            "class": options.selector.filterButton,
+                            "html": "<span class='" + options.selector.filterValue + "'>" + options.filter + "</span> <span class='caret'></span>",
                             "click": function (e) {
 
                                 e.stopPropagation();
 
-                                var container = $(this).parents('.' + options.containerClass),
-                                    filter = container.find('.' + _selector.dropdown);
+                                var filter = container.find('.' + options.selector.dropdown.replace(" ", "."));
 
                                 if (!filter.is(':visible')) {
                                     container.addClass('filter');
@@ -1045,7 +1058,7 @@
 
                     $(this).append(
                         $('<ul/>', {
-                            "class": _selector.dropdown,
+                            "class": options.selector.dropdown,
                             "html": function () {
 
                                 for (var i in options.source) {
@@ -1094,7 +1107,7 @@
                     );
                 }
             }).insertAfter(
-                container.find('.' + _selector.query)
+                container.find('.' + options.selector.query)
             );
 
             /**
@@ -1108,11 +1121,11 @@
                 filter = oneFilter;
 
                 container
-                    .find('.' + _selector.filterValue)
+                    .find('.' + options.selector.filterValue)
                     .text(filter || options.filter);
 
                 container
-                    .find('.' + _selector.dropdown)
+                    .find('.' + options.selector.dropdown.replace(" ", "."))
                     .hide();
 
                 reset();
@@ -1301,21 +1314,28 @@
             if (!container[0]) {
                 options.debug && window.Debug.log({
                     'node': node.selector,
-                    'function': 'reset()',
-                    'arguments': options.containerClass,
-                    'message': 'ERROR - Missing input parent container class: ".' + options.containerClass + '"'
+                    'function': '_validateHtml()',
+                    'arguments': options.selector.container,
+                    'message': 'ERROR - Missing input parent container class: ".' + options.selector.container + '"'
                 });
                 return false;
             }
 
-            if (!container.find('.' + _selector.query)) {
-                options.debug && window.Debug.log({
-                    'node': node.selector,
-                    'function': 'reset()',
-                    'arguments': _selector.query,
-                    'message': 'ERROR - Missing input parent class: ".' + _selector.query + '"'
-                });
-            }
+            $.each([
+                options.selector.query,
+                options.selector.button
+            ], function (i, v) {
+
+                if (!container.find('.' + v)[0]) {
+                    options.debug && window.Debug.log({
+                        'node': node.selector,
+                        'function': '_validateHtml()',
+                        'arguments': options.selector.query,
+                        'message': 'ERROR - Missing container with class: ".' + v + '"'
+                    });
+                }
+
+            });
 
         }
         // {/debug}
