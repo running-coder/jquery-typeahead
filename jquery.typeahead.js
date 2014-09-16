@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.5.1 (2014-09-16)
+ * @version 1.5.2 (2014-09-16)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -160,31 +160,31 @@
                             'node': node.selector,
                             'function': 'extendOptions()',
                             'arguments': "{options.source}",
-                            'message': 'ERROR - source.list.url or source.list.data is Required'
+                            'message': 'ERROR - source.group.url or source.group.data is Required'
                         });
                     }
                     // {/debug}
 
-                    for (var list in options[option]) {
+                    for (var group in options[option]) {
 
-                        if (!options[option].hasOwnProperty(list)) {
+                        if (!options[option].hasOwnProperty(group)) {
                             continue;
                         }
 
-                        if (!(options[option][list] instanceof Object) || list === "data") {
-                            list = "list";
+                        if (!(options[option][group] instanceof Object) || group === "data") {
+                            group = "group";
                             options[option] = {
-                                list: options[option]
+                                group: options[option]
                             };
                         }
 
                         // {debug}
-                        if (!options[option][list].url && !options[option][list].data) {
+                        if (!options[option][group].url && !options[option][group].data) {
                             _options.debug && window.Debug.log({
                                 'node': node.selector,
                                 'function': 'extendOptions()',
                                 'arguments': "{options.source}",
-                                'message': 'ERROR - source.list.url or source.list.data is Required'
+                                'message': 'ERROR - source.group.url or source.group.data is Required'
                             });
                         }
                         // {/debug}
@@ -364,9 +364,9 @@
                 _query = _removeAccent(query);
             }
 
-            for (var list in storage) {
+            for (var group in storage) {
 
-                if (!storage.hasOwnProperty(list) || (filter && list !== filter)) {
+                if (!storage.hasOwnProperty(group) || (filter && group !== filter)) {
                     continue;
                 }
 
@@ -374,9 +374,9 @@
                     _groupCounter = 0;
                 }
 
-                for (var i in storage[list]) {
+                for (var i in storage[group]) {
 
-                    if (!storage[list].hasOwnProperty(i)) {
+                    if (!storage[group].hasOwnProperty(i)) {
                         continue;
                     }
 
@@ -384,7 +384,7 @@
                         break;
                     }
 
-                    _display = storage[list][i][options.display];
+                    _display = storage[group][i][options.display];
 
                     if (!_display) {
 
@@ -393,7 +393,7 @@
                             'node': node.selector,
                             'function': 'search()',
                             'arguments': '{display: "' + options.display + '"}',
-                            'message': 'WARNING - unable to find display: "' + options.display + '" inside ' + JSON.stringify(storage[list][i])
+                            'message': 'WARNING - unable to find display: "' + options.display + '" inside ' + JSON.stringify(storage[group][i])
                         });
                         // {/debug}
 
@@ -409,12 +409,12 @@
                             _display.toLowerCase().indexOf(_query.toLowerCase()) === 0
                         ))
                     {
-                        if (options.source[list].ignore && ~options.source[list].ignore.indexOf(_display)) {
+                        if (options.source[group].ignore && ~options.source[group].ignore.indexOf(_display)) {
                             continue;
                         }
 
-                        storage[list][i].list = list;
-                        result.push(storage[list][i]);
+                        storage[group][i].group = group;
+                        result.push(storage[group][i]);
 
                         if (_groupMaxItem) {
                             _groupCounter++;
@@ -441,21 +441,24 @@
 
                 var tmpResult = [];
 
-                for (var list in storage) {
+                for (var group in storage) {
                     for (var k in result) {
-                        if (result[k].list === list) {
+                        if (result[k].group === group) {
                             tmpResult.push(result[k]);
                         }
                     }
                 }
 
                 result = tmpResult;
+
+                console.log('------------result - search -----------')
+                console.log(result)
             }
 
         }
 
         /**
-         * Builds the search result list html and delegate the callbacks
+         * Builds the search result group html and delegate the callbacks
          */
         function buildHtml () {
 
@@ -487,13 +490,12 @@
                                     _match;
 
                                 if (options.group) {
-                                    _group = result.list;
+                                    _group = result.group;
                                     if (typeof options.group !== "boolean" && result[options.group]) {
                                         _group = result[options.group];
                                     }
                                 }
 
-                                // @deprecated options.list
                                 if (options.list) {
                                     _list = result.list;
                                     if (typeof options.list !== "boolean" && result[options.list]) {
@@ -533,7 +535,7 @@
                                 _liHtml = $("<li/>", {
                                     "html":  $("<a/>", {
                                         "href": "javascript:;",
-                                        "data-list": _group,
+                                        "data-group": _group,
                                         "html": function () {
 
                                             _aHtml = '<span class="' + options.selector.display + '">' + _display + '</span>' +
@@ -684,16 +686,33 @@
                     });
                 }
 
-                var oneResult = result[0];
-                if (options.group) {
-                    oneResult = result[result.length - 1];
+                var _hint,
+                    _group = result[0].group;
+                for (var k in result) {
+                    if (!result.hasOwnProperty(k)) {
+                        continue;
+                    }
+                    if (result[k].group !== _group) {
+                        if (!_hint) {
+                            _group = result[k].group;
+                        } else {
+                            break;
+                        }
+                    }
+                    if (result[k][options.display].toLowerCase().indexOf(query.toLowerCase()) === 0) {
+                        _hint = result[k][options.display];
+                        if (!options.group) {
+                            break;
+                        }
+                    }
                 }
 
-                if (oneResult[options.display].toLowerCase().indexOf(query.toLowerCase()) === 0) {
+                if (_hint) {
                     hint.container
-                        .val(query + oneResult[options.display].substring(query.length))
+                        .val(query + _hint.substring(query.length))
                         .show();
                 }
+
             }
 
             return true;
@@ -865,28 +884,28 @@
                 }
             }
 
-            for (var list in options.source) {
+            for (var group in options.source) {
 
-                if (!options.source.hasOwnProperty(list)) {
+                if (!options.source.hasOwnProperty(group)) {
                     continue;
                 }
 
                 // Lists are loaded
-                if (!options.dynamic && (storage[list] && storage[list].length !== 0)) {
+                if (!options.dynamic && (storage[group] && storage[group].length !== 0)) {
                     _increment();
                     continue;
                 }
 
                 // Lists from localstorage
                 if (options.cache) {
-                    storage[list] = localStorage.getItem(node.selector + ":" + list);
-                    if (storage[list]) {
+                    storage[group] = localStorage.getItem(node.selector + ":" + group);
+                    if (storage[group]) {
 
                         if (options.compression && typeof LZString === "object") {
-                            storage[list] = LZString.decompress(storage[list]);
+                            storage[group] = LZString.decompress(storage[group]);
                         }
 
-                        var ls = JSON.parse(storage[list]);
+                        var ls = JSON.parse(storage[group]);
 
                         if (ls.data && ls.ttl && ls.ttl > new Date().getTime()) {
 
@@ -895,12 +914,12 @@
                                 'node': node.selector,
                                 'function': 'generate()',
                                 'arguments': '{cache: true}',
-                                'message': 'OK - List: ' + node.selector + ":" + list + '" found in localStorage.'
+                                'message': 'OK - List: ' + node.selector + ":" + group + '" found in localStorage.'
                             });
                             window.Debug.print();
                             // {/debug}
 
-                            storage[list] = ls.data;
+                            storage[group] = ls.data;
 
                             _increment();
 
@@ -909,48 +928,48 @@
                     }
                 }
 
-                if (!options.source[list].data && !options.source[list].url) {
-                    options.source[list] = {
-                        url: options.source[list]
+                if (!options.source[group].data && !options.source[group].url) {
+                    options.source[group] = {
+                        url: options.source[group]
                     };
                 }
 
-                storage[list] = [];
+                storage[group] = [];
 
                 // Lists from configuration
-                if (options.source[list].data && options.source[list].data instanceof Array) {
+                if (options.source[group].data && options.source[group].data instanceof Array) {
 
-                    for (var i in options.source[list].data) {
+                    for (var i in options.source[group].data) {
 
-                        if (!options.source[list].data.hasOwnProperty(i)) {
+                        if (!options.source[group].data.hasOwnProperty(i)) {
                             continue;
                         }
 
-                        if (options.source[list].data[i] instanceof Object) {
+                        if (options.source[group].data[i] instanceof Object) {
                             break;
                         }
 
                         var obj = {};
-                        obj[options.display] = options.source[list].data[i];
-                        options.source[list].data[i] = obj;
+                        obj[options.display] = options.source[group].data[i];
+                        options.source[group].data[i] = obj;
 
                     }
 
-                    storage[list] = storage[list].concat(options.source[list].data);
+                    storage[group] = storage[group].concat(options.source[group].data);
 
-                    if (!options.source[list].url) {
+                    if (!options.source[group].url) {
 
-                        _populateStorage(list);
+                        _populateStorage(group);
                         _increment();
 
                         continue;
                     }
                 }
 
-                if (options.source[list].url) {
+                if (options.source[group].url) {
 
-                    var url = (options.source[list].url instanceof Array && options.source[list].url[0]) || options.source[list].url,
-                        path = (options.source[list].url instanceof Array && options.source[list].url[1]) || null,
+                    var url = (options.source[group].url instanceof Array && options.source[group].url[0]) || options.source[group].url,
+                        path = (options.source[group].url instanceof Array && options.source[group].url[1]) || null,
                         ajaxObj = {};
 
                     if (typeof url === "object") {
@@ -972,10 +991,10 @@
                         if (typeof request === "undefined") {
                             _request.set(url, []);
                         } else if (request instanceof Array && request.length === 0) {
-                            _request.queue(url, list, path);
+                            _request.queue(url, group, path);
                             continue;
                         } else {
-                            _populateSource(request, list, path);
+                            _populateSource(request, group, path);
                             _increment();
                             continue;
                         }
@@ -995,7 +1014,7 @@
                                 async: true,
                                 url: url,
                                 dataType: 'json',
-                                ajaxList: list,
+                                ajaxGroup: group,
                                 ajaxPath: path,
                                 ajaxTimestamp: timestamp
                             }, ajaxObj)).done( function(data) {
@@ -1007,7 +1026,7 @@
                             _request.set(url, data);
                             _request.processQueue(url);
 
-                            _populateSource(data, this.ajaxList, this.ajaxPath);
+                            _populateSource(data, this.ajaxGroup, this.ajaxPath);
 
                         }).fail( function () {
 
@@ -1033,7 +1052,7 @@
         }
 
         /**
-         * Builds Html and attach events to the dropdown list when options.filter is activated
+         * Builds Html and attach events to the dropdown group when options.filter is activated
          */
         function delegateDropdown () {
 
@@ -1124,7 +1143,7 @@
 
             /**
              * @private
-             * Select the filter and rebuild the result list
+             * Select the filter and rebuild the result group
              *
              * @param {string} [oneFilter]
              */
@@ -1158,13 +1177,13 @@
          */
         function populate (data) {
 
-            if (!data || !data.list) {
+            if (!data || !data.group) {
 
                 // {debug}
                 options.debug && window.Debug.log({
                     'node': node.selector,
                     'function': 'populate()',
-                    'message': 'ERROR - Empty data or Missing {data.list} parameter"'
+                    'message': 'ERROR - Empty data or Missing {data.group} parameter"'
                 });
 
                 window.Debug.print();
@@ -1173,12 +1192,12 @@
                 return false;
             }
 
-            var list = data.list || 'list',
-                path = (options.source[list].url instanceof Array) ?
-                    options.source[list].url[1] : null;
+            var group = data.group || 'group',
+                path = (options.source[group].url instanceof Array) ?
+                    options.source[group].url[1] : null;
 
 
-            _populateSource(data, list, path);
+            _populateSource(data, group, path);
 
             _increment();
 
@@ -1186,14 +1205,14 @@
 
         /**
          * @private
-         * Common method to build the JSON lists to be cycled for matched results from data, url or cross domain url.
+         * Common method to build the JSON groups to be cycled for matched results from data, url or cross domain url.
          *
          * @param {array|object} data Raw data to be formatted
-         * @param {string} list List name
-         * @param {string} [path] Optional path if the list is not on the data root
+         * @param {string} group Group name
+         * @param {string} [path] Optional path if the group is not on the data root
          *
          */
-        var _populateSource = function (data, list, path) {
+        var _populateSource = function (data, group, path) {
 
             var _isValid = true;
 
@@ -1227,9 +1246,9 @@
                     data[i] = obj;
                 }
 
-                storage[list] = storage[list].concat(data);
+                storage[group] = storage[group].concat(data);
 
-                _populateStorage(list);
+                _populateStorage(group);
             }
 
         };
@@ -1238,9 +1257,9 @@
          * @private
          * Store the data inside localstorage so the urls are not fetched on every page loads
          *
-         * @param {string} list
+         * @param {string} group
          */
-        var _populateStorage = function (list) {
+        var _populateStorage = function (group) {
 
             if (!options.cache) {
                 return false;
@@ -1248,7 +1267,7 @@
 
             var data = {
                 ttl: new Date().getTime() + options.ttl,
-                data: storage[list]
+                data: storage[group]
             }
 
             data = JSON.stringify(data);
@@ -1258,7 +1277,7 @@
             }
 
             localStorage.setItem(
-                node.selector + ":" + list,
+                node.selector + ":" + group,
                 data
             );
 
@@ -1278,15 +1297,15 @@
             "set": function (url, data) {
                 request[url] = data;
             },
-            "queue": function (url, list, path) {
-                this._queue.push({url: url, list: list, path: path});
+            "queue": function (url, group, path) {
+                this._queue.push({url: url, group: group, path: path});
             },
             "processQueue": function (url) {
                 for (var i in this._queue) {
                     if (this._queue[i].url !== url) {
                         continue;
                     }
-                    _populateSource(request[url], this._queue[i].list, this._queue[i].path);
+                    _populateSource(request[url], this._queue[i].group, this._queue[i].path);
                     _increment();
 
                     delete this._queue[i];
@@ -1296,7 +1315,7 @@
 
         /**
          * @private
-         * Increment the list count until all the source(s) are found and trigger a "ready" state
+         * Increment the group count until all the source(s) are found and trigger a "ready" state
          * Note: ajax / jsonp request might have a delay depending on the connectivity
          */
         function _increment () {
