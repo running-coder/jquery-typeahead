@@ -269,7 +269,7 @@
                 'dynamic' + _eventNamespace
             ];
 
-            $('html').on("click" + _eventNamespace, function() {
+            $('html').on("click" + _eventNamespace, function(e) {
                 reset();
             });
 
@@ -312,7 +312,6 @@
                                 query = $(this).val().trim();
 
                                 _typeWatch(function () {
-                                    reset();
                                     if (query.length >= options.minLength && query !== "") {
                                         generate();
                                     }
