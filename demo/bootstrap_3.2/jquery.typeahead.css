@@ -38,7 +38,7 @@ INPUT, BUTTON & DROPDOWN
 \*------------------------------------*/
 
 .typeahead-container .input-group-btn {
-    z-index: 2;
+    z-index: 1001;
 }
 
 .typeahead-container .typeahead-result > .dropdown-menu {
