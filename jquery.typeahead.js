@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.5.0 (2014-09-14)
+ * @version 1.5.1 (2014-09-16)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -262,15 +262,15 @@
 
             // Namespace events to avoid conflicts
             var event = [
-                    'focus' + _eventNamespace,
-                    'input' + _eventNamespace,
-                    'propertychange' + _eventNamespace, //propertychange IE <9
-                    'keydown' + _eventNamespace,
-                    'dynamic' + _eventNamespace
-                ];
+                'focus' + _eventNamespace,
+                'input' + _eventNamespace,
+                'propertychange' + _eventNamespace, //propertychange IE <9
+                'keydown' + _eventNamespace,
+                'dynamic' + _eventNamespace
+            ];
 
             $('html').on("click" + _eventNamespace, function() {
-                reset(true);
+                reset();
             });
 
             container.on("click" + _eventNamespace, function(e) {
@@ -406,8 +406,8 @@
                     }
 
                     if (_display.toLowerCase().indexOf(_query.toLowerCase()) !== -1 && (
-                            !options.offset ||
-                                _display.toLowerCase().indexOf(_query.toLowerCase()) === 0
+                        !options.offset ||
+                            _display.toLowerCase().indexOf(_query.toLowerCase()) === 0
                         ))
                     {
                         if (options.source[list].ignore && ~options.source[list].ignore.indexOf(_display)) {
@@ -436,6 +436,21 @@
                         function(a){return a.toUpperCase()}
                     )
                 );
+            }
+
+            if (options.group) {
+
+                var tmpResult = [];
+
+                for (var list in storage) {
+                    for (var k in result) {
+                        if (result[k].list === list) {
+                            tmpResult.push(result[k]);
+                        }
+                    }
+                }
+
+                result = tmpResult;
             }
 
         }
@@ -523,7 +538,7 @@
                                         "html": function () {
 
                                             _aHtml = '<span class="' + options.selector.display + '">' + _display + '</span>' +
-                                            ((_list) ? "<small>" + _list + "</small>" : "")
+                                                ((_list) ? "<small>" + _list + "</small>" : "")
 
                                             if (options.template) {
                                                 _aHtml = options.template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
@@ -758,7 +773,7 @@
 
                     query = node.val();
 
-                    $("html").trigger("click" + _eventNamespace);
+                    reset();
 
                     return true;
                 }
@@ -778,7 +793,7 @@
                     }
                 }
             }
-            
+
             if (options.hint) {
                 if (lis.filter('.active')[0]) {
                     hint.container.hide();
@@ -796,10 +811,8 @@
         /**
          * Reset Typeahead to it's initial state.
          * Clear filter, result and backdrop
-         *
-         * @param {boolean} [force] Will force certain action(s) depending on context
          */
-        function reset (force) {
+        function reset () {
 
             result = [];
 
@@ -819,7 +832,7 @@
                 }
             }
 
-            if (options.backdrop && (query === "" || force)) {
+            if (options.backdrop || query === "") {
                 container
                     .removeClass('backdrop')
                     .removeAttr('style');
@@ -980,13 +993,13 @@
 
                         // Same Domain / public API
                         $.ajax($.extend({
-                            async: true,
-                            url: url,
-                            dataType: 'json',
-                            ajaxList: list,
-                            ajaxPath: path,
-                            ajaxTimestamp: timestamp
-                        }, ajaxObj)).done( function(data) {
+                                async: true,
+                                url: url,
+                                dataType: 'json',
+                                ajaxList: list,
+                                ajaxPath: path,
+                                ajaxTimestamp: timestamp
+                            }, ajaxObj)).done( function(data) {
 
                             if (this.ajaxTimestamp !== timestamp) {
                                 return false;
@@ -1107,8 +1120,8 @@
                     );
                 }
             }).insertAfter(
-                container.find('.' + options.selector.query)
-            );
+                    container.find('.' + options.selector.query)
+                );
 
             /**
              * @private
