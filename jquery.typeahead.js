@@ -451,8 +451,6 @@
 
                 result = tmpResult;
 
-                console.log('------------result - search -----------')
-                console.log(result)
             }
 
         }
