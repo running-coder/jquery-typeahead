@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.5.3 (2014-09-16)
+ * @version 1.6.0 (2014-09-22)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -79,6 +79,7 @@
         source: null,
         callback: {
             onInit: null,
+            onResult: null,
             onMouseEnter: null,
             onMouseLeave: null,
             onClick: null,
@@ -99,7 +100,6 @@
         highlight: [true, false],
         cache: [true, false],
         compression: [true, false],
-        //callback: ["onInit", "onMouseEnter", "onMouseLeave", "onClick", "onSubmit"],
         debug: [true, false]
     };
 
@@ -344,6 +344,8 @@
         /**
          * Search the source lists to match the search query, build the HTML and bind
          * the callbacks on the result(s) if they are set inside the configuration options.
+         *
+         * @returns {boolean}
          */
         function search () {
 
@@ -357,6 +359,7 @@
 
             var _display,
                 _query = query,
+                _resultCounter = 0,
                 _groupMaxItem = /\d/.test(options.groupMaxItem) && options.groupMaxItem,
                 _groupCounter;
 
@@ -380,7 +383,7 @@
                         continue;
                     }
 
-                    if (result.length >= options.maxItem || (_groupMaxItem && _groupCounter >= _groupMaxItem)) {
+                    if ((result.length >= options.maxItem || (_groupMaxItem && _groupCounter >= _groupMaxItem)) && !options.callback.onResult) {
                         break;
                     }
 
@@ -410,6 +413,12 @@
                         ))
                     {
                         if (options.source[group].ignore && ~options.source[group].ignore.indexOf(_display)) {
+                            continue;
+                        }
+
+                        _resultCounter++;
+
+                        if (options.callback.onResult && (result.length >= options.maxItem || (_groupMaxItem && _groupCounter >= _groupMaxItem))) {
                             continue;
                         }
 
@@ -453,10 +462,15 @@
 
             }
 
+            _executeCallback(options.callback.onResult, [node, query, result, _resultCounter]);
+
+            return true;
         }
 
         /**
          * Builds the search result group html and delegate the callbacks
+         *
+         * @returns {boolean}
          */
         function buildHtml () {
 
@@ -556,31 +570,26 @@
 
                                             e.preventDefault();
 
-                                            node.val(result[options.display]).focus();
-
                                             query = result[options.display];
-
+                                            node.val(query).focus();
                                             reset();
 
                                             _executeCallback(options.callback.onClick, [node, this, result, e]);
                                         }),
                                         "mouseenter": function (e) {
 
-                                            $(this).parents('.' + options.selector.result).find('.active').removeClass('active');
+                                            $(this).parent().siblings('li.active').removeClass('active');
+                                            $(this).parent().addClass('active');
 
                                             _executeCallback(options.callback.onMouseEnter, [node, this, result, e]);
                                         },
                                         "mouseleave": function (e) {
+
+                                            $(this).parent().removeClass('active');
+
                                             _executeCallback(options.callback.onMouseLeave, [node, this, result, e]);
                                         }
-
-                                    }),
-                                    "mouseenter": function () {
-
-                                        $(this).siblings('li.active').removeClass('active');
-                                        $(this).addClass('active');
-
-                                    }
+                                    })
                                 });
 
                                 if (options.group) {
@@ -642,38 +651,26 @@
 
                 if (!hint.container) {
 
-                    var border = {
-                        top: node.css("border-top-width"),
-                        right: node.css("border-right-width"),
-                        bottom: node.css("border-bottom-width"),
-                        left: node.css("border-left-width")
-                    };
-
                     hint.css = $.extend(
                         {
-                            border: "none",
-                            display: node.css("display"),
-                            position: "absolute",
-                            top: (parseFloat(border.top)) ? border.top : "auto",
-                            left: (parseFloat(border.left)) ? border.left : "auto",
+                            "border-color": "transparent",
+                            "position": "absolute",
                             "z-index": 1,
-                            width: node.outerWidth(true) - (parseFloat(border.right) + parseFloat(border.left)) + "px",
-                            height: node.outerHeight(true) - (parseFloat(border.top) + parseFloat(border.bottom)) + "px",
                             "-webkit-text-fill-color": "silver",
-                            color: "silver",
+                            "color": "silver",
                             "background-color": "transparent",
-                            "user-select": "none"
+                            "user-select": "none",
+                            "box-shadow": "none",
+                            "min-width": node.outerWidth(true)
                         },
                         options.hint
                     );
 
-                    hint.container = $("<input/>", {
+                    hint.container = node.clone(true).attr({
                         "class": options.selector.hint,
                         "readonly": true,
-                        "tabindex": -1,
-                        "css": hint.css,
-                        "type": "search"
-                    }).insertBefore(node);
+                        "tabindex": -1
+                    }).removeAttr("id placeholder name").css(hint.css).insertBefore(node);
 
                     node.css({
                         "position": "relative",
@@ -714,7 +711,6 @@
             }
 
             return true;
-
         }
 
         /**
@@ -821,7 +817,6 @@
             node.val(lis.filter('.active').find('.' + options.selector.display).text() || query);
 
             return true;
-
         }
 
         /**
@@ -862,6 +857,8 @@
                 .removeClass('result')
                 .find('.' + options.selector.result)
                 .remove();
+
+            _executeCallback(options.callback.onResult, [node, "", [], 0]);
 
         }
 
@@ -1430,7 +1427,11 @@
             return string.substring(0, offset) + replace + string.substring(offset + length);
         };
 
-
+        /**
+         * @private
+         * Execute function once the timer is reached.
+         * If the function is recalled before the timer ends, the first call will be canceled.
+         */
         var _typeWatch = (function(){
             var timer = 0;
             return function(callback, ms){
@@ -1697,9 +1698,7 @@
                 return;
             }
 
-            return node.each(function () {
-                window.Typeahead.source[node.selector] = new Typeahead(node, options);
-            });
+            return window.Typeahead.source[node.selector] = new Typeahead(node, options);
 
         }
 
