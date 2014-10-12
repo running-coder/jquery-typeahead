@@ -499,7 +499,8 @@
                                     _display,
                                     _query,
                                     _offset,
-                                    _match;
+                                    _match,
+                                    _handle;
 
                                 if (options.group) {
                                     _group = result.group;
@@ -594,11 +595,11 @@
 
                                 if (options.group) {
 
-                                    var handle = $(scope).find('a[data-group="' + _group + '"]:last').closest('li');
-                                    if (!handle[0]) {
-                                        handle = $(scope).find('li[data-search-group="' + _group + '"]');
+                                    _handle = $(scope).find('a[data-group="' + _group + '"]:last').closest('li');
+                                    if (!_handle[0]) {
+                                        _handle = $(scope).find('li[data-search-group="' + _group + '"]');
                                     }
-                                    $(_liHtml).insertAfter(handle);
+                                    $(_liHtml).insertAfter(_handle);
 
                                 } else {
                                     $(scope).append(_liHtml);
