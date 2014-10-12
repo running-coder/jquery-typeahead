@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.6.0 (2014-09-22)
+ * @version 1.6.1 (2014-10-11)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -440,7 +440,7 @@
                 result.sort(
                     _sort(
                         options.display,
-                        (options.group) ? !(options.order === "asc") : options.order === "asc",
+                        options.order === "asc",
                         function(a){return a.toUpperCase()}
                     )
                 );
@@ -509,7 +509,7 @@
                                 }
 
                                 if (options.list) {
-                                    _list = result.list;
+                                    _list = result.group;
                                     if (typeof options.list !== "boolean" && result[options.list]) {
                                         _list = result[options.list];
                                     }
@@ -593,7 +593,13 @@
                                 });
 
                                 if (options.group) {
-                                    $(_liHtml).insertAfter($(scope).find('li[data-search-group="' + _group + '"]'));
+
+                                    var handle = $(scope).find('a[data-group="' + _group + '"]:last').closest('li');
+                                    if (!handle[0]) {
+                                        handle = $(scope).find('li[data-search-group="' + _group + '"]');
+                                    }
+                                    $(_liHtml).insertAfter(handle);
+
                                 } else {
                                     $(scope).append(_liHtml);
                                 }
