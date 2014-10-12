@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.6.1 (2014-10-11)
+ * @version 1.7.0 (2014-10-12)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -387,7 +387,15 @@
                         break;
                     }
 
-                    _display = storage[group][i][options.display];
+                    if (options.source[group] &&
+                        options.source[group].display) {
+
+                        storage[group][i].display = storage[group][i][options.source[group].display];
+                    } else {
+                        storage[group][i].display = storage[group][i][options.display];
+                    }
+
+                    _display = storage[group][i].display;
 
                     if (!_display) {
 
@@ -425,6 +433,8 @@
                         storage[group][i].group = group;
                         result.push(storage[group][i]);
 
+
+
                         if (_groupMaxItem) {
                             _groupCounter++;
                         }
@@ -439,7 +449,7 @@
             if (options.order) {
                 result.sort(
                     _sort(
-                        options.display,
+                        "display",
                         options.order === "asc",
                         function(a){return a.toUpperCase()}
                     )
@@ -500,7 +510,8 @@
                                     _query,
                                     _offset,
                                     _match,
-                                    _handle;
+                                    _handle,
+                                    _template;
 
                                 if (options.group) {
                                     _group = result.group;
@@ -528,7 +539,7 @@
                                     );
                                 }
 
-                                _display = result[options.display].toLowerCase();
+                                _display = result.display.toLowerCase();
                                 _query = query.toLowerCase();
 
                                 if (options.accent) {
@@ -537,13 +548,13 @@
                                 }
 
                                 _offset = _display.indexOf(_query);
-                                _match = result[options.display].substr(_offset, _query.length);
+                                _match = result.display.substr(_offset, _query.length);
 
                                 if (options.highlight) {
                                     _match = "<strong>" + _match + "</strong>";
                                 }
 
-                                _display = _replaceAt(result[options.display], _offset, _query.length, _match);
+                                _display = _replaceAt(result.display, _offset, _query.length, _match);
 
                                 _liHtml = $("<li/>", {
                                     "html":  $("<a/>", {
@@ -552,11 +563,14 @@
                                         "html": function () {
 
                                             _aHtml = '<span class="' + options.selector.display + '">' + _display + '</span>' +
-                                                ((_list) ? "<small>" + _list + "</small>" : "")
+                                                ((_list) ? "<small>" + _list + "</small>" : "");
 
-                                            if (options.template) {
-                                                _aHtml = options.template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
-                                                    if (index === options.display) {
+
+                                            _template = (result.group && options.source[result.group].template) || options.template;
+
+                                            if (_template) {
+                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
+                                                    if (index === "display") {
                                                         return _aHtml;
                                                     }
 
@@ -571,7 +585,7 @@
 
                                             e.preventDefault();
 
-                                            query = result[options.display];
+                                            query = result.display;
                                             node.val(query).focus();
                                             reset();
 
@@ -701,8 +715,8 @@
                             break;
                         }
                     }
-                    if (result[k][options.display].toLowerCase().indexOf(query.toLowerCase()) === 0) {
-                        _hint = result[k][options.display];
+                    if (result[k].display.toLowerCase().indexOf(query.toLowerCase()) === 0) {
+                        _hint = result[k].display;
                         if (!options.group) {
                             break;
                         }
