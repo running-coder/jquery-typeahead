@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.7.0 (2014-10-12)
+ * @version 1.7.1 (2014-10-15)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -507,6 +507,7 @@
                                     _liHtml,
                                     _aHtml,
                                     _display,
+                                    _displayKey,
                                     _query,
                                     _offset,
                                     _match,
@@ -562,20 +563,20 @@
                                         "data-group": _group,
                                         "html": function () {
 
-                                            _aHtml = '<span class="' + options.selector.display + '">' + _display + '</span>' +
-                                                ((_list) ? "<small>" + _list + "</small>" : "");
-
-
                                             _template = (result.group && options.source[result.group].template) || options.template;
 
                                             if (_template) {
-                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
-                                                    if (index === "display") {
-                                                        return _aHtml;
-                                                    }
 
+                                                _displayKey = (options.source[result.group] && options.source[result.group].display) || options.display;
+                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
+                                                    if (index === _displayKey) {
+                                                        return _display;
+                                                    }
                                                     return result[index] || "null";
                                                 });
+                                            } else {
+                                                _aHtml = '<span class="' + options.selector.display + '">' + _display + '</span>' +
+                                                    ((_list) ? "<small>" + _list + "</small>" : "");
                                             }
 
                                             $(this).append(_aHtml);
@@ -703,7 +704,8 @@
                 }
 
                 var _hint,
-                    _group = result[0].group;
+                    _group = (typeof options.group === "string" && result[0][options.group]) || result[0].group;
+
                 for (var k in result) {
                     if (!result.hasOwnProperty(k)) {
                         continue;
@@ -717,9 +719,7 @@
                     }
                     if (result[k].display.toLowerCase().indexOf(query.toLowerCase()) === 0) {
                         _hint = result[k].display;
-                        if (!options.group) {
-                            break;
-                        }
+                        break;
                     }
                 }
 
