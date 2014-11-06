@@ -417,7 +417,7 @@
 
                     if (_display.toLowerCase().indexOf(_query.toLowerCase()) !== -1 && (
                         !options.offset ||
-                            _display.toLowerCase().indexOf(_query.toLowerCase()) === 0
+                        _display.toLowerCase().indexOf(_query.toLowerCase()) === 0
                         ))
                     {
                         if (options.source[group].ignore && ~options.source[group].ignore.indexOf(_display)) {
@@ -576,7 +576,7 @@
                                                 });
                                             } else {
                                                 _aHtml = '<span class="' + options.selector.display + '">' + _display + '</span>' +
-                                                    ((_list) ? "<small>" + _list + "</small>" : "");
+                                                ((_list) ? "<small>" + _list + "</small>" : "");
                                             }
 
                                             $(this).append(_aHtml);
@@ -900,6 +900,20 @@
                 }
             }
 
+            // {debug}
+            if (options.compression && typeof LZString !== "object") {
+
+                options.debug && window.Debug.log({
+                    'node': node.selector,
+                    'function': 'generate()',
+                    'arguments': '{compression: true}',
+                    'message': 'WARNING - Missing LZString library, compression will not occur.'
+                });
+                window.Debug.print();
+
+            }
+            // {/debug}
+
             for (var group in options.source) {
 
                 if (!options.source.hasOwnProperty(group)) {
@@ -923,7 +937,7 @@
 
                         var ls = JSON.parse(storage[group]);
 
-                        if (ls.data && ls.ttl && ls.ttl > new Date().getTime()) {
+                        if (ls && ls.data && ls.ttl && ls.ttl > new Date().getTime()) {
 
                             // {debug}
                             options.debug && window.Debug.log({
@@ -1027,13 +1041,13 @@
 
                         // Same Domain / public API
                         $.ajax($.extend({
-                                async: true,
-                                url: url,
-                                dataType: 'json',
-                                ajaxGroup: group,
-                                ajaxPath: path,
-                                ajaxTimestamp: timestamp
-                            }, ajaxObj)).done( function(data) {
+                            async: true,
+                            url: url,
+                            dataType: 'json',
+                            ajaxGroup: group,
+                            ajaxPath: path,
+                            ajaxTimestamp: timestamp
+                        }, ajaxObj)).done( function(data) {
 
                             if (this.ajaxTimestamp !== timestamp) {
                                 return false;
@@ -1154,8 +1168,8 @@
                     );
                 }
             }).insertAfter(
-                    container.find('.' + options.selector.query)
-                );
+                container.find('.' + options.selector.query)
+            );
 
             /**
              * @private
