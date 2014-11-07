@@ -8,7 +8,7 @@
  * Copyright (C) 2014 RunningCoder.
  *
  * @link
- * http://www.runningcoder.org/jquerytypeahead/
+    * http://www.runningcoder.org/jquerytypeahead/
  *
  * @license
  * Licensed under the MIT license.
@@ -900,20 +900,7 @@
                 }
             }
 
-            // {debug}
-            if (options.compression && typeof LZString !== "object") {
-
-                options.debug && window.Debug.log({
-                    'node': node.selector,
-                    'function': 'generate()',
-                    'arguments': '{compression: true}',
-                    'message': 'WARNING - Missing LZString library, compression will not occur.'
-                });
-                window.Debug.print();
-
-            }
-            // {/debug}
-
+            var ls;
             for (var group in options.source) {
 
                 if (!options.source.hasOwnProperty(group)) {
@@ -931,11 +918,11 @@
                     storage[group] = localStorage.getItem(node.selector + ":" + group);
                     if (storage[group]) {
 
-                        if (options.compression && typeof LZString === "object") {
-                            storage[group] = LZString.decompress(storage[group]);
+                        if (options.compression) {
+                            storage[group] = lzw_decode(storage[group]);
                         }
 
-                        var ls = JSON.parse(storage[group]);
+                        ls = JSON.parse(storage[group]);
 
                         if (ls && ls.data && ls.ttl && ls.ttl > new Date().getTime()) {
 
@@ -1298,12 +1285,12 @@
             var data = {
                 ttl: new Date().getTime() + options.ttl,
                 data: storage[group]
-            }
+            };
 
             data = JSON.stringify(data);
 
-            if (options.compression && typeof LZString === "object") {
-                data = LZString.compress(data);
+            if (options.compression) {
+                data = lzw_encode(data);
             }
 
             localStorage.setItem(
@@ -1312,6 +1299,8 @@
             );
 
         };
+
+
 
         /**
          * @private
@@ -1590,6 +1579,71 @@
                     }
                 };
             }
+        };
+
+        /**
+         * @private
+         *
+         * @param {string} s String to encode
+         *
+         * @returns {string}
+         */
+        var lzw_encode = function(s) {
+            var dict = {},
+                data = (s + "").split(""),
+                out = [],
+                currChar,
+                phrase = data[0],
+                code = 256;
+            for (var i=1; i<data.length; i++) {
+                currChar=data[i];
+                if (dict[phrase + currChar] != null) {
+                    phrase += currChar;
+                }
+                else {
+                    out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+                    dict[phrase + currChar] = code;
+                    code++;
+                    phrase=currChar;
+                }
+            }
+            out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+            for (var i=0; i<out.length; i++) {
+                out[i] = String.fromCharCode(out[i]);
+            }
+            return out.join("");
+        };
+
+        /**
+         * @private
+         *
+         * @param {string} s String to decode
+         *
+         * @returns {string}
+         */
+        var lzw_decode = function(s) {
+            var dict = {},
+                data = (s + "").split(""),
+                currChar = data[0],
+                oldPhrase = currChar,
+                out = [currChar],
+                code = 256,
+                phrase;
+            for (var i=1; i<data.length; i++) {
+                var currCode = data[i].charCodeAt(0);
+                if (currCode < 256) {
+                    phrase = data[i];
+                }
+                else {
+                    phrase = dict[currCode] ? dict[currCode] : (oldPhrase + currChar);
+                }
+                out.push(phrase);
+                currChar = phrase.charAt(0);
+                dict[code] = oldPhrase + currChar;
+                code++;
+                oldPhrase = phrase;
+            }
+            return out.join("");
         };
 
         /**
