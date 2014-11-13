@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.7.1 (2014-10-15)
+ * @version 1.7.2 (2014-11-13)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -682,8 +682,7 @@
                             "color": "silver",
                             "background-color": "transparent",
                             "user-select": "none",
-                            "box-shadow": "none",
-                            "min-width": node.outerWidth(true)
+                            "box-shadow": "none"
                         },
                         options.hint
                     );
