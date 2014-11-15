@@ -2,13 +2,13 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.7.2 (2014-11-13)
+ * @version 1.7.2 (2014-11-15)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
  *
  * @link
-    * http://www.runningcoder.org/jquerytypeahead/
+ * http://www.runningcoder.org/jquerytypeahead/
  *
  * @license
  * Licensed under the MIT license.
