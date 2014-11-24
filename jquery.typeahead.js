@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.7.2 (2014-11-15)
+ * @version 1.7.3 (2014-11-24)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -179,8 +179,19 @@
                         }
 
                         // {debug}
+                        if ("data" in options[option][group] && !options[option][group].data) {
+                            options.debug && window.Debug.log({
+                                'node': node.selector,
+                                'function': 'extendOptions()',
+                                'arguments': "{options.source}",
+                                'message': 'ERROR - source.group.data is defined but empty'
+                            });
+                        }
+                        // {/debug}
+
+                        // {debug}
                         if (!options[option][group].url && !options[option][group].data) {
-                            _options.debug && window.Debug.log({
+                            options.debug && window.Debug.log({
                                 'node': node.selector,
                                 'function': 'extendOptions()',
                                 'arguments': "{options.source}",
@@ -395,7 +406,7 @@
                         storage[group][i].display = storage[group][i][options.display];
                     }
 
-                    _display = storage[group][i].display;
+                    _display = storage[group][i].display.toString();
 
                     if (!_display) {
 
@@ -451,7 +462,7 @@
                     _sort(
                         "display",
                         options.order === "asc",
-                        function(a){return a.toUpperCase()}
+                        function(a){return a.toString().toUpperCase()}
                     )
                 );
             }
@@ -501,6 +512,10 @@
                             }
 
                             (function (result, scope) {
+
+                                if (typeof result.display !== "string") {
+                                    result.display += "";
+                                }
 
                                 var _group,
                                     _list,
@@ -945,9 +960,22 @@
                 }
 
                 if (!options.source[group].data && !options.source[group].url) {
-                    options.source[group] = {
-                        url: options.source[group]
-                    };
+
+                    if (typeof options.source[group] === "string") {
+                        options.source[group] = {
+                            url: options.source[group]
+                        };
+                    } else {
+                        // {debug}
+                        options.debug && window.Debug.log({
+                            'node': node.selector,
+                            'function': 'generate()',
+                            'arguments': '{source: undefined}',
+                            'message': 'ERROR - Source for group "' + group + '" is undefined.'
+                        });
+                        window.Debug.print();
+                        // {/debug}
+                    }
                 }
 
                 storage[group] = [];
@@ -1673,7 +1701,6 @@
         };
 
     };
-
 
     /**
      * @public
