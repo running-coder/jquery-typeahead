@@ -2,7 +2,7 @@
  * jQuery Typeahead
  *
  * @author Tom Bertrand
- * @version 1.7.3 (2014-11-24)
+ * @version 1.7.5 (2014-11-30)
  *
  * @copyright
  * Copyright (C) 2014 RunningCoder.
@@ -159,7 +159,7 @@
                         options.debug && window.Debug.log({
                             'node': node.selector,
                             'function': 'extendOptions()',
-                            'arguments': "{options.source}",
+                            'arguments': "{options.source: " + JSON.stringify(options[option]) + "}",
                             'message': 'ERROR - source.group.url or source.group.data is Required'
                         });
                     }
@@ -190,7 +190,7 @@
                         // {/debug}
 
                         // {debug}
-                        if (!options[option][group].url && !options[option][group].data) {
+                        if (!options[option][group].url && !options[option][group].data && !(options[option][group] instanceof Array)) {
                             options.debug && window.Debug.log({
                                 'node': node.selector,
                                 'function': 'extendOptions()',
@@ -961,7 +961,7 @@
 
                 if (!options.source[group].data && !options.source[group].url) {
 
-                    if (typeof options.source[group] === "string") {
+                    if (typeof options.source[group] === "string" || options.source[group] instanceof Array) {
                         options.source[group] = {
                             url: options.source[group]
                         };
@@ -1063,8 +1063,13 @@
                             ajaxTimestamp: timestamp
                         }, ajaxObj)).done( function(data) {
 
+                            // Only process the data from the latest generate
                             if (this.ajaxTimestamp !== timestamp) {
                                 return false;
+                            }
+
+                            if (typeof this.process === "function") {
+                                data = this.process(data);
                             }
 
                             _request.set(url, data);
