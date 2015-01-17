@@ -1,17 +1,13 @@
 /**
  * jQuery Typeahead
+ * Copyright (C) 2014 RunningCoder.org
+ * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 1.7.5 (2014-11-30)
- *
- * @copyright
- * Copyright (C) 2014 RunningCoder.
+ * @version 1.7.6 (2015-01-17)
  *
  * @link
  * http://www.runningcoder.org/jquerytypeahead/
- *
- * @license
- * Licensed under the MIT license.
  *
  * @note
  * Remove debug code: //\s?\{debug\}[\s\S]*?\{/debug\}
@@ -97,7 +93,6 @@
         order: ["asc", "desc"],
         offset: [true, false],
         accent: [true, false],
-        highlight: [true, false],
         cache: [true, false],
         compression: [true, false],
         debug: [true, false]
@@ -130,6 +125,7 @@
             request = [],       // store the ajax requests / responses
             storage = [],       // generated source
             result = [],        // matched result(s) (source vs query)
+            selectedItem = null,// The selected item for the onSubmit callback
             filter,             // matched result(s) (source vs query)
             container,          // the typeahead container
             backdrop = {},      // the backdrop object if enabled
@@ -269,7 +265,7 @@
             });
             // {/debug}
 
-            container = node.parents('.' + options.selector.container);
+            container = node.closest('.' + options.selector.container);
 
             // Namespace events to avoid conflicts
             var event = [
@@ -295,8 +291,8 @@
                 }
             });
 
-            node.parents('form').on("submit", function (e) {
-                if (_executeCallback(options.callback.onSubmit, [node, this, e])) {
+            node.closest('form').on("submit", function (e) {
+                if (_executeCallback(options.callback.onSubmit, [node, this, selectedItem, e])) {
                     return false;
                 }
             });
@@ -320,7 +316,7 @@
                         if (!isGenerated) {
                             if (options.dynamic) {
 
-                                query = $(this).val().trim();
+                                query = $.trim($(this).val());
 
                                 _typeWatch(function () {
                                     if (query.length >= options.minLength && query !== "") {
@@ -333,7 +329,7 @@
                     case "dynamic":
                     default:
 
-                        query = $(this).val().trim();
+                        query = $.trim($(this).val());
 
                         reset();
 
@@ -363,6 +359,8 @@
             if (query === "") {
                 return false;
             }
+
+            selectedItem = null;
 
             if (filter && !options.source[filter]) {
                 filter = false;
@@ -444,8 +442,6 @@
                         storage[group][i].group = group;
                         result.push(storage[group][i]);
 
-
-
                         if (_groupMaxItem) {
                             _groupCounter++;
                         }
@@ -524,8 +520,6 @@
                                     _display,
                                     _displayKey,
                                     _query,
-                                    _offset,
-                                    _match,
                                     _handle,
                                     _template;
 
@@ -563,25 +557,19 @@
                                     _query = _removeAccent(_query);
                                 }
 
-                                _offset = _display.indexOf(_query);
-                                _match = result.display.substr(_offset, _query.length);
-
                                 if (options.highlight) {
-                                    _match = "<strong>" + _match + "</strong>";
+                                    _display = _highlight(_display, _query);
                                 }
-
-                                _display = _replaceAt(result.display, _offset, _query.length, _match);
 
                                 _liHtml = $("<li/>", {
                                     "html":  $("<a/>", {
-                                        "href": "javascript:;",
+                                        "href": "javascript:;123",
                                         "data-group": _group,
                                         "html": function () {
 
                                             _template = (result.group && options.source[result.group].template) || options.template;
 
                                             if (_template) {
-
                                                 _displayKey = (options.source[result.group] && options.source[result.group].display) || options.display;
                                                 _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index, offset) {
                                                     if (index === _displayKey) {
@@ -605,18 +593,20 @@
                                             node.val(query).focus();
                                             reset();
 
+                                            selectedItem = result;
+
                                             _executeCallback(options.callback.onClick, [node, this, result, e]);
                                         }),
                                         "mouseenter": function (e) {
 
-                                            $(this).parent().siblings('li.active').removeClass('active');
-                                            $(this).parent().addClass('active');
+                                            $(this).closest('li').siblings('li.active').removeClass('active');
+                                            $(this).closest('li').addClass('active');
 
                                             _executeCallback(options.callback.onMouseEnter, [node, this, result, e]);
                                         },
                                         "mouseleave": function (e) {
 
-                                            $(this).parent().removeClass('active');
+                                            $(this).closest('li').removeClass('active');
 
                                             _executeCallback(options.callback.onMouseLeave, [node, this, result, e]);
                                         }
@@ -1482,6 +1472,30 @@
         var _replaceAt = function (string, offset, length, replace) {
             return string.substring(0, offset) + replace + string.substring(offset + length);
         };
+
+        /**
+         * @private
+         * Adds <strong> html around a matched string
+         *
+         * @param {string} string The complete string to match from
+         * @param {string} key
+         *
+         * @returns {*}
+         */
+        var _highlight = function (string, key) {
+            var offset = string.indexOf(key);
+
+            if (offset === -1) {
+                return string;
+            }
+
+            return _replaceAt(
+                string,
+                offset,
+                key.length,
+                "<strong>" + string.substr(offset, key.length) + "</strong>"
+            );
+        }
 
         /**
          * @private
