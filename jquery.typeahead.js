@@ -134,6 +134,7 @@
             jsonpCallback = "window.Typeahead.source['" + node.selector + "'].populate",
             counter = 0,        // generated source counter
             length = 0;         // source length
+            lastValue= "";      // last input value, only for IE8 browser
 
         /**
          * Extends user-defined "options" into the default Typeahead "_options".
@@ -292,6 +293,12 @@
             });
 
             node.closest('form').on("submit", function (e) {
+                if (selectedItem && selectedItem.display) {
+                   if (query.toLowerCase() !== selectedItem.display.toLowerCase()) {
+                         selectedItem=null;
+                   }
+                }
+                reset();
                 if (_executeCallback(options.callback.onSubmit, [node, this, selectedItem, e])) {
                     return false;
                 }
@@ -311,8 +318,13 @@
                             }
                         }
                         break;
-                    case "input":
                     case "propertychange":
+                        var _newValue = $.trim($(this).val());
+                        if (_newValue !== lastValue) {
+                          lastValue = _newValue;
+                        }
+                        else break; // do noting 
+                    case "input":
                         if (!isGenerated) {
                             if (options.dynamic) {
 
@@ -331,6 +343,7 @@
 
                         query = $.trim($(this).val());
 
+                        selectedItem = null;
                         reset();
 
                         if (query.length >= options.minLength && query !== "") {
@@ -478,7 +491,8 @@
                 result = tmpResult;
 
             }
-
+            
+            if (result[0]) selectedItem = result[0];
             _executeCallback(options.callback.onResult, [node, query, result, _resultCounter]);
 
             return true;
@@ -591,9 +605,9 @@
 
                                             query = result.display;
                                             node.val(query).focus();
-                                            reset();
 
                                             selectedItem = result;
+                                            reset();
 
                                             _executeCallback(options.callback.onClick, [node, this, result, e]);
                                         }),
@@ -692,7 +706,7 @@
                         options.hint
                     );
 
-                    hint.container = node.clone(true).attr({
+                    hint.container = node.clone(false).attr({
                         "class": options.selector.hint,
                         "readonly": true,
                         "tabindex": -1
@@ -727,7 +741,7 @@
                     }
                 }
 
-                if (_hint) {
+                if (_hint && hint.container) {
                     hint.container
                         .val(query + _hint.substring(query.length))
                         .show();
@@ -796,10 +810,15 @@
                         $(lis[result.length - 1]).toggleClass('active')
                     }
 
-                } else if (e.keyCode === 39) {
+                } else if (e.keyCode === 39 || e.keyCode === 9) {
 
-                    if (options.hint && !li[0]) {
+                    if (options.hint && hint.container && !li[0]) {
                         node.val(hint.container.val());
+                        query = node.val();
+                        if (query !== "") {
+                          result = [];
+                          search();
+                        }
                     }
 
                     if (li[0]) {
@@ -809,9 +828,7 @@
                     }
 
                     query = node.val();
-
                     reset();
-
                     return true;
                 }
 
@@ -831,7 +848,7 @@
                 }
             }
 
-            if (options.hint) {
+            if (options.hint && hint.container) {
                 if (lis.filter('.active')[0]) {
                     hint.container.hide();
                 } else {
@@ -839,7 +856,8 @@
                 }
             }
 
-            node.val(lis.filter('.active').find('.' + options.selector.display).text() || query);
+            lastValue= lis.filter('.active').find('.' + options.selector.display).text() || query;
+            node.val(lastValue);
 
             return true;
         }
@@ -864,7 +882,8 @@
                     .removeClass('hint');
                 if (hint.container) {
                     hint.container
-                        .val("");
+                        .val("")
+                        .hide();
                 }
             }
 
