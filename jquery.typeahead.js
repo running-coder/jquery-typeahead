@@ -577,7 +577,7 @@
 
                                 _liHtml = $("<li/>", {
                                     "html":  $("<a/>", {
-                                        "href": "javascript:;123",
+                                        "href": "javascript:;",
                                         "data-group": _group,
                                         "html": function () {
 
@@ -1341,8 +1341,6 @@
 
         };
 
-
-
         /**
          * @private
          * Namespace to temporary save the ajax request url and response to avoid doing multiple calls.
@@ -1514,7 +1512,7 @@
                 key.length,
                 "<strong>" + string.substr(offset, key.length) + "</strong>"
             );
-        }
+        };
 
         /**
          * @private
