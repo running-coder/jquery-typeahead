@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 1.7.6 (2015-01-17)
+ * @version 2.0 (2015-01-17)
  * @link http://www.runningcoder.org/jquerytypeahead/
  *
  * @note
@@ -42,6 +42,7 @@
         cache: false,
         ttl: 3600000,
         compression: false,
+        suggestion: false,   // -> New feature, save last searches and display suggestion on matched characters
         selector: {
             container: "typeahead-container",
             group: "typeahead-group",
@@ -115,8 +116,12 @@
 
         //var scope = this;
 
-        this.options = options;
-        this.node = node;
+        this.query = '';            // Input query
+        this.isGenerated = null;    // Generated results -> null: not generated, false: generating, true generated
+        this.options = options;     // Typeahead options (Merged default & user defined)
+        this.node = node;           // jQuery object of the Typeahead <input>
+        this.container = null;      // Typeahead container, usually right after <form>
+        this.item = null;           // The selected item
 
         this.__construct();
 
@@ -198,17 +203,152 @@
 
         },
 
-        delegateEvent: function () {
+        init: function () {
+
             this.helper.executeCallback(this.options.callback.onInit, [this.node]);
+
+            this.container = this.node.closest('.' + this.options.selector.container);
+
+            // {debug}
+            _debug.log({
+                'node': this.node.selector,
+                'function': 'init()',
+                'arguments': JSON.stringify(this.options),
+                'message': 'OK - Typeahead activated on ' + this.node.selector
+            });
+
+            _debug.print();
+            // {/debug}
+
+        },
+
+        delegateEvents: function () {
+
+            var scope = this,
+                events = [
+                    'focus' + _namespace,
+                    'input' + _namespace,
+                    'propertychange' + _namespace,
+                    'keydown' + _namespace,
+                    'dynamic' + _namespace
+                ];
+
+            $('html').on("click" + _namespace, function () {
+                this.resetLayout();
+            });
+
+            this.container.off(_namespace).on("click" + _namespace, function (e) {
+
+                e.stopPropagation();
+
+                if (scope.options.filter) {
+                    scope.container
+                        .find('.' + scope.options.selector.dropdown.replace(" ", "."))
+                        .hide();
+                }
+            });
+
+            this.node.closest('form').on("submit", function (e) {
+
+                scope.resetLayout();
+
+                if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, scope, scope.item, e])) {
+                    return false;
+                }
+            });
+
+            this.node.off(_namespace).on(events.join(' '), function (e) {
+
+                switch (e.type) {
+                    case "keydown":
+                        // 9: Tab
+                        // 13: Enter
+                        // 27: Esc
+                        // 38: Up
+                        // 39: Right
+                        // 40: Down
+                        if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                            this.move(e);
+                        }
+                        break;
+                    case "focus":
+                        if (isGenerated === null) {
+                            if (!options.dynamic) {
+                                generate();
+                            }
+                        }
+                        break;
+                    case "propertychange":
+                        var _newValue = $.trim($(this).val());
+                        if (_newValue !== lastValue) {
+                            lastValue = _newValue;
+                        }
+                        else break; // do noting
+                    case "input":
+                        if (!isGenerated) {
+                            if (options.dynamic) {
+
+                                query = $.trim($(this).val());
+
+                                _typeWatch(function () {
+                                    if (query.length >= options.minLength && query !== "") {
+                                        generate();
+                                    }
+                                }, options.delay);
+                            }
+                            return;
+                        }
+                    case "dynamic":
+                    default:
+
+                        query = $.trim($(this).val());
+
+                        selectedItem = null;
+                        reset();
+
+                        if (query.length >= options.minLength && query !== "") {
+                            search();
+                            buildHtml();
+                        }
+                        if (e.type === "dynamic" && options.dynamic) {
+                            isGenerated = false;
+                            counter = 0;
+                        }
+                        break;
+                }
+
+            });
+
+        },
+
+        /**
+         * Key Navigation
+         * Top: select previous item, skip "group" item
+         * Bottom: select next item, skip "group" item
+         * Left, Right: change charAt, if last char fill hint
+         * Tab: select item
+         * Esc: resetLayout & focusout
+         * Enter: submit search
+         *
+         * @param {Object} e Event object
+         * @returns {boolean}
+         */
+        move: function (e) {
+
+        },
+
+        resetLayout: function () {
         },
 
         __construct: function () {
             this.extendOptions();
             this.unifySourceFormat();
-            this.delegateEvent();
+            this.init();
+            this.delegateEvents();
         },
 
         helper: {
+
             isEmpty: function (obj) {
                 for (var prop in obj) {
                     if (obj.hasOwnProperty(prop))
