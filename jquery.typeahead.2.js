@@ -1,10 +1,10 @@
 /**
  * jQuery Typeahead
- * Copyright (C) 2014 RunningCoder.org
+ * Copyright (C) 2015 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0 (2015-01-17)
+ * @version 2.0 (2015-xx-xx)
  * @link http://www.runningcoder.org/jquerytypeahead/
  *
  * @note
@@ -42,7 +42,9 @@
         cache: false,
         ttl: 3600000,
         compression: false,
-        suggestion: false,   // -> New feature, save last searches and display suggestion on matched characters
+        suggestion: false,      // -> New feature, save last searches and display suggestion on matched characters
+        updates: null,          // -> New feature, results are sent to a specific ID, Ex: Search inside table filters the rows
+        dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
         selector: {
             container: "typeahead-container",
             group: "typeahead-group",
@@ -63,7 +65,9 @@
         source: null,
         callback: {
             onInit: null,
+            onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
+            onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
             onClick: null,
@@ -116,12 +120,19 @@
 
         //var scope = this;
 
-        this.query = '';            // Input query
-        this.isGenerated = null;    // Generated results -> null: not generated, false: generating, true generated
-        this.options = options;     // Typeahead options (Merged default & user defined)
-        this.node = node;           // jQuery object of the Typeahead <input>
-        this.container = null;      // Typeahead container, usually right after <form>
-        this.item = null;           // The selected item
+        this.query = '';                // Input query
+        this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
+        this.result = [];               // Results based on Source-query match (only contains the displayed elements)
+        this.resultLength = 0;          // Total results based on Source-query match
+        this.options = options;         // Typeahead options (Merged default & user defined)
+        this.node = node;               // jQuery object of the Typeahead <input>
+        this.container = null;          // Typeahead container, usually right after <form>
+        this.item = null;               // The selected item
+
+        // When a search is requested, a timestamp is unshift into the stack.
+        // When the search is completed, only the results from the latest request will be displayed.
+        this.ressourceStack = [];
+        this.ressourceId = null;
 
         this.__construct();
 
@@ -227,26 +238,40 @@
             var scope = this,
                 events = [
                     'focus' + _namespace,
-                    'input' + _namespace,
-                    'propertychange' + _namespace,
+                    //'input' + _namespace,
+                    //'propertychange' + _namespace,
                     'keydown' + _namespace,
-                    'dynamic' + _namespace
-                ];
+                    'paste' + _namespace,
+                    'cut' + _namespace,
+                    //'dynamic' + _namespace,
+                    'blur' + _namespace
+                ],
+            // 9: Tab
+            // 13: Enter
+            // 27: Esc
+            // 38: Up
+            // 39: Right
+            // 40: Down
+                navigationKeys = [9, 13, 27, 38, 39, 40];
 
-            $('html').on("click" + _namespace, function () {
-                this.resetLayout();
-            });
+            // blur calls resetDisplay?
 
-            this.container.off(_namespace).on("click" + _namespace, function (e) {
+            //keydown paste cut input
 
-                e.stopPropagation();
-
-                if (scope.options.filter) {
-                    scope.container
-                        .find('.' + scope.options.selector.dropdown.replace(" ", "."))
-                        .hide();
-                }
-            });
+            //$('html').on("click" + _namespace, function () {
+            //    this.resetLayout();
+            //});
+            //
+            //this.container.off(_namespace).on("click" + _namespace, function (e) {
+            //
+            //    e.stopPropagation();
+            //
+            //    if (scope.options.filter) {
+            //        scope.container
+            //            .find('.' + scope.options.selector.dropdown.replace(" ", "."))
+            //            .hide();
+            //    }
+            //});
 
             this.node.closest('form').on("submit", function (e) {
 
@@ -260,64 +285,63 @@
             this.node.off(_namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
-                    case "keydown":
-                        // 9: Tab
-                        // 13: Enter
-                        // 27: Esc
-                        // 38: Up
-                        // 39: Right
-                        // 40: Down
-                        if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
-                            this.move(e);
-                        }
-                        break;
                     case "focus":
-                        if (isGenerated === null) {
-                            if (!options.dynamic) {
-                                generate();
-                            }
+                        if (scope.isGenerated === null && !scope.options.dynamic) {
+                            scope.generateSource();
                         }
                         break;
-                    case "propertychange":
-                        var _newValue = $.trim($(this).val());
-                        if (_newValue !== lastValue) {
-                            lastValue = _newValue;
-                        }
-                        else break; // do noting
-                    case "input":
-                        if (!isGenerated) {
-                            if (options.dynamic) {
-
-                                query = $.trim($(this).val());
-
-                                _typeWatch(function () {
-                                    if (query.length >= options.minLength && query !== "") {
-                                        generate();
-                                    }
-                                }, options.delay);
+                    case "blur":
+                        scope.resetLayout();
+                        break;
+                    case "keydown":
+                    case "paste":
+                    case "cut":
+                        // Navigation
+                        if (scope.isGenerated && scope.result.length) {
+                            if (e.keyCode && ~navigationKeys.indexOf(e.keyCode)) {
+                                this.navigate(e);
+                                break;
                             }
-                            return;
                         }
-                    case "dynamic":
+
+                        scope.query = $.trim($(this).val());
+
+                        if (scope.isGenerated && !scope.options.dynamic) {
+
+                        }
+
+
+                        if (scope.query.length < scope.options.minLength || scope.query === "") {
+                            scope.resetLayout();
+                            break;
+                        }
+
+                        scope.searchResult();
+                        scope.resetLayout();
+                        scope.buildResultLayout();
+
+                        //if (scope.options.dynamic) {
+                        //if (scope.query.length >= scope.options.minLength && scope.query !== "") {
+                        //    scope.generateSource();
+                        //}
+                        //} else {
+                        //}
+
+                        break;
                     default:
-
-                        query = $.trim($(this).val());
-
-                        selectedItem = null;
-                        reset();
-
-                        if (query.length >= options.minLength && query !== "") {
-                            search();
-                            buildHtml();
-                        }
-                        if (e.type === "dynamic" && options.dynamic) {
-                            isGenerated = false;
-                            counter = 0;
-                        }
                         break;
                 }
 
             });
+
+        },
+
+        generateSource: function () {
+
+            this.ressourceId = new Date().getTime();
+            this.ressourceStack.unshift(this.ressourceId);
+
+            console.log('GenerateSource ->')
 
         },
 
@@ -327,17 +351,60 @@
          * Bottom: select next item, skip "group" item
          * Left, Right: change charAt, if last char fill hint
          * Tab: select item
-         * Esc: resetLayout & focusout
+         * Esc: resetLayout
          * Enter: submit search
          *
          * @param {Object} e Event object
          * @returns {boolean}
          */
-        move: function (e) {
+        navigate: function (e) {
+
+            this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
+
+            // navigate options
+            console.log('Navigate ->')
+
+        },
+
+        searchResult: function () {
+
+            this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
+
+            // search the generated source
+            console.log('SearchResult ->')
+        },
+
+        buildResultLayout: function () {
+
+            // Only build the result for the latest search
+            if (this.ressourceId !== this.ressourceStack[0]) {
+                return;
+            }
+            this.ressourceStack = [];
+            this.ressourceId = null;
+
+            this.helper.executeCallback(this.options.callback.onResult, [this.node, this.query, this.result, this.resultLength]);
+
+            console.log('BuildResultLayout ->')
+
+        },
+
+        resetResultLayout: function () {
+
+            console.log('ResetResultLayout ->')
+
+        },
+
+        buildLayout: function () {
+
+            console.log('BuildLayout ->')
 
         },
 
         resetLayout: function () {
+
+            console.log('ResetLayout ->')
+
         },
 
         __construct: function () {
