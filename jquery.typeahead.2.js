@@ -123,6 +123,8 @@
         this.query = '';                // Input query
         this.source = {};               // The generated source kept in memory
         this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
+        this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
+        this.groupCount = 0;            // Number of groups generated, if limit reached the search can be done
         this.result = [];               // Results based on Source-query match (only contains the displayed elements)
         this.resultCount = 0;           // Total results based on Source-query match
         this.options = options;         // Typeahead options (Merged default & user defined)
@@ -193,22 +195,26 @@
                         data: this.options.source
                     }
                 };
-                return;
+
+                this.groupCount += 1;
+                return true;
             }
 
             if (typeof this.options.source.data !== 'undefined' || typeof this.options.source.url !== 'undefined') {
                 this.options.source = {
                     group: this.options.source
                 };
-                return;
+
+                this.groupCount += 1;
+                return true;
             }
 
-            // {debug}
             for (var group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
 
                 if (!this.options.source[group].data || this.options.source[group].url) {
 
+                    // {debug}
                     _debug.log({
                         'node': this.node.selector,
                         'function': 'unifySourceFormat()',
@@ -217,11 +223,15 @@
                     });
 
                     _debug.print();
+                    // {/debug}
 
+                    return false;
                 }
-            }
-            // {/debug}
 
+                this.groupCount += 1;
+            }
+
+            return true;
         },
 
         init: function () {
@@ -324,13 +334,70 @@
 
         generateSource: function () {
 
+            if (this.isGenerated && !this.options.dynamic) {
+                return;
+            }
+
+            //this.source = {};
+
             this.ressourceId = new Date().getTime();
             this.ressourceStack.unshift(this.ressourceId);
+
+            this.isGenerated = false;
+
+            var group,
+                dataInLocalstorage;
+
+            for (group in this.options.source) {
+                if (!this.source.hasOwnProperty(group)) continue;
+
+                // Get group source from Localstorage
+                if (this.options.cache) {
+                    dataInLocalstorage = window.localStorage.getItem(this.node.selector + ":" + group);
+                    if (dataInLocalstorage) {
+                        if (this.options.compression) {
+                            dataInLocalstorage = this.helper.lzw_decode(dataInLocalstorage);
+                        }
+                        this.source[group] = dataInLocalstorage;
+
+                        this.incrementGeneratedGroup();
+                        continue;
+                    }
+                }
+
+                // Get group source from data
+
+                // Get group source from Ajax
+
+                // Get group source from Jsonp
+
+            }
+
+
+
+
 
             console.log('GenerateSource ->')
 
             // Validate the item.display (key)
             // _display = storage[group][i].display.toString(); -> in case its a number (addresses)
+
+        },
+
+        incrementGeneratedGroup: function () {
+
+            this.generatedGroupCount += 1;
+
+            if (this.groupCount !== this.generatedGroupCount) {
+                return;
+            }
+
+            this.isGenerated = true;
+
+//            if (this.options.dynamic) {
+//                this.node.trigger('dynamic.typeahead.input');
+//            }
+
 
         },
 
@@ -483,7 +550,11 @@
 
         __construct: function () {
             this.extendOptions();
-            this.unifySourceFormat();
+
+            if (!this.unifySourceFormat()) {
+                return false;
+            }
+
             this.init();
             this.delegateEvents();
         },
