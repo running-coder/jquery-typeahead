@@ -118,8 +118,6 @@
      */
     var Typeahead = function (node, options) {
 
-        //var scope = this;
-
         this.query = '';                // Input query
         this.source = {};               // The generated source kept in memory
         this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
@@ -133,11 +131,7 @@
         this.item = null;               // The selected item
         this.dropdownFilter = null;     // The selected dropdown filter (if any)
         this.xhr = {};                  // Ajax request(s) stack
-
-        // When a search is requested, a timestamp is unshift into the stack.
-        // When the search is completed, only the results from the latest request will be displayed.
-//        this.ressourceStack = [];
-        //this.ressourceId = null;
+        this.display = [];              // List of display keys for ordering results
 
         this.__construct();
 
@@ -169,6 +163,21 @@
                 })();
             }
 
+            if (this.options.compression) {
+                if (typeof LZString !== 'object' || !this.options.cache) {
+                    // {debug}
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'extendOptions()',
+                        'message': 'Missing LZString Library or options.cache, no compression will occur.'
+                    });
+
+                    _debug.print();
+                    // {/debug}
+                    this.options.compression = false;
+                }
+            }
+
             if (!/^\d+$/.test(this.options.maxItemPerGroup)) {
                 this.options.maxItemPerGroup = null;
             }
@@ -182,6 +191,7 @@
 
             if (!(this.options.display instanceof Array)) {
                 this.options.display = [this.options.display];
+                this.display = this.options.display;
             }
 
         },
@@ -231,6 +241,7 @@
                     if (!(this.options.source[group].display instanceof Array)) {
                         this.options.source[group].display = [this.options.source[group].display];
                     }
+                    this.display = this.display.concat(this.options.source[group].display);
                 }
 
                 if (this.options.source[group].ignore) {
@@ -288,7 +299,7 @@
                 ];
 
             $('html').on("click" + _namespace, function () {
-                this.resetLayout();
+                scope.resetLayout();
             });
 
             this.container.on("click" + _namespace, function (e) {
@@ -339,6 +350,10 @@
 
                     case "dynamic":
 
+                        if (!scope.isGenerated) {
+                            break;
+                        }
+
                         console.log('dynamic triggered?? :D')
 
                         scope.resetLayout();
@@ -357,8 +372,7 @@
                         //}
 
                         break;
-                    default:
-                        break;
+
                 }
 
             });
@@ -398,9 +412,11 @@
                     dataInLocalstorage = window.localStorage.getItem(this.node.selector + ":" + group);
                     if (dataInLocalstorage) {
                         if (this.options.compression) {
-                            dataInLocalstorage = this.helper.lzw_decode(dataInLocalstorage);
+                            dataInLocalstorage = LZString.decompressFromUTF16(dataInLocalstorage);
                         }
-                        // Regenerate on expired storage
+
+                        dataInLocalstorage = JSON.parse(dataInLocalstorage + "");
+
                         if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
 
                             this.populateSource(dataInLocalstorage.data, group)
@@ -554,13 +570,14 @@
                 this.source[group] = data;
 
                 if (this.options.cache) {
-                    var storage = {
-                        data: JSON.stringify(data),
+
+                    var storage = JSON.stringify({
+                        data: data,
                         ttl: new Date().getTime() + this.options.ttl
-                    };
+                    });
 
                     if (this.options.compression) {
-                        storage.data = this.lzw_encode(storage.data);
+                        storage = LZString.compressToUTF16(storage);
                     }
 
                     localStorage.setItem(
@@ -607,10 +624,10 @@
             console.log(this.source)
 
 
-            if (this.options.dynamic) {
-                this.node.trigger('dynamic.typeahead.input');
+//            if (this.options.dynamic) {
+            this.node.trigger('dynamic.typeahead.input');
 //                this.generatedGroupCount = 0;
-            }
+//            }
 
 
         },
@@ -641,10 +658,6 @@
         searchResult: function () {
 
             console.log('SearchResult ->')
-            // Make sure the search is made for the latest query
-//            if (this.query !== this.ressourceStack[0]) {
-//                return;
-//            }
 
             this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
 
@@ -658,7 +671,7 @@
                 match,
                 comparedDisplay,
                 comparedQuery = this.query,
-                itemPerGroupCount = 0,
+                itemPerGroupCount,
                 displayKey,
                 missingDisplayKey = {};
 
@@ -729,12 +742,10 @@
             }
             // {/debug}
 
-
-            // @TODO Modify the hardcoded 'project' key
             if (this.options.order) {
                 this.result.sort(
                     scope.helper.sort(
-                        scope.options.display.concat(['project']),
+                        scope.display,
                         scope.options.order === "asc",
                         function (a) {
                             return a.toString().toUpperCase()
@@ -763,26 +774,7 @@
 
         },
 
-//        buildResultLayout: function () {
-//
-//            console.log('BuildResultLayout ->')
-//
-//        },
-//
-//        resetResultLayout: function () {
-//
-//            console.log('ResetResultLayout ->')
-//
-//        },
-
         buildLayout: function () {
-
-            // Only build the result for the latest search
-//            if (this.ressourceId !== this.ressourceStack[0]) {
-//                return;
-//            }
-//            this.ressourceStack = [];
-//            this.ressourceId = null;
 
             console.log('BuildLayout ->')
 
@@ -991,68 +983,6 @@
 
             },
 
-            /**
-             * Gzip encode string
-             *
-             * @param {String} s
-             * @returns {String}
-             */
-            lzw_encode: function (s) {
-                var dict = {},
-                    data = (s + "").split(""),
-                    out = [],
-                    currChar,
-                    phrase = data[0],
-                    code = 256;
-                for (var i = 1; i < data.length; i++) {
-                    currChar = data[i];
-                    if (dict[phrase + currChar] != null) {
-                        phrase += currChar;
-                    }
-                    else {
-                        out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-                        dict[phrase + currChar] = code;
-                        code++;
-                        phrase = currChar;
-                    }
-                }
-                out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-                for (var i = 0; i < out.length; i++) {
-                    out[i] = String.fromCharCode(out[i]);
-                }
-                return out.join("");
-            },
-
-            /**
-             * Gzip decode string
-             *
-             * @param {String} s
-             * @returns {String}
-             */
-            lzw_decode: function (s) {
-                var dict = {},
-                    data = (s + "").split(""),
-                    currChar = data[0],
-                    oldPhrase = currChar,
-                    out = [currChar],
-                    code = 256,
-                    phrase;
-                for (var i = 1; i < data.length; i++) {
-                    var currCode = data[i].charCodeAt(0);
-                    if (currCode < 256) {
-                        phrase = data[i];
-                    }
-                    else {
-                        phrase = dict[currCode] ? dict[currCode] : (oldPhrase + currChar);
-                    }
-                    out.push(phrase);
-                    currChar = phrase.charAt(0);
-                    dict[code] = oldPhrase + currChar;
-                    code++;
-                    oldPhrase = phrase;
-                }
-                return out.join("");
-            },
 
             typeWatch: (function () {
                 var timer = 0;
