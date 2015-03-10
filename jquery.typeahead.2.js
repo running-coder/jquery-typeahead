@@ -60,9 +60,9 @@
             backdrop: "typeahead-backdrop",
             hint: "typeahead-hint"
         },
-        display: "display",     // -> New feature, allows search in multiple item keys ("display+actor")
+        display: "display",     // -> New feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
-        source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word;
+        source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: onDone, onFail, onComplete
         callback: {
             onInit: null,
             onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
@@ -132,15 +132,14 @@
         this.container = null;          // Typeahead container, usually right after <form>
         this.item = null;               // The selected item
         this.dropdownFilter = null;     // The selected dropdown filter (if any)
+        this.xhr = {};                  // Ajax request(s) stack
 
         // When a search is requested, a timestamp is unshift into the stack.
         // When the search is completed, only the results from the latest request will be displayed.
-        this.ressourceStack = [];
-        this.ressourceId = null;
+//        this.ressourceStack = [];
+        //this.ressourceId = null;
 
         this.__construct();
-
-        console.log(this.options)
 
     };
 
@@ -174,16 +173,16 @@
                 this.options.maxItemPerGroup = null;
             }
 
-            if (!(this.options.display instanceof Array)) {
-                this.options.display = [this.options.display];
-            }
-
             this.options = $.extend(
                 true,
                 {},
                 _options,
                 this.options
             );
+
+            if (!(this.options.display instanceof Array)) {
+                this.options.display = [this.options.display];
+            }
 
         },
 
@@ -212,7 +211,7 @@
             for (var group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
 
-                if (!this.options.source[group].data || this.options.source[group].url) {
+                if (!this.options.source[group].data && !this.options.source[group].url) {
 
                     // {debug}
                     _debug.log({
@@ -226,6 +225,30 @@
                     // {/debug}
 
                     return false;
+                }
+
+                if (this.options.source[group].display) {
+                    if (!(this.options.source[group].display instanceof Array)) {
+                        this.options.source[group].display = [this.options.source[group].display];
+                    }
+                }
+
+                if (this.options.source[group].ignore) {
+                    if (!(this.options.source[group].ignore instanceof RegExp)) {
+
+                        // {debug}
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'unifySourceFormat()',
+                            'arguments': JSON.stringify(this.options.source[group].ignore),
+                            'message': 'Invalid ignore RegExp.'
+                        });
+
+                        _debug.print();
+                        // {/debug}
+
+                        delete this.options.source[group].ignore;
+                    }
                 }
 
                 this.groupCount += 1;
@@ -261,9 +284,16 @@
                     'input' + _namespace,
                     'propertychange' + _namespace,
                     'keydown' + _namespace,
-                    'dynamic' + _namespace,
-                    'blur' + _namespace
+                    'dynamic' + _namespace
                 ];
+
+            $('html').on("click" + _namespace, function () {
+                this.resetLayout();
+            });
+
+            this.container.on("click" + _namespace, function (e) {
+                e.stopPropagation();
+            });
 
             this.node.closest('form').on("submit", function (e) {
 
@@ -282,9 +312,6 @@
                             scope.generateSource();
                         }
                         break;
-                    case "blur":
-                        scope.resetLayout();
-                        break;
                     case "keydown":
                         if (scope.isGenerated && scope.result.length) {
                             if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
@@ -300,21 +327,27 @@
 
                         scope.query = scope.node[0].value.trim();
 
-
-                        if (scope.isGenerated && !scope.options.dynamic) {
-
+                        if (/*!scope.isGenerated && */scope.options.dynamic) {
+                            scope.isGenerated = null;
+                            scope.helper.typeWatch(function () {
+                                if (scope.query.length >= scope.options.minLength && scope.query !== "") {
+                                    scope.generateSource();
+                                }
+                            }, scope.options.delay);
+                            return;
                         }
 
+                    case "dynamic":
 
+                        console.log('dynamic triggered?? :D')
+
+                        scope.resetLayout();
                         if (scope.query.length < scope.options.minLength || scope.query === "") {
-                            scope.resetLayout();
                             break;
                         }
 
                         scope.searchResult();
-
-                        scope.resetResultLayout();
-                        scope.buildResultLayout();
+                        scope.buildLayout();
 
                         //if (scope.options.dynamic) {
                         //if (scope.query.length >= scope.options.minLength && scope.query !== "") {
@@ -334,22 +367,31 @@
 
         generateSource: function () {
 
+            console.log('-> generate source')
+
             if (this.isGenerated && !this.options.dynamic) {
                 return;
             }
 
+            this.generatedGroupCount = 0;
+            this.isGenerated = false;
+
+            // Clear previous request(s)
+            if (!this.helper.isEmpty(this.xhr)) {
+                for (var i in this.xhr) {
+                    this.xhr[i].abort();
+                }
+                this.xhr = {};
+            }
+
             //this.source = {};
 
-            this.ressourceId = new Date().getTime();
-            this.ressourceStack.unshift(this.ressourceId);
-
-            this.isGenerated = false;
 
             var group,
                 dataInLocalstorage;
 
             for (group in this.options.source) {
-                if (!this.source.hasOwnProperty(group)) continue;
+                if (!this.options.source.hasOwnProperty(group)) continue;
 
                 // Get group source from Localstorage
                 if (this.options.cache) {
@@ -358,29 +400,189 @@
                         if (this.options.compression) {
                             dataInLocalstorage = this.helper.lzw_decode(dataInLocalstorage);
                         }
-                        this.source[group] = dataInLocalstorage;
+                        // Regenerate on expired storage
+                        if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
 
-                        this.incrementGeneratedGroup();
-                        continue;
+                            this.populateSource(dataInLocalstorage.data, group)
+                            continue;
+                        }
                     }
                 }
 
                 // Get group source from data
+                if (this.options.source[group].data && !this.options.source[group].url) {
+
+                    this.populateSource(this.options.source[group].data, group);
+                    continue;
+                }
 
                 // Get group source from Ajax
+                if (this.options.source[group].url) {
+
+                    var settingsTpl = {
+                            url: null,
+                            path: null,
+                            dataType: 'json',
+                            group: group,
+                            scope: this,
+                            callback: {
+                                onDone: null,
+                                onFail: null,
+                                onComplete: null
+                            }
+                        },
+                        settings = $.extend(true, {}, settingsTpl);
+
+                    // Settings compatibility
+                    if (this.options.source[group].url instanceof Array) {
+                        if (this.options.source[group].url[0] instanceof Object) {
+                            settings = $.extend(true, settings, this.options.source[group].url[0]);
+                        } else if (typeof this.options.source[group].url[0] === "string") {
+                            settings.url = this.options.source[group].url[0];
+                        }
+                        if (this.options.source[group].url[1]) {
+                            settings.path = this.options.source[group].url[1];
+                        }
+                    } else if (this.options.source[group].url instanceof Object) {
+                        settings = $.extend(true, settings, this.options.source[group].url);
+                    } else if (typeof this.options.source[group].url === "string") {
+                        settings.url = this.options.source[group].url;
+                    }
+
+                    if (settings.data) {
+                        for (var i in settings.data) {
+                            if (!settings.data.hasOwnProperty(i)) continue;
+                            if (~settings.data[i].indexOf('{{query}}')) {
+                                settings.data[i] = settings.data[i].replace('{{query}}', this.query);
+                            }
+                        }
+                    }
+
+                    this.xhr[group] = $.ajax(settings).done(function (data) {
+
+                        this.callback.onDone instanceof Function && this.callback.onDone(data);
+
+                        this.scope.populateSource(data, this.group, this.path);
+
+                    }).fail(function () {
+
+                        this.callback.onFail instanceof Function && this.callback.onFail();
+
+                        // {debug}
+                        _debug.log({
+                            'node': this.scope.node.selector,
+                            'function': 'generateSource()',
+                            //'arguments': JSON.stringify(this.options.source),
+                            'message': 'Ajax request failed.'
+                        });
+
+                        _debug.print();
+                        // {/debug}
+
+                    }).complete(function () {
+
+                        this.callback.onComplete instanceof Function && this.callback.onComplete();
+
+                    });
+
+                }
 
                 // Get group source from Jsonp
 
             }
 
-
-
-
-
-            console.log('GenerateSource ->')
-
             // Validate the item.display (key)
             // _display = storage[group][i].display.toString(); -> in case its a number (addresses)
+
+        },
+
+        /**
+         * Build the source groups to be cycled for matched results
+         *
+         * @param {Array} data Array of Strings or Array of Objects
+         * @param {String} group
+         * @param {String} [path]
+         */
+        populateSource: function (data, group, path) {
+
+            var isValid = true;
+
+            if (typeof path === "string") {
+                var exploded = path.split('.'),
+                    splitIndex = 0;
+
+                while (splitIndex < exploded.length) {
+                    if (typeof data !== 'undefined') {
+                        data = data[exploded[splitIndex++]];
+                    } else {
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!(data instanceof Array)) {
+                // {debug}
+                _debug.log({
+                    'node': this.node.selector,
+                    'function': 'populateSource()',
+                    'arguments': JSON.stringify({group: group}),
+                    'message': 'Invalid data type, must be Array type.'
+                });
+
+                _debug.print();
+                // {/debug}
+
+                return false;
+            }
+
+            if (isValid) {
+
+                if (this.options.source[group].data && this.options.source[group].url) {
+                    data = data.concat(this.options.source[group].data);
+                }
+
+                if (typeof data[0] === "string") {
+                    var tmpObj;
+                    for (var i = 0; i < data.length; i++) {
+                        tmpObj = {};
+                        tmpObj[this.options.source[group].display && this.options.source[group].display[0] || this.options.display[0]] = data[i];
+                        data[i] = tmpObj;
+                    }
+                }
+
+                this.source[group] = data;
+
+                if (this.options.cache) {
+                    var storage = {
+                        data: JSON.stringify(data),
+                        ttl: new Date().getTime() + this.options.ttl
+                    };
+
+                    if (this.options.compression) {
+                        storage.data = this.lzw_encode(storage.data);
+                    }
+
+                    localStorage.setItem(
+                        this.node.selector + ":" + group,
+                        storage
+                    );
+                }
+
+                this.incrementGeneratedGroup();
+
+            } else {
+                // {debug}
+                _debug.log({
+                    'node': this.node.selector,
+                    'function': 'populateSource()',
+                    'arguments': JSON.stringify(path),
+                    'message': 'Invalid path.'
+                });
+
+                _debug.print();
+                // {/debug}
+            }
 
         },
 
@@ -388,15 +590,27 @@
 
             this.generatedGroupCount += 1;
 
+            console.log('==================================')
+            console.log('group count: ' + this.groupCount)
+            console.log('generated count: ' + this.generatedGroupCount)
+            console.log('==================================')
+
             if (this.groupCount !== this.generatedGroupCount) {
                 return;
             }
 
             this.isGenerated = true;
 
-//            if (this.options.dynamic) {
-//                this.node.trigger('dynamic.typeahead.input');
-//            }
+            console.log('-> Generated! ready to search !!')
+            console.log('-> this.source')
+            console.log(this.query)
+            console.log(this.source)
+
+
+            if (this.options.dynamic) {
+                this.node.trigger('dynamic.typeahead.input');
+//                this.generatedGroupCount = 0;
+            }
 
 
         },
@@ -427,6 +641,10 @@
         searchResult: function () {
 
             console.log('SearchResult ->')
+            // Make sure the search is made for the latest query
+//            if (this.query !== this.ressourceStack[0]) {
+//                return;
+//            }
 
             this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
 
@@ -440,7 +658,9 @@
                 match,
                 comparedDisplay,
                 comparedQuery = this.query,
-                itemPerGroupCount = 0;
+                itemPerGroupCount = 0,
+                displayKey,
+                missingDisplayKey = {};
 
             if (this.options.accent) {
                 comparedQuery = this.helper.removeAccent(comparedQuery);
@@ -458,9 +678,21 @@
                     if (this.result.length >= this.options.maxItem) break;
                     if (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup) break;
 
-                    for (var i = 0; i < this.options.display.length; i++) {
+                    displayKey = this.options.source[group].display || this.options.display;
 
-                        comparedDisplay = this.source[group][item][this.options.display[i]];
+                    for (var i = 0; i < displayKey.length; i++) {
+
+                        comparedDisplay = this.source[group][item][displayKey[i]];
+
+                        if (!comparedDisplay) {
+                            missingDisplayKey[i] = {
+                                display: displayKey[i],
+                                data: this.source[group][item]
+                            };
+                            continue;
+                        }
+
+                        comparedDisplay = comparedDisplay.toString();
 
                         if (this.options.accent) {
                             comparedDisplay = this.helper.removeAccent(comparedDisplay);
@@ -470,24 +702,39 @@
 
                         if (!match) continue;
                         if (match && this.options.offset && match !== 1) continue;
-                        if (this.option.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
+                        if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
 
-                        this.resultCount+=1;
+                        this.resultCount += 1;
 
                         this.source[group][item].group = group;
-                        result.push(this.source[group][item]);
+                        this.result.push(this.source[group][item]);
 
-                        itemPerGroupCount+=1;
+                        itemPerGroupCount += 1;
 
                         break;
                     }
                 }
             }
 
+            // {debug}
+            if (!this.helper.isEmpty(missingDisplayKey)) {
+                _debug.log({
+                    'node': this.node.selector,
+                    'function': 'searchResult()',
+                    'arguments': JSON.stringify(missingDisplayKey),
+                    'message': 'Missing keys for display.'
+                });
+
+                _debug.print();
+            }
+            // {/debug}
+
+
+            // @TODO Modify the hardcoded 'project' key
             if (this.options.order) {
                 this.result.sort(
                     scope.helper.sort(
-                        "display",
+                        scope.options.display.concat(['project']),
                         scope.options.order === "asc",
                         function (a) {
                             return a.toString().toUpperCase()
@@ -511,30 +758,31 @@
 
             this.helper.executeCallback(this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
 
-        },
-
-        buildResultLayout: function () {
-
-            // Only build the result for the latest search
-            if (this.ressourceId !== this.ressourceStack[0]) {
-                return;
-            }
-            this.ressourceStack = [];
-            this.ressourceId = null;
-
-
-
-            console.log('BuildResultLayout ->')
+            console.log('-> Results')
+            console.log(this.result)
 
         },
 
-        resetResultLayout: function () {
-
-            console.log('ResetResultLayout ->')
-
-        },
+//        buildResultLayout: function () {
+//
+//            console.log('BuildResultLayout ->')
+//
+//        },
+//
+//        resetResultLayout: function () {
+//
+//            console.log('ResetResultLayout ->')
+//
+//        },
 
         buildLayout: function () {
+
+            // Only build the result for the latest search
+//            if (this.ressourceId !== this.ressourceStack[0]) {
+//                return;
+//            }
+//            this.ressourceStack = [];
+//            this.ressourceId = null;
 
             console.log('BuildLayout ->')
 
@@ -542,7 +790,7 @@
 
         resetLayout: function () {
 
-            this.resetResultLayout();
+            //this.resetResultLayout();
 
             console.log('ResetLayout ->')
 
@@ -594,19 +842,31 @@
             /**
              * Sort list of object by key
              *
-             * @param {String} field
+             * @param {String|Array} field
              * @param {Boolean} reverse
              * @param {Function} primer
              * @returns {Function}
              */
             sort: function (field, reverse, primer) {
 
+                if (!(field instanceof Array)) {
+                    field = [field];
+                }
+
                 var key = primer ?
                     function (x) {
-                        return primer(x[field])
+                        for (var i = 0; i < field.length; i++) {
+                            if (typeof x[field[i]] !== 'undefined') {
+                                return primer(x[field[i]])
+                            }
+                        }
                     } :
                     function (x) {
-                        return x[field]
+                        for (var i = 0; i < field.length; i++) {
+                            if (typeof x[field[i]] !== 'undefined') {
+                                return x[field[i]]
+                            }
+                        }
                     };
 
                 reverse = [-1, 1][+!!reverse];
@@ -792,7 +1052,15 @@
                     oldPhrase = phrase;
                 }
                 return out.join("");
-            }
+            },
+
+            typeWatch: (function () {
+                var timer = 0;
+                return function (callback, ms) {
+                    clearTimeout(timer);
+                    timer = setTimeout(callback, ms);
+                }
+            })()
 
         }
     };
@@ -826,8 +1094,6 @@
         typeahead: function (node, options) {
 
             if (!options || !options.source || typeof options.source !== 'object') {
-
-                console.log(Typeahead.prototype.helper)
 
                 // {debug}
                 _debug.log({
