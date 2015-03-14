@@ -563,8 +563,8 @@
                                     );
                                 }
 
-                                _display = result.display.toLowerCase();
-                                _query = query.toLowerCase();
+                                _display = result.display;
+                                _query = query;
 
                                 if (options.accent) {
                                     _display = _removeAccent(_display);
@@ -1500,7 +1500,7 @@
          * @returns {*}
          */
         var _highlight = function (string, key) {
-            var offset = string.indexOf(key);
+            var offset = string.toLowerCase().indexOf(key.toLowerCase());
 
             if (offset === -1) {
                 return string;
