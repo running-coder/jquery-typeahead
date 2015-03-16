@@ -34,8 +34,8 @@
         hint: false,
         accent: false,
         highlight: true,
-        list: false,
-        group: false,
+        list: false,            // -> Deprecated, use template instead
+        group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
         maxItemPerGroup: null,  // -> Renamed option
         dropdownFilter: false,  // -> Renamed option
         dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
@@ -44,7 +44,7 @@
         ttl: 3600000,
         compression: false,
         suggestion: false,      // -> New feature, save last searches and display suggestion on matched characters
-        updates: null,          // -> New feature, results are sent to a specific ID, Ex: Search inside table filters the rows
+        searchOnFocus: false,   // -> New feature, display search results on input focus
         selector: {
             container: "typeahead-container",
             group: "typeahead-group",
@@ -60,8 +60,9 @@
             backdrop: "typeahead-backdrop",
             hint: "typeahead-hint"
         },
-        display: "display",     // -> New feature, allows search in multiple item keys ["display1", "display2"]
+        display: "display",     // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
+        emptyTemplate: false,   // -> New feature, display an empty template if no result
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: onDone, onFail, onComplete
         callback: {
             onInit: null,
@@ -131,7 +132,7 @@
         this.item = null;               // The selected item
         this.dropdownFilter = null;     // The selected dropdown filter (if any)
         this.xhr = {};                  // Ajax request(s) stack
-        this.display = [];              // List of display keys for ordering results
+        //this.display = [];              // List of display keys for ordering results
 
         this.__construct();
 
@@ -182,17 +183,20 @@
                 this.options.maxItemPerGroup = null;
             }
 
+            if (this.options.display && !(this.options.display instanceof Array)) {
+                this.options.display = [this.options.display];
+            }
+
+            if (this.options.group && !(this.options.group instanceof Array)) {
+                this.options.group = [this.options.group];
+            }
+
             this.options = $.extend(
                 true,
                 {},
                 _options,
                 this.options
             );
-
-            if (!(this.options.display instanceof Array)) {
-                this.options.display = [this.options.display];
-                this.display = this.options.display;
-            }
 
         },
 
@@ -237,12 +241,12 @@
                     return false;
                 }
 
-                if (this.options.source[group].display) {
-                    if (!(this.options.source[group].display instanceof Array)) {
-                        this.options.source[group].display = [this.options.source[group].display];
-                    }
-                    this.display = this.display.concat(this.options.source[group].display);
-                }
+//                if (this.options.source[group].display) {
+//                    if (!(this.options.source[group].display instanceof Array)) {
+//                        this.options.source[group].display = [this.options.source[group].display];
+//                    }
+//                    this.display = this.display.concat(this.options.source[group].display);
+//                }
 
                 if (this.options.source[group].ignore) {
                     if (!(this.options.source[group].ignore instanceof RegExp)) {
@@ -319,6 +323,9 @@
 
                 switch (e.type) {
                     case "focus":
+                        if (scope.isGenerated && scope.options.searchOnFocus) {
+                            scope.showLayout();
+                        }
                         if (scope.isGenerated === null && !scope.options.dynamic) {
                             scope.generateSource();
                         }
@@ -329,7 +336,6 @@
                                 this.navigate(e);
                             }
                         }
-                        console.log('event -> keydown')
                         break;
                     case "propertychange":
                     case "input":
@@ -341,7 +347,7 @@
                         if (/*!scope.isGenerated && */scope.options.dynamic) {
                             scope.isGenerated = null;
                             scope.helper.typeWatch(function () {
-                                if (scope.query.length >= scope.options.minLength && scope.query !== "") {
+                                if (scope.query.length >= scope.options.minLength/* && scope.query !== ""*/) {
                                     scope.generateSource();
                                 }
                             }, scope.options.delay);
@@ -357,7 +363,7 @@
                         console.log('dynamic triggered?? :D')
 
                         scope.resetLayout();
-                        if (scope.query.length < scope.options.minLength || scope.query === "") {
+                        if (scope.query.length < scope.options.minLength/* || scope.query === ""*/) {
                             break;
                         }
 
@@ -607,10 +613,10 @@
 
             this.generatedGroupCount += 1;
 
-            console.log('==================================')
-            console.log('group count: ' + this.groupCount)
-            console.log('generated count: ' + this.generatedGroupCount)
-            console.log('==================================')
+//            console.log('==================================')
+//            console.log('group count: ' + this.groupCount)
+//            console.log('generated count: ' + this.generatedGroupCount)
+//            console.log('==================================')
 
             if (this.groupCount !== this.generatedGroupCount) {
                 return;
@@ -619,16 +625,12 @@
             this.isGenerated = true;
 
             console.log('-> Generated! ready to search !!')
-            console.log('-> this.source')
-            console.log(this.query)
-            console.log(this.source)
+//            console.log('-> this.source')
+//            console.log(this.query)
+//            console.log(this.source)
 
 
-//            if (this.options.dynamic) {
             this.node.trigger('dynamic.typeahead.input');
-//                this.generatedGroupCount = 0;
-//            }
-
 
         },
 
@@ -745,7 +747,7 @@
             if (this.options.order) {
                 this.result.sort(
                     scope.helper.sort(
-                        scope.display,
+                        scope.options.display,
                         scope.options.order === "asc",
                         function (a) {
                             return a.toString().toUpperCase()
@@ -777,6 +779,147 @@
         buildLayout: function () {
 
             console.log('BuildLayout ->')
+            console.log(this.source)
+
+            var scope = this,
+                template = $("<div/>", {
+                    "class": scope.options.selector.result,
+                    "html": $("<ul/>", {
+                        "class": scope.options.selector.list,
+                        "html": function () {
+                            for (var i in scope.result) {
+                                if (!scope.result.hasOwnProperty(i)) continue;
+
+                                (function (item, ulScope) {
+
+                                    var _group,
+                                        _liHtml,
+                                        _aHtml,
+                                        _display = {},
+                                        _displayKey,
+                                        _query,
+                                        _handle,
+                                        _template;
+
+                                    if (scope.options.group) {
+                                        _group = item.group;
+                                        if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
+                                            _group = item[scope.options.group[0]];
+                                        }
+                                        if (!$(ulScope).find('li[data-search-group="' + _group + '"]')[0]) {
+                                            $(ulScope).append(
+                                                $("<li/>", {
+                                                    "class": scope.options.selector.group,
+                                                    "html": $("<a/>", {
+                                                        "href": "javascript:;",
+                                                        "html": scope.options.group[1] && scope.options.group[1].replace(/\{\{group\}\}/gi, item[scope.options.group[0]] || "null") || _group
+                                                    }),
+                                                    "data-search-group": _group
+                                                })
+                                            );
+                                        }
+                                    }
+
+                                    _query = scope.query.toLowerCase();
+                                    if (scope.options.accent) {
+                                        _query = scope.helper.removeAccent(_query);
+                                    }
+
+                                    for (var i = 0; i < scope.options.display.length; i++) {
+                                        _displayKey = scope.options.display[i];
+                                        _display[_displayKey] = item[_displayKey];
+                                        if (scope.options.highlight) {
+                                            _display[_displayKey] = scope.helper.highlight(_display[_displayKey], _query, scope.options.accent);
+                                        }
+                                    }
+
+                                    _liHtml = $("<li/>", {
+                                        "html": $("<a/>", {
+                                            "href": "javascript:;",
+                                            "data-group": _group,
+                                            "html": function () {
+
+                                                _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
+
+                                                if (_template) {
+                                                    _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index) {
+                                                        return _display[index] || item[index] || "null";
+                                                    });
+                                                } else {
+                                                    _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
+                                                }
+
+                                                $(this).append(_aHtml);
+
+                                            },
+                                            "click": ({"item": item}, function (e) {
+
+                                                e.preventDefault();
+
+                                                var eee = [];
+                                                for (var i = 0; i < scope.options.display.length; i++) {
+                                                    eee[i] = item[scope.options.display[i]];
+                                                }
+
+                                                scope.query = eee.join(" ");
+                                                scope.node.val(scope.query).focus();
+
+                                                scope.selectedItem = item;
+
+                                                scope.hideLayout();
+
+                                                scope.helper.executeCallback(scope.options.callback.onClick, [scope.node, this, item, e]);
+                                            }),
+                                            "mouseenter": function (e) {
+
+                                                $(this).closest('li').siblings('li.active').removeClass('active');
+                                                $(this).closest('li').addClass('active');
+
+                                                scope.helper.executeCallback(scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
+                                            },
+                                            "mouseleave": function (e) {
+
+                                                $(this).closest('li').removeClass('active');
+
+                                                scope.helper.executeCallback(scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
+                                            }
+                                        })
+                                    });
+
+                                    if (scope.options.group) {
+
+                                        _handle = $(ulScope).find('a[data-group="' + _group + '"]:last').closest('li');
+                                        if (!_handle[0]) {
+                                            _handle = $(ulScope).find('li[data-search-group="' + _group + '"]');
+                                        }
+                                        $(_liHtml).insertAfter(_handle);
+
+                                    } else {
+                                        $(ulScope).append(_liHtml);
+                                    }
+
+                                }(scope.result[i], this));
+                            }
+
+                        }
+                    })
+                });
+
+            this.container
+                .addClass('result')
+                .append(template);
+
+        },
+
+        showLayout: function () {
+
+            console.log('ShowLayout ->')
+
+        },
+
+        hideLayout: function () {
+
+            console.log('HideLayout ->')
 
         },
 
@@ -792,7 +935,7 @@
             this.extendOptions();
 
             if (!this.unifySourceFormat()) {
-                return false;
+                return;
             }
 
             this.init();
@@ -818,14 +961,14 @@
              */
             removeAccent: function (string) {
 
-                if (!string || typeof string !== "string") {
+                if (/*!string || */typeof string !== "string") {
                     return;
                 }
 
                 string = string.toLowerCase();
 
                 for (var i = 0, l = _accent.from.length; i < l; i++) {
-                    string = string.replace(new RegExp(_accent.from.charAt(i), 'g'), _accent.to.charAt(i));
+                    string = string.replace(new RegExp(_accent.from.charAt(i), 'gi'), _accent.to.charAt(i));
                 }
 
                 return string;
@@ -886,21 +1029,44 @@
              *
              * @param {String} string The complete string to match from
              * @param {String} key
+             * @param {Boolean} [accents]
              * @returns {*}
              */
-            highlight: function (string, key) {
-                var offset = string.toLowerCase().indexOf(key.toLowerCase());
+            highlight: function (string, key, accents) {
 
-                if (offset === -1) {
-                    return string;
+                var offset = string.toLowerCase().indexOf(key.toLowerCase());
+                if (accents) {
+                    offset = this.removeAccent(string).indexOf(this.removeAccent(key));
                 }
 
-                return this.helper.replaceAt(
+                if (offset === -1 || key.length === 0) {
+                    return string;
+                }
+                return this.replaceAt(
                     string,
                     offset,
                     key.length,
                     "<strong>" + string.substr(offset, key.length) + "</strong>"
                 );
+            },
+
+            joinObject: function (object, join) {
+                var string = "",
+                    iteration = 0;
+
+                for (var i in object) {
+                    if (!object.hasOwnProperty(i)) continue;
+
+                    if (iteration !== 0) {
+                        string += join;
+                    }
+
+                    string += object[i];
+
+                    iteration++;
+                }
+
+                return string;
             },
 
             /**
