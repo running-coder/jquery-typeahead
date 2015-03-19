@@ -947,77 +947,87 @@
 
             }
 
-            if (this.options.hint && this.query.length > 1) {
+            if (this.options.hint) {
 
-                if (!this.hint.container) {
+                var _hint = "";
 
-                    this.hint.css = $.extend(
-                        {
-                            "border-color": "transparent",
-                            "position": "absolute",
-                            "display": "inline",
-                            "z-index": 1,
-                            "float": "none",
-                            "-webkit-text-fill-color": "silver",
-                            "color": "silver",
-                            "background-color": "transparent",
-                            "user-select": "none",
-                            "box-shadow": "none"
-                        },
-                        this.options.hint
-                    );
+                if (this.result.length > 0 && this.query.length > 0) {
 
-                    this.hint.container = this.node.clone(false).attr({
-                        "class": this.options.selector.hint,
-                        "readonly": true,
-                        "tabindex": -1
-                    }).removeAttr("id placeholder name autofocus autocomplete").css(this.hint.css);
+                    if (!this.hint.container) {
 
-                    this.helper.removeDataAttributes(this.hint.container);
+                        this.hint.css = $.extend(
+                            {
+                                "border-color": "transparent",
+                                "position": "absolute",
+                                "display": "inline",
+                                "z-index": 1,
+                                "float": "none",
+                                "-webkit-text-fill-color": "silver",
+                                "color": "silver",
+                                "background-color": "transparent",
+                                "user-select": "none",
+                                "box-shadow": "none"
+                            },
+                            this.options.hint
+                        );
 
-                    this.hint.container.insertBefore(this.node);
+                        this.hint.container = this.node.clone(false).attr({
+                            "class": this.options.selector.hint,
+                            "readonly": true,
+                            "tabindex": -1
+                        }).removeAttr("id placeholder name autofocus autocomplete alt").css(this.hint.css);
 
-                    this.node.css({
-                        "position": "relative",
-                        "z-index": 2,
-                        "background-color": "transparent"
-                    }).parent().css({
-                        "position": "relative"
-                    });
-                }
+                        this.helper.removeDataAttributes(this.hint.container);
 
-                var _hint,
-                    _group = (typeof this.options.group === "string" && this.result[0][this.options.group]) || this.result[0].group,
-                    _found = false;
+                        this.hint.container.insertBefore(this.node);
 
-                for (var k in this.result) {
-                    if (!this.result.hasOwnProperty(k))  continue;
+                        this.node.css({
+                            "position": "relative",
+                            "z-index": 2,
+                            "background-color": "transparent"
+                        }).parent().css({
+                            "position": "relative"
+                        });
+                    }
 
-                    if (this.result[k].group !== _group) {
-                        if (!_hint) {
-                            _group = this.result[k].group;
-                        } else {
+                    var _group = (typeof this.options.group === "string" && this.result[0][this.options.group]) || this.result[0].group,
+                        _found = false,
+                        _display,
+                        _query;
+
+                    for (var i = 0; i < this.result.length; i++) {
+                       if (this.result[i].group !== _group) {
+                            if (!_hint) {
+                                _group = this.result[i].group;
+                            } else {
+                                break;
+                            }
+                        }
+                        for (var a = 0; a < this.options.display.length; a++) {
+
+                            _display = this.result[i][this.options.display[a]].toLowerCase();
+                            _query = this.query.toLowerCase();
+
+                            if (this.options.accent) {
+                                _display = this.helper.removeAccent(_display);
+                                _query = this.helper.removeAccent(_query);
+                            }
+
+                            if (_display.indexOf(_query) === 0) {
+                                _hint = this.result[i][this.options.display[a]];
+                                _found = true;
+                                break;
+                            }
+                        }
+                        if (_found) {
                             break;
                         }
                     }
-                    for (var a = 0; a < this.options.display.length; a++) {
-                        if (this.result[k][this.options.display[a]].toLowerCase().indexOf(this.query.toLowerCase()) === 0) {
-                            _hint = this.result[k][this.options.display[a]];
-                            _found = true;
-                            break;
-                        }
-                    }
-                    if (_found) {
-                        break;
-                    }
                 }
 
-                console.log(_hint + '-------------')
-
-                if (_hint && this.hint.container) {
-                    console.log('yayyyyyyyyyyyyy')
+                if (this.hint.container) {
                     this.hint.container
-                        .val(this.query + _hint.substring(this.query.length))
+                        .val(_hint.length > 0 && this.query + _hint.substring(this.query.length) || "")
                         .show();
                 }
 
