@@ -36,6 +36,16 @@ INPUT, BUTTON & DROPDOWN
     cursor: default;
 }
 
+.typeahead-field,
+.typeahead-query {
+    width: 96%;
+}
+
+.input-group > span {
+    display: table-cell;
+    vertical-align: middle;
+}
+
 /*------------------------------------*\
     INPUT, BUTTON & DROPDOWN
 \*------------------------------------*/

@@ -132,6 +132,10 @@
         this.item = null;               // The selected item
         this.dropdownFilter = null;     // The selected dropdown filter (if any)
         this.xhr = {};                  // Ajax request(s) stack
+
+        this.backdrop = {};             // The backdrop object
+        this.hint = {};                 // The hint object
+
         //this.display = [];              // List of display keys for ordering results
 
         this.__construct();
@@ -301,10 +305,6 @@
                     'keydown' + _namespace,
                     'dynamic' + _namespace
                 ];
-
-            $('html').on("click" + _namespace, function () {
-                scope.resetLayout();
-            });
 
             this.container.on("click" + _namespace, function (e) {
                 e.stopPropagation();
@@ -909,11 +909,132 @@
                 .addClass('result')
                 .append(template);
 
+            if (this.options.backdrop) {
+
+                if (this.backdrop.container) {
+                    this.backdrop.container.show();
+                } else {
+                    this.backdrop.css = $.extend(
+                        {
+                            "opacity": 0.6,
+                            "filter": 'alpha(opacity=60)',
+                            "position": 'fixed',
+                            "top": 0,
+                            "right": 0,
+                            "bottom": 0,
+                            "left": 0,
+                            "z-index": 1040,
+                            "background-color": "#000"
+                        },
+                        this.options.backdrop
+                    );
+
+                    this.backdrop.container = $("<div/>", {
+                        "class": this.options.selector.backdrop,
+                        "css": this.backdrop.css,
+                        "click": function () {
+                            scope.hideLayout();
+                        }
+                    }).insertAfter(this.container);
+
+                }
+                this.container
+                    .addClass('backdrop')
+                    .css({
+                        "z-index": this.backdrop.css["z-index"] + 1,
+                        "position": "relative"
+                    });
+
+            }
+
+            if (this.options.hint && this.query.length > 1) {
+
+                if (!this.hint.container) {
+
+                    this.hint.css = $.extend(
+                        {
+                            "border-color": "transparent",
+                            "position": "absolute",
+                            "display": "inline",
+                            "z-index": 1,
+                            "float": "none",
+                            "-webkit-text-fill-color": "silver",
+                            "color": "silver",
+                            "background-color": "transparent",
+                            "user-select": "none",
+                            "box-shadow": "none"
+                        },
+                        this.options.hint
+                    );
+
+                    this.hint.container = this.node.clone(false).attr({
+                        "class": this.options.selector.hint,
+                        "readonly": true,
+                        "tabindex": -1
+                    }).removeAttr("id placeholder name autofocus autocomplete").css(this.hint.css);
+
+                    this.helper.removeDataAttributes(this.hint.container);
+
+                    this.hint.container.insertBefore(this.node);
+
+                    this.node.css({
+                        "position": "relative",
+                        "z-index": 2,
+                        "background-color": "transparent"
+                    }).parent().css({
+                        "position": "relative"
+                    });
+                }
+
+                var _hint,
+                    _group = (typeof this.options.group === "string" && this.result[0][this.options.group]) || this.result[0].group,
+                    _found = false;
+
+                for (var k in this.result) {
+                    if (!this.result.hasOwnProperty(k))  continue;
+
+                    if (this.result[k].group !== _group) {
+                        if (!_hint) {
+                            _group = this.result[k].group;
+                        } else {
+                            break;
+                        }
+                    }
+                    for (var a = 0; a < this.options.display.length; a++) {
+                        if (this.result[k][this.options.display[a]].toLowerCase().indexOf(this.query.toLowerCase()) === 0) {
+                            _hint = this.result[k][this.options.display[a]];
+                            _found = true;
+                            break;
+                        }
+                    }
+                    if (_found) {
+                        break;
+                    }
+                }
+
+                console.log(_hint + '-------------')
+
+                if (_hint && this.hint.container) {
+                    console.log('yayyyyyyyyyyyyy')
+                    this.hint.container
+                        .val(this.query + _hint.substring(this.query.length))
+                        .show();
+                }
+
+            }
+
         },
 
         showLayout: function () {
 
             console.log('ShowLayout ->')
+
+            var scope = this;
+
+            $('html').on("click" + _namespace, function () {
+                scope.resetLayout();
+                $(this).off(_namespace);
+            });
 
         },
 
@@ -927,7 +1048,7 @@
 
             //this.resetResultLayout();
 
-            console.log('ResetLayout ->')
+            console.log('ResetLayout ->');
 
         },
 
@@ -1067,6 +1188,24 @@
                 }
 
                 return string;
+            },
+
+            removeDataAttributes: function (target) {
+
+                var i,
+                    dataAttrsToDelete = [],
+                    dataAttrs = target.get(0).attributes;
+
+                for (i = 0; i < dataAttrs.length; i++) {
+                    if ('data-' === dataAttrs[i].name.substring(0, 5)) {
+                        dataAttrsToDelete.push(dataAttrs[i].name);
+                    }
+                }
+
+                for (i = 0; i < dataAttrsToDelete.length; i++){
+                    target.removeAttr(dataAttrsToDelete[i]);
+                }
+
             },
 
             /**
