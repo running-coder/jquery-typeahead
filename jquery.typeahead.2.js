@@ -34,7 +34,7 @@
         hint: false,
         accent: false,
         highlight: true,
-        list: false,            // -> Deprecated, use template instead
+        //list: false,            // -> Deprecated, use template instead
         group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
         maxItemPerGroup: null,  // -> Renamed option
         dropdownFilter: false,  // -> Renamed option
@@ -129,14 +129,13 @@
         this.options = options;         // Typeahead options (Merged default & user defined)
         this.node = node;               // jQuery object of the Typeahead <input>
         this.container = null;          // Typeahead container, usually right after <form>
+        this.resultContainer = null;    // Typeahead result container (html)
         this.item = null;               // The selected item
         this.dropdownFilter = null;     // The selected dropdown filter (if any)
         this.xhr = {};                  // Ajax request(s) stack
 
         this.backdrop = {};             // The backdrop object
         this.hint = {};                 // The hint object
-
-        //this.display = [];              // List of display keys for ordering results
 
         this.__construct();
 
@@ -312,7 +311,7 @@
 
             this.node.closest('form').on("submit", function (e) {
 
-                scope.resetLayout();
+                scope.hideLayout();
 
                 if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, scope, scope.item, e])) {
                     return false;
@@ -362,20 +361,13 @@
 
                         console.log('dynamic triggered?? :D')
 
-                        scope.resetLayout();
-                        if (scope.query.length < scope.options.minLength/* || scope.query === ""*/) {
+                        if (scope.query.length < scope.options.minLength) {
                             break;
                         }
 
                         scope.searchResult();
                         scope.buildLayout();
-
-                        //if (scope.options.dynamic) {
-                        //if (scope.query.length >= scope.options.minLength && scope.query !== "") {
-                        //    scope.generateSource();
-                        //}
-                        //} else {
-                        //}
+                        scope.showLayout();
 
                         break;
 
@@ -403,9 +395,6 @@
                 }
                 this.xhr = {};
             }
-
-            //this.source = {};
-
 
             var group,
                 dataInLocalstorage;
@@ -640,7 +629,7 @@
          * Down 40: select next item, skip "group" item
          * Right 39: change charAt, if last char fill hint (if options is true)
          * Tab 9: select item
-         * Esc 27: resetLayout
+         * Esc 27: hideLayout
          * Enter 13: submit search
          *
          * @param {Object} e Event object
@@ -781,133 +770,163 @@
             console.log('BuildLayout ->')
             console.log(this.source)
 
+            if (!this.resultContainer) {
+                this.resultContainer = $("<div/>", {
+                    "class": this.options.selector.result
+                });
+                this.container.append(this.resultContainer);
+            }
+
             var scope = this,
-                template = $("<div/>", {
-                    "class": scope.options.selector.result,
-                    "html": $("<ul/>", {
-                        "class": scope.options.selector.list,
-                        "html": function () {
-                            for (var i in scope.result) {
-                                if (!scope.result.hasOwnProperty(i)) continue;
+                htmlList = $("<ul/>", {
+                    "class": this.options.selector.list,
+                    "html": function () {
 
-                                (function (item, ulScope) {
-
-                                    var _group,
-                                        _liHtml,
-                                        _aHtml,
-                                        _display = {},
-                                        _displayKey,
-                                        _query,
-                                        _handle,
-                                        _template;
-
-                                    if (scope.options.group) {
-                                        _group = item.group;
-                                        if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
-                                            _group = item[scope.options.group[0]];
-                                        }
-                                        if (!$(ulScope).find('li[data-search-group="' + _group + '"]')[0]) {
-                                            $(ulScope).append(
-                                                $("<li/>", {
-                                                    "class": scope.options.selector.group,
-                                                    "html": $("<a/>", {
-                                                        "href": "javascript:;",
-                                                        "html": scope.options.group[1] && scope.options.group[1].replace(/\{\{group\}\}/gi, item[scope.options.group[0]] || "null") || _group
-                                                    }),
-                                                    "data-search-group": _group
-                                                })
-                                            );
-                                        }
-                                    }
-
-                                    _query = scope.query.toLowerCase();
-                                    if (scope.options.accent) {
-                                        _query = scope.helper.removeAccent(_query);
-                                    }
-
-                                    for (var i = 0; i < scope.options.display.length; i++) {
-                                        _displayKey = scope.options.display[i];
-                                        _display[_displayKey] = item[_displayKey];
-                                        if (scope.options.highlight) {
-                                            _display[_displayKey] = scope.helper.highlight(_display[_displayKey], _query, scope.options.accent);
-                                        }
-                                    }
-
-                                    _liHtml = $("<li/>", {
-                                        "html": $("<a/>", {
-                                            "href": "javascript:;",
-                                            "data-group": _group,
-                                            "html": function () {
-
-                                                _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
-
-                                                if (_template) {
-                                                    _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index) {
-                                                        return _display[index] || item[index] || "null";
-                                                    });
-                                                } else {
-                                                    _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
-                                                }
-
-                                                $(this).append(_aHtml);
-
-                                            },
-                                            "click": ({"item": item}, function (e) {
-
-                                                e.preventDefault();
-
-                                                var eee = [];
-                                                for (var i = 0; i < scope.options.display.length; i++) {
-                                                    eee[i] = item[scope.options.display[i]];
-                                                }
-
-                                                scope.query = eee.join(" ");
-                                                scope.node.val(scope.query).focus();
-
-                                                scope.selectedItem = item;
-
-                                                scope.hideLayout();
-
-                                                scope.helper.executeCallback(scope.options.callback.onClick, [scope.node, this, item, e]);
-                                            }),
-                                            "mouseenter": function (e) {
-
-                                                $(this).closest('li').siblings('li.active').removeClass('active');
-                                                $(this).closest('li').addClass('active');
-
-                                                scope.helper.executeCallback(scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
-                                            },
-                                            "mouseleave": function (e) {
-
-                                                $(this).closest('li').removeClass('active');
-
-                                                scope.helper.executeCallback(scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
-                                            }
-                                        })
-                                    });
-
-                                    if (scope.options.group) {
-
-                                        _handle = $(ulScope).find('a[data-group="' + _group + '"]:last').closest('li');
-                                        if (!_handle[0]) {
-                                            _handle = $(ulScope).find('li[data-search-group="' + _group + '"]');
-                                        }
-                                        $(_liHtml).insertAfter(_handle);
-
-                                    } else {
-                                        $(ulScope).append(_liHtml);
-                                    }
-
-                                }(scope.result[i], this));
-                            }
-
+                        if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
+                            return $("<li/>", {
+                                "html": $("<a/>", {
+                                    "href": "javascript:;",
+                                    "html": scope.options.emptyTemplate.replace(/\{\{query\}\}/gi, scope.query)
+                                })
+                            });
                         }
-                    })
+
+                        for (var i in scope.result) {
+                            if (!scope.result.hasOwnProperty(i)) continue;
+
+                            (function (item, ulScope) {
+
+                                var _group,
+                                    _liHtml,
+                                    _aHtml,
+                                    _display = {},
+                                    _displayKey,
+                                    _query,
+                                    _handle,
+                                    _template;
+
+                                if (scope.options.group) {
+                                    _group = item.group;
+                                    if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
+                                        _group = item[scope.options.group[0]];
+                                    }
+                                    if (!$(ulScope).find('li[data-search-group="' + _group + '"]')[0]) {
+                                        $(ulScope).append(
+                                            $("<li/>", {
+                                                "class": scope.options.selector.group,
+                                                "html": $("<a/>", {
+                                                    "href": "javascript:;",
+                                                    "html": scope.options.group[1] && scope.options.group[1].replace(/\{\{group\}\}/gi, item[scope.options.group[0]] || "null") || _group
+                                                }),
+                                                "data-search-group": _group
+                                            })
+                                        );
+                                    }
+                                }
+
+                                _query = scope.query.toLowerCase();
+                                if (scope.options.accent) {
+                                    _query = scope.helper.removeAccent(_query);
+                                }
+
+                                for (var i = 0; i < scope.options.display.length; i++) {
+                                    _displayKey = scope.options.display[i];
+                                    _display[_displayKey] = item[_displayKey];
+                                    if (scope.options.highlight) {
+                                        _display[_displayKey] = scope.helper.highlight(_display[_displayKey], _query, scope.options.accent);
+                                    }
+                                }
+
+                                _liHtml = $("<li/>", {
+                                    "html": $("<a/>", {
+                                        "href": "javascript:;",
+                                        "data-group": _group,
+                                        "html": function () {
+
+                                            _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
+
+                                            if (_template) {
+                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index) {
+                                                    return _display[index] || item[index] || "null";
+                                                });
+                                            } else {
+                                                _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
+                                            }
+
+                                            $(this).append(_aHtml);
+
+                                        },
+                                        "click": ({"item": item}, function (e) {
+
+                                            e.preventDefault();
+
+                                            var _tmpSearch = "",
+                                                _key;
+
+                                            for (var i in _display) {
+                                                if (!_display.hasOwnProperty(i)) continue;
+                                                _tmpSearch = _display[i];
+                                                if (scope.options.highlight) {
+                                                    _tmpSearch = _tmpSearch.replace(/<\/?strong>/gi, "")
+                                                }
+                                                if (scope.options.accent) {
+                                                    _tmpSearch = scope.helper.removeAccent(_tmpSearch);
+                                                }
+                                                if (~_tmpSearch.indexOf(_query)) {
+                                                    _key = i;
+                                                    break;
+                                                }
+                                            }
+
+                                            scope.query = item[_key];
+                                            scope.node.val(scope.query).focus();
+
+                                            scope.selectedItem = item;
+
+                                            scope.searchResult();
+                                            scope.buildLayout();
+                                            scope.hideLayout();
+
+                                            scope.helper.executeCallback(scope.options.callback.onClick, [scope.node, this, item, e]);
+                                        }),
+                                        "mouseenter": function (e) {
+
+                                            $(this).closest('ul').find('li.active').removeClass('active');
+                                            $(this).closest('li').addClass('active');
+
+                                            scope.helper.executeCallback(scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
+                                        },
+                                        "mouseleave": function (e) {
+
+                                            $(this).closest('li').removeClass('active');
+
+                                            scope.helper.executeCallback(scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
+                                        }
+                                    })
+                                });
+
+                                if (scope.options.group) {
+
+                                    _handle = $(ulScope).find('a[data-group="' + _group + '"]:last').closest('li');
+                                    if (!_handle[0]) {
+                                        _handle = $(ulScope).find('li[data-search-group="' + _group + '"]');
+                                    }
+                                    $(_liHtml).insertAfter(_handle);
+
+                                } else {
+                                    $(ulScope).append(_liHtml);
+                                }
+
+                            }(scope.result[i], this));
+                        }
+
+                    }
                 });
 
             this.container
                 .addClass('result')
-                .append(template);
+                .find(this.resultContainer)
+                .html(htmlList);
 
             if (this.options.backdrop) {
 
@@ -996,7 +1015,7 @@
                         _query;
 
                     for (var i = 0; i < this.result.length; i++) {
-                       if (this.result[i].group !== _group) {
+                        if (this.result[i].group !== _group) {
                             if (!_hint) {
                                 _group = this.result[i].group;
                             } else {
@@ -1042,9 +1061,34 @@
             var scope = this;
 
             $('html').on("click" + _namespace, function () {
-                scope.resetLayout();
+                scope.hideLayout();
                 $(this).off(_namespace);
             });
+
+            if (this.options.hint) {
+                this.container
+                    .addClass('hint');
+                if (this.hint.container) {
+                    this.hint.container
+                        .show();
+                }
+            }
+
+            if (this.options.backdrop) {
+                this.container
+                    .addClass('backdrop')
+                //.removeAttr('style');
+                if (this.backdrop.container) {
+                    this.backdrop.container
+                        .show();
+                }
+            }
+
+            this.container
+                .addClass('result')
+                .find(this.resultContainer)
+                .show();
+
 
         },
 
@@ -1052,13 +1096,37 @@
 
             console.log('HideLayout ->')
 
-        },
+            if (this.options.filter) {
+                this.container
+                    .removeClass('filter')
+                    .find('.' + this.options.selector.dropdown.replace(" ", "."))
+                    .hide();
+            }
 
-        resetLayout: function () {
+            if (this.options.hint) {
+                this.container
+                    .removeClass('hint');
+                if (this.hint.container) {
+                    this.hint.container
+                        //.val("")
+                        .hide();
+                }
+            }
 
-            //this.resetResultLayout();
+            if (this.options.backdrop) {
+                this.container
+                    .removeClass('backdrop')
+                //.removeAttr('style');
+                if (this.backdrop.container) {
+                    this.backdrop.container
+                        .hide();
+                }
+            }
 
-            console.log('ResetLayout ->');
+            this.container
+                .removeClass('result')
+                .find(this.resultContainer)
+                .hide();
 
         },
 
@@ -1212,7 +1280,7 @@
                     }
                 }
 
-                for (i = 0; i < dataAttrsToDelete.length; i++){
+                for (i = 0; i < dataAttrsToDelete.length; i++) {
                     target.removeAttr(dataAttrsToDelete[i]);
                 }
 
