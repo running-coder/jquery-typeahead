@@ -332,7 +332,7 @@
                     case "keydown":
                         if (scope.isGenerated && scope.result.length) {
                             if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
-                                this.navigate(e);
+                                scope.navigate(e);
                             }
                         }
                         break;
@@ -641,6 +641,16 @@
 
             // navigate options
             console.log('Navigate ->')
+
+            var htmlList = this.container.find('.' + this.options.selector.list).find('li:not([data-search-group])'),
+                activeItem = htmlList.siblings('.active'),
+                currentActiveItem = activeItem[0] && activeItem.index(htmlList) || 0;
+
+            console.log('-----------')
+            console.log(htmlList.length)
+            console.log(activeItem)
+            console.log(currentActiveItem)
+            console.log('-----------')
 
         },
 
