@@ -13,7 +13,7 @@ INPUT, BUTTON & DROPDOWN
 .typeahead-container {
     position: relative;
     z-index: 998;
-    background-color: #fff;
+    background-color: transparent;
 }
 
 .typeahead-container.result,
@@ -74,9 +74,9 @@ INPUT, BUTTON & DROPDOWN
     border-bottom-left-radius: 4px;
 }
 
-/*.typeahead-container .input-group > span {*/
-    /*display: inline-block;*/
-/*}*/
+.typeahead-container .typeahead-hint {
+    background-color: #fff;
+}
 
 .typeahead-container .btn[type="button"] {
     border-radius: 0;

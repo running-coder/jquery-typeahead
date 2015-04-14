@@ -71,7 +71,7 @@
             onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
-            onClick: null,
+            onClick: null,      // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
             onSubmit: null
         },
         debug: false
@@ -92,6 +92,7 @@
         to: "aaaaaeeeeeiiiiooooouuuunc"
     };
 
+    // RESERVED WORDS: group, display, data
 
     // delegateTypeahead
     // search
@@ -221,8 +222,8 @@
                     group: this.options.source
                 };
 
-                this.groupCount += 1;
-                return true;
+//                this.groupCount += 1;
+//                return true;
             }
 
             for (var group in this.options.source) {
@@ -244,12 +245,9 @@
                     return false;
                 }
 
-//                if (this.options.source[group].display) {
-//                    if (!(this.options.source[group].display instanceof Array)) {
-//                        this.options.source[group].display = [this.options.source[group].display];
-//                    }
-//                    this.display = this.display.concat(this.options.source[group].display);
-//                }
+                if (this.options.source[group].display && !(this.options.source[group].display instanceof Array)) {
+                    this.options.source[group].display = [this.options.source[group].display];
+                }
 
                 if (this.options.source[group].ignore) {
                     if (!(this.options.source[group].ignore instanceof RegExp)) {
@@ -343,6 +341,12 @@
 
                         scope.query = scope.node[0].value.trim();
 
+                        // Empty search?
+                        if (!scope.query) {
+                            scope.hideLayout();
+                            return;
+                        }
+
                         if (/*!scope.isGenerated && */scope.options.dynamic) {
                             scope.isGenerated = null;
                             scope.helper.typeWatch(function () {
@@ -359,7 +363,7 @@
                             break;
                         }
 
-                        console.log('dynamic triggered?? :D')
+                        //console.log('dynamic triggered?? :D')
 
                         if (scope.query.length < scope.options.minLength) {
                             break;
@@ -430,46 +434,45 @@
                 // Get group source from Ajax
                 if (this.options.source[group].url) {
 
-                    var settingsTpl = {
-                            url: null,
-                            path: null,
-                            dataType: 'json',
-                            group: group,
-                            scope: this,
-                            callback: {
-                                onDone: null,
-                                onFail: null,
-                                onComplete: null
-                            }
-                        },
-                        settings = $.extend(true, {}, settingsTpl);
+                    var request = {
+                        url: null,
+                        path: null,
+                        dataType: 'json',
+                        group: group,
+                        scope: this,
+                        callback: {
+                            onDone: null,
+                            onFail: null,
+                            onComplete: null
+                        }
+                    };
 
-                    // Settings compatibility
+                    // request compatibility
                     if (this.options.source[group].url instanceof Array) {
                         if (this.options.source[group].url[0] instanceof Object) {
-                            settings = $.extend(true, settings, this.options.source[group].url[0]);
+                            request = $.extend(true, request, this.options.source[group].url[0]);
                         } else if (typeof this.options.source[group].url[0] === "string") {
-                            settings.url = this.options.source[group].url[0];
+                            request.url = this.options.source[group].url[0];
                         }
                         if (this.options.source[group].url[1]) {
-                            settings.path = this.options.source[group].url[1];
+                            request.path = this.options.source[group].url[1];
                         }
                     } else if (this.options.source[group].url instanceof Object) {
-                        settings = $.extend(true, settings, this.options.source[group].url);
+                        request = $.extend(true, request, this.options.source[group].url);
                     } else if (typeof this.options.source[group].url === "string") {
-                        settings.url = this.options.source[group].url;
+                        request.url = this.options.source[group].url;
                     }
 
-                    if (settings.data) {
-                        for (var i in settings.data) {
-                            if (!settings.data.hasOwnProperty(i)) continue;
-                            if (~settings.data[i].indexOf('{{query}}')) {
-                                settings.data[i] = settings.data[i].replace('{{query}}', this.query);
+                    if (request.data) {
+                        for (var i in request.data) {
+                            if (!request.data.hasOwnProperty(i)) continue;
+                            if (~request.data[i].indexOf('{{query}}')) {
+                                request.data[i] = request.data[i].replace('{{query}}', this.query);
                             }
                         }
                     }
 
-                    this.xhr[group] = $.ajax(settings).done(function (data) {
+                    this.xhr[group] = $.ajax(request).done(function (data) {
 
                         this.callback.onDone instanceof Function && this.callback.onDone(data);
 
@@ -553,11 +556,19 @@
                     data = data.concat(this.options.source[group].data);
                 }
 
-                if (typeof data[0] === "string") {
-                    var tmpObj;
-                    for (var i = 0; i < data.length; i++) {
+                var tmpObj,
+                    display;
+
+                if (this.options.source[group].display) {
+                    display = this.options.source[group].display[0];
+                } else {
+                    display = this.options.display[0];
+                }
+
+                for (var i = 0; i < data.length; i++) {
+                    if (typeof data[i] === "string") {
                         tmpObj = {};
-                        tmpObj[this.options.source[group].display && this.options.source[group].display[0] || this.options.display[0]] = data[i];
+                        tmpObj[display] = data[i];
                         data[i] = tmpObj;
                     }
                 }
@@ -673,7 +684,7 @@
                 comparedDisplay,
                 comparedQuery = this.query,
                 itemPerGroupCount,
-                displayKey,
+                displayKeys,
                 missingDisplayKey = {};
 
             if (this.options.accent) {
@@ -692,15 +703,15 @@
                     if (this.result.length >= this.options.maxItem) break;
                     if (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup) break;
 
-                    displayKey = this.options.source[group].display || this.options.display;
+                    displayKeys = this.options.source[group].display || this.options.display;
 
-                    for (var i = 0; i < displayKey.length; i++) {
+                    for (var i = 0; i < displayKeys.length; i++) {
 
-                        comparedDisplay = this.source[group][item][displayKey[i]];
+                        comparedDisplay = this.source[group][item][displayKeys[i]];
 
                         if (!comparedDisplay) {
                             missingDisplayKey[i] = {
-                                display: displayKey[i],
+                                display: displayKeys[i],
                                 data: this.source[group][item]
                             };
                             continue;
@@ -736,7 +747,7 @@
                     'node': this.node.selector,
                     'function': 'searchResult()',
                     'arguments': JSON.stringify(missingDisplayKey),
-                    'message': 'Missing keys for display.'
+                    'message': 'Missing keys for display, make sure options.display is set properly.'
                 });
 
                 _debug.print();
@@ -787,6 +798,14 @@
                 this.container.append(this.resultContainer);
             }
 
+            console.log(this.result)
+
+            // Reused..
+            var _query = this.query.toLowerCase();
+            if (this.options.accent) {
+                _query = this.helper.removeAccent(_query);
+            }
+
             var scope = this,
                 htmlList = $("<ul/>", {
                     "class": this.options.selector.list,
@@ -810,8 +829,9 @@
                                     _liHtml,
                                     _aHtml,
                                     _display = {},
+                                    _displayKeys = scope.options.source[item.group].display || scope.options.display,
                                     _displayKey,
-                                    _query,
+//                                    _query,
                                     _handle,
                                     _template;
 
@@ -826,7 +846,7 @@
                                                 "class": scope.options.selector.group,
                                                 "html": $("<a/>", {
                                                     "href": "javascript:;",
-                                                    "html": scope.options.group[1] && scope.options.group[1].replace(/\{\{group\}\}/gi, item[scope.options.group[0]] || "null") || _group
+                                                    "html": scope.options.group[1] && scope.options.group[1].replace(/(\{\{group\}\})/gi, item[scope.options.group[0]] || "$1") || _group
                                                 }),
                                                 "data-search-group": _group
                                             })
@@ -834,22 +854,38 @@
                                     }
                                 }
 
-                                _query = scope.query.toLowerCase();
-                                if (scope.options.accent) {
-                                    _query = scope.helper.removeAccent(_query);
-                                }
+//                                _query = scope.query.toLowerCase();
+//                                if (scope.options.accent) {
+//                                    _query = scope.helper.removeAccent(_query);
+//                                }
 
-                                for (var i = 0; i < scope.options.display.length; i++) {
-                                    _displayKey = scope.options.display[i];
+                                for (var i = 0; i < _displayKeys.length; i++) {
+                                    _displayKey = _displayKeys[i];
                                     _display[_displayKey] = item[_displayKey];
                                     if (scope.options.highlight) {
-                                        _display[_displayKey] = scope.helper.highlight(_display[_displayKey], _query, scope.options.accent);
+                                        if (_display[_displayKey]) {
+                                            _display[_displayKey] = scope.helper.highlight(_display[_displayKey], _query, scope.options.accent);
+                                        }
+                                        // {debug}
+                                        else {
+
+                                            _debug.log({
+                                                'node': scope.node.selector,
+                                                'function': 'buildLayout()',
+                                                'arguments': JSON.stringify(item),
+                                                'message': 'WARNING - Missing display key: "' + _displayKey + '"'
+                                            });
+
+                                            _debug.print();
+
+                                        }
+                                        // {/debug}
                                     }
                                 }
 
                                 _liHtml = $("<li/>", {
                                     "html": $("<a/>", {
-                                        "href": "javascript:;",
+                                        "href": "#",
                                         "data-group": _group,
                                         "html": function () {
 
@@ -857,7 +893,7 @@
 
                                             if (_template) {
                                                 _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index) {
-                                                    return _display[index] || item[index] || "null";
+                                                    return _display[index] || item[index] || match;
                                                 });
                                             } else {
                                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
@@ -867,6 +903,12 @@
 
                                         },
                                         "click": ({"item": item}, function (e) {
+
+                                            scope.helper.executeCallback(scope.options.callback.onClick, [scope.node, this, item, e]);
+
+                                            if (e.isDefaultPrevented()) {
+                                                return;
+                                            }
 
                                             e.preventDefault();
 
@@ -897,7 +939,6 @@
                                             scope.buildLayout();
                                             scope.hideLayout();
 
-                                            scope.helper.executeCallback(scope.options.callback.onClick, [scope.node, this, item, e]);
                                         }),
                                         "mouseenter": function (e) {
 
@@ -993,7 +1034,6 @@
                                 "float": "none",
                                 "-webkit-text-fill-color": "silver",
                                 "color": "silver",
-                                "background-color": "transparent",
                                 "user-select": "none",
                                 "box-shadow": "none"
                             },
@@ -1001,7 +1041,7 @@
                         );
 
                         this.hint.container = this.node.clone(false).attr({
-                            "class": this.options.selector.hint,
+                            "class": this.options.selector.hint + " " + this.node.attr('class'),
                             "readonly": true,
                             "tabindex": -1
                         }).removeAttr("id placeholder name autofocus autocomplete alt").css(this.hint.css);
@@ -1019,31 +1059,18 @@
                         });
                     }
 
-                    var _group = (typeof this.options.group === "string" && this.result[0][this.options.group]) || this.result[0].group,
-                        _found = false,
-                        _display,
-                        _query;
+                    var _displayKeys,
+                        _group,
+                        _found = false;
 
                     for (var i = 0; i < this.result.length; i++) {
-                        if (this.result[i].group !== _group) {
-                            if (!_hint) {
-                                _group = this.result[i].group;
-                            } else {
-                                break;
-                            }
-                        }
-                        for (var a = 0; a < this.options.display.length; a++) {
+                        _group = this.result[i].group;
+                        _displayKeys = scope.options.source[_group].display || scope.options.display;
 
-                            _display = this.result[i][this.options.display[a]].toLowerCase();
-                            _query = this.query.toLowerCase();
+                        for (var k = 0; k < _displayKeys.length; k++) {
 
-                            if (this.options.accent) {
-                                _display = this.helper.removeAccent(_display);
-                                _query = this.helper.removeAccent(_query);
-                            }
-
-                            if (_display.indexOf(_query) === 0) {
-                                _hint = this.result[i][this.options.display[a]];
+                            if (String(this.result[i][_displayKeys[k]]).indexOf(_query) === 0) {
+                                _hint = String(this.result[i][_displayKeys[k]]);
                                 _found = true;
                                 break;
                             }
@@ -1052,6 +1079,7 @@
                             break;
                         }
                     }
+
                 }
 
                 if (this.hint.container) {
@@ -1146,6 +1174,10 @@
             if (!this.unifySourceFormat()) {
                 return;
             }
+
+            console.log('~~~~~~~~~~~~')
+            console.log(this.options.source)
+            console.log('~~~~~~~~~~~~')
 
             this.init();
             this.delegateEvents();
@@ -1242,6 +1274,8 @@
              * @returns {*}
              */
             highlight: function (string, key, accents) {
+
+                string = String(string);
 
                 var offset = string.toLowerCase().indexOf(key.toLowerCase());
                 if (accents) {
