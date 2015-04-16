@@ -29,12 +29,12 @@
         maxItem: 8,
         dynamic: false,
         delay: 300,
-        order: null,
+        order: null,            // ONLY sorts the first "display" key
         offset: false,
         hint: false,
         accent: false,
         highlight: true,
-        //list: false,            // -> Deprecated, use template instead
+        //list: false,          // -> Deprecated, use template instead
         group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
         maxItemPerGroup: null,  // -> Renamed option
         dropdownFilter: false,  // -> Renamed option
@@ -92,22 +92,10 @@
         to: "aaaaaeeeeeiiiiooooouuuunc"
     };
 
-    // RESERVED WORDS: group, display, data
+    // RESERVED WORDS: group, display, data, matchedKey
 
-    // delegateTypeahead
-    // search
-    // buildHtml
-    // move
-    // reset
-    // generate
+
     // delegateDropdown
-    // populate
-    // _populateSource
-    // _populateStorage
-    // _request
-    // _increment
-    // _validateHtml
-    // _typeWatch
     // _jsonp
 
 
@@ -134,6 +122,7 @@
         this.item = null;               // The selected item
         this.dropdownFilter = null;     // The selected dropdown filter (if any)
         this.xhr = {};                  // Ajax request(s) stack
+        this.hintIndex = null;          // Numeric value of the hint index in the result list
 
         this.backdrop = {};             // The backdrop object
         this.hint = {};                 // The hint object
@@ -329,7 +318,7 @@
                         break;
                     case "keydown":
                         if (scope.isGenerated && scope.result.length) {
-                            if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                            if (e.keyCode && ~[13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                                 scope.navigate(e);
                             }
                         }
@@ -337,7 +326,7 @@
                     case "propertychange":
                     case "input":
 
-                        console.log('event -> propertychange:input')
+                        //console.log('event -> propertychange:input');
 
                         scope.query = scope.node[0].value.trim();
 
@@ -363,8 +352,6 @@
                             break;
                         }
 
-                        //console.log('dynamic triggered?? :D')
-
                         if (scope.query.length < scope.options.minLength) {
                             break;
                         }
@@ -383,7 +370,7 @@
 
         generateSource: function () {
 
-            console.log('-> generate source')
+            //console.log('-> generate source');
 
             if (this.isGenerated && !this.options.dynamic) {
                 return;
@@ -418,7 +405,7 @@
 
                         if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
 
-                            this.populateSource(dataInLocalstorage.data, group)
+                            this.populateSource(dataInLocalstorage.data, group);
                             continue;
                         }
                     }
@@ -516,6 +503,7 @@
          * @param {Array} data Array of Strings or Array of Objects
          * @param {String} group
          * @param {String} [path]
+         * @return {*}
          */
         populateSource: function (data, group, path) {
 
@@ -624,7 +612,7 @@
 
             this.isGenerated = true;
 
-            console.log('-> Generated! ready to search !!')
+            //console.log('-> Generated! ready to search !!');
 //            console.log('-> this.source')
 //            console.log(this.query)
 //            console.log(this.source)
@@ -639,37 +627,117 @@
          * Up 38: select previous item, skip "group" item
          * Down 40: select next item, skip "group" item
          * Right 39: change charAt, if last char fill hint (if options is true)
-         * Tab 9: select item
          * Esc 27: hideLayout
-         * Enter 13: submit search
+         * Enter 13: Select item + submit search
          *
          * @param {Object} e Event object
-         * @returns {boolean}
+         * @returns {*}
          */
         navigate: function (e) {
 
             this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
 
-            // navigate options
-            console.log('Navigate ->')
+            //console.log('Navigate ->');
 
-            var htmlList = this.container.find('.' + this.options.selector.list).find('li:not([data-search-group])'),
-                activeItem = htmlList.siblings('.active'),
-                currentActiveItem = activeItem[0] && activeItem.index(htmlList) || 0;
+            var itemList = this.container.find('.' + this.options.selector.list).find('> li:not([data-search-group])'),
+                activeItem = itemList.filter('.active'),
+                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null;
 
-            console.log('-----------')
-            console.log(htmlList.length)
-            console.log(activeItem)
-            console.log(currentActiveItem)
-            console.log('-----------')
+            if (e.keyCode === 27) {
+
+                e.preventDefault();
+                this.hideLayout();
+
+                return;
+            }
+
+            if (e.keyCode === 13) {
+
+                if (activeItem.length > 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    activeItem.find('a:first').trigger('click');
+
+                    return;
+
+                } else {
+                    this.hideLayout();
+                    return;
+                }
+            }
+
+            if (e.keyCode === 39) {
+                if (activeItemIndex) {
+                    itemList.eq(activeItemIndex).find('a:first').trigger('click');
+                } else if (this.options.hint &&
+                    this.hint.container.val() !== "" &&
+                    this.helper.getCaret(this.node[0]) >= this.query.length) {
+
+                    itemList.find('a[data-index="' + this.hintIndex + '"]').trigger('click');
+
+                }
+                return;
+            }
+
+            if (itemList.length > 0) {
+                activeItem.removeClass('active');
+            }
+
+            if (e.keyCode === 38) {
+
+                e.preventDefault();
+
+                if (activeItem.length > 0) {
+                    if (activeItemIndex - 1 >= 0) {
+                        itemList.eq(activeItemIndex - 1).addClass('active');
+                    }
+                } else {
+                    itemList.last().addClass('active');
+                }
+
+            } else if (e.keyCode === 40) {
+
+                e.preventDefault();
+
+                if (activeItem.length > 0) {
+                    if (activeItemIndex + 1 < itemList.length) {
+                        itemList.eq(activeItemIndex + 1).addClass('active');
+                    }
+                } else {
+                    itemList.first().addClass('active');
+                }
+
+            }
+
+            activeItem = itemList.filter('.active');
+
+            if (this.options.hint) {
+                if (activeItem.length > 0) {
+                    this.hint.container.css('color', 'transparent')
+                } else {
+                    this.hint.container.css('color', this.hint.css.color)
+                }
+            }
+
+            if (activeItem.length > 0) {
+
+                var itemIndex = activeItem.find('a:first').attr('data-index');
+
+                itemIndex && this.node.val(this.result[itemIndex][this.result[itemIndex].matchedKey]);
+
+            } else {
+                this.node.val(this.query);
+            }
 
         },
+
 
         // @TODO implement dropdownFilter
         // @TODO implement dynamicFilter
         searchResult: function () {
 
-            console.log('SearchResult ->')
+            //console.log('SearchResult ->');
 
             this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
 
@@ -732,6 +800,8 @@
                         this.resultCount += 1;
 
                         this.source[group][item].group = group;
+                        this.source[group][item].matchedKey = displayKeys[i];
+
                         this.result.push(this.source[group][item]);
 
                         itemPerGroupCount += 1;
@@ -755,9 +825,20 @@
             // {/debug}
 
             if (this.options.order) {
+
+                var displayKeys = [],
+                    displayKey;
+
+                for (var i = 0; i < this.result.length; i++) {
+                    displayKey = this.options.source[this.result[i].group].display[0] || this.options.display[0];
+                    if (!~displayKeys.indexOf(displayKey)) {
+                        displayKeys.push(displayKey)
+                    }
+                }
+
                 this.result.sort(
                     scope.helper.sort(
-                        scope.options.display,
+                        displayKeys,
                         scope.options.order === "asc",
                         function (a) {
                             return a.toString().toUpperCase()
@@ -766,30 +847,12 @@
                 );
             }
 
-            if (this.options.group) {
-                // Reorder the items by group
-                var reorderResult = [];
-                for (group in this.source) {
-                    for (item in this.result) {
-                        if (this.result[item].group === group) {
-                            reorderResult.push(this.result[item]);
-                        }
-                    }
-                }
-                this.result = reorderResult;
-            }
-
             this.helper.executeCallback(this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
-
-            console.log('-> Results')
-            console.log(this.result)
 
         },
 
-        buildLayout: function () {
 
-            console.log('BuildLayout ->')
-            console.log(this.source)
+        buildLayout: function () {
 
             if (!this.resultContainer) {
                 this.resultContainer = $("<div/>", {
@@ -797,8 +860,6 @@
                 });
                 this.container.append(this.resultContainer);
             }
-
-            console.log(this.result)
 
             // Reused..
             var _query = this.query.toLowerCase();
@@ -823,7 +884,7 @@
                         for (var i in scope.result) {
                             if (!scope.result.hasOwnProperty(i)) continue;
 
-                            (function (item, ulScope) {
+                            (function (index, item, ulScope) {
 
                                 var _group,
                                     _liHtml,
@@ -831,7 +892,6 @@
                                     _display = {},
                                     _displayKeys = scope.options.source[item.group].display || scope.options.display,
                                     _displayKey,
-//                                    _query,
                                     _handle,
                                     _template;
 
@@ -853,11 +913,6 @@
                                         );
                                     }
                                 }
-
-//                                _query = scope.query.toLowerCase();
-//                                if (scope.options.accent) {
-//                                    _query = scope.helper.removeAccent(_query);
-//                                }
 
                                 for (var i = 0; i < _displayKeys.length; i++) {
                                     _displayKey = _displayKeys[i];
@@ -887,6 +942,7 @@
                                     "html": $("<a/>", {
                                         "href": "#",
                                         "data-group": _group,
+                                        "data-index": index,
                                         "html": function () {
 
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
@@ -968,7 +1024,7 @@
                                     $(ulScope).append(_liHtml);
                                 }
 
-                            }(scope.result[i], this));
+                            }(i, scope.result[i], this));
                         }
 
                     }
@@ -1032,7 +1088,6 @@
                                 "display": "inline",
                                 "z-index": 1,
                                 "float": "none",
-                                "-webkit-text-fill-color": "silver",
                                 "color": "silver",
                                 "user-select": "none",
                                 "box-shadow": "none"
@@ -1061,7 +1116,9 @@
 
                     var _displayKeys,
                         _group,
-                        _found = false;
+                        _comparedValue;
+
+                    this.hintIndex = null;
 
                     for (var i = 0; i < this.result.length; i++) {
                         _group = this.result[i].group;
@@ -1069,13 +1126,18 @@
 
                         for (var k = 0; k < _displayKeys.length; k++) {
 
-                            if (String(this.result[i][_displayKeys[k]]).indexOf(_query) === 0) {
+                            _comparedValue = String(this.result[i][_displayKeys[k]]).toLowerCase();
+                            if (this.options.accent) {
+                                _comparedValue = this.helper.removeAccent(_comparedValue);
+                            }
+
+                            if (_comparedValue.indexOf(_query) === 0) {
                                 _hint = String(this.result[i][_displayKeys[k]]);
-                                _found = true;
+                                this.hintIndex = i;
                                 break;
                             }
                         }
-                        if (_found) {
+                        if (this.hintIndex) {
                             break;
                         }
                     }
@@ -1094,7 +1156,7 @@
 
         showLayout: function () {
 
-            console.log('ShowLayout ->')
+            //console.log('ShowLayout ->')
 
             var scope = this;
 
@@ -1132,7 +1194,7 @@
 
         hideLayout: function () {
 
-            console.log('HideLayout ->')
+            //console.log('HideLayout ->')
 
             if (this.options.filter) {
                 this.container
@@ -1174,10 +1236,6 @@
             if (!this.unifySourceFormat()) {
                 return;
             }
-
-            console.log('~~~~~~~~~~~~')
-            console.log(this.options.source)
-            console.log('~~~~~~~~~~~~')
 
             this.init();
             this.delegateEvents();
@@ -1225,25 +1283,13 @@
              */
             sort: function (field, reverse, primer) {
 
-                if (!(field instanceof Array)) {
-                    field = [field];
-                }
-
-                var key = primer ?
-                    function (x) {
-                        for (var i = 0; i < field.length; i++) {
-                            if (typeof x[field[i]] !== 'undefined') {
-                                return primer(x[field[i]])
-                            }
+                var key = function (x) {
+                    for (var i = 0; i < field.length; i++) {
+                        if (typeof x[field[i]] !== 'undefined') {
+                            return primer(x[field[i]])
                         }
-                    } :
-                    function (x) {
-                        for (var i = 0; i < field.length; i++) {
-                            if (typeof x[field[i]] !== 'undefined') {
-                                return x[field[i]]
-                            }
-                        }
-                    };
+                    }
+                };
 
                 reverse = [-1, 1][+!!reverse];
 
@@ -1328,6 +1374,33 @@
                     target.removeAttr(dataAttrsToDelete[i]);
                 }
 
+            },
+
+
+            /**
+             * Get carret position, mainly used for right arrow navigation
+             * @param element
+             * @returns {*}
+             */
+            getCaret: function (element) {
+                if (element.selectionStart) {
+                    return element.selectionStart;
+                } else if (document.selection) {
+                    element.focus();
+
+                    var r = document.selection.createRange();
+                    if (r == null) {
+                        return 0;
+                    }
+
+                    var re = element.createTextRange(),
+                        rc = re.duplicate();
+                    re.moveToBookmark(r.getBookmark());
+                    rc.setEndPoint('EndToStart', re);
+
+                    return rc.text.length;
+                }
+                return 0;
             },
 
             /**
@@ -1422,7 +1495,7 @@
         }
     };
 
-    //Typeahead.prototype.constructor = Typeahead;
+//Typeahead.prototype.constructor = Typeahead;
 
     /**
      * @public
@@ -1508,7 +1581,7 @@
 
     };
 
-    // {debug}
+// {debug}
     var _debug = {
 
         table: {},
@@ -1542,10 +1615,10 @@
         }
 
     };
-    // {/debug}
+// {/debug}
 
-    // IE8 Shims
-    // @Link: https://gist.github.com/dhm116/1790197
+// IE8 Shims
+// @Link: https://gist.github.com/dhm116/1790197
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
             return this.replace(/^\s+/, '').replace(/\s+$/, '');
