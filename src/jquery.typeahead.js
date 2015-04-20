@@ -333,6 +333,8 @@
                             scope.helper.typeWatch(function () {
                                 if (scope.query.length >= scope.options.minLength) {
                                     scope.generateSource();
+                                } else {
+                                    scope.hideLayout();
                                 }
                             }, scope.options.delay);
                             return;
