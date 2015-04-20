@@ -377,7 +377,8 @@
                 this.xhr = {};
             }
 
-            var group,
+            var scope = this,
+                group,
                 dataInLocalstorage;
 
             for (group in this.options.source) {
@@ -416,7 +417,6 @@
                         path: null,
                         dataType: 'json',
                         group: group,
-                        scope: this,
                         callback: {
                             onDone: null,
                             onFail: null,
@@ -486,7 +486,7 @@
 
                         this.callback.onDone instanceof Function && this.callback.onDone(data);
 
-                        this.scope.populateSource(data, this.group, this.path);
+                        scope.populateSource(data, this.group, this.path);
 
                     }).fail(function (a,b,c) {
 
