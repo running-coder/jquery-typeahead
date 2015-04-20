@@ -65,6 +65,7 @@
             onInit: null,
             onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
+            onLayoutBuilt: null,// -> New callback, when the result HTML is build, modify it before it get showed
             onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
@@ -749,7 +750,9 @@
 
             this.result = [];
             this.resultCount = 0;
-            this.item = null;
+
+            // @TODO Verify this... item click resets the item
+            //this.item = null;
 
             var scope = this,
                 group,
@@ -995,10 +998,10 @@
                                                 }
                                             }
 
-                                            scope.query = item[_key];
+                                            scope.query = scope.rawQuery = item[_key];
                                             scope.node.val(scope.query).focus();
 
-                                            scope.selectedItem = item;
+                                            scope.item = item;
 
                                             scope.searchResult();
                                             scope.buildLayout();
@@ -1038,6 +1041,10 @@
 
                     }
                 });
+
+            if (this.options.callback.onLayoutBuilt) {
+                htmlList = this.helper.executeCallback(this.options.callback.onLayoutBuilt, [this.node, htmlList, this.result]) || htmlList;
+            }
 
             this.container
                 .addClass('result')
@@ -1622,8 +1629,7 @@
 
                 }
 
-                _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : []));
-                return true;
+                return _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : [])) || true;
 
             },
 
