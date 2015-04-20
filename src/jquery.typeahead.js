@@ -6,7 +6,7 @@
  * @author Tom Bertrand
  * @version 2.0.0 (2015-04-20)
  * @link http://www.runningcoder.org/jquerytypeahead/
-*/
+ */
 ;
 (function (window, document, $, undefined) {
 
@@ -298,6 +298,9 @@
 
                 scope.hideLayout();
 
+                scope.rawQuery = '';
+                scope.query = '';
+
                 if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, scope, scope.item, e])) {
                     return false;
                 }
@@ -501,7 +504,7 @@
 
                         // {debug}
                         _debug.log({
-                            'node': this.scope.node.selector,
+                            'node': scope.node.selector,
                             'function': 'generateSource()',
                             'arguments': request.url,
                             'message': 'Ajax request failed.'
