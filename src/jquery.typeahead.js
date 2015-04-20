@@ -326,7 +326,11 @@
                         scope.rawQuery = scope.node[0].value;
                         scope.query = scope.node[0].value.replace(/^\s+/, '');
 
-                        if (!scope.query) {}
+                        if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
+                            if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
+                                scope.hint.container.val('')
+                            }
+                        }
 
                         if (scope.options.dynamic) {
                             scope.isGenerated = null;
@@ -1346,7 +1350,6 @@
                     .removeClass('hint');
                 if (this.hint.container) {
                     this.hint.container
-                        //.val("")
                         .hide();
                 }
             }
