@@ -1101,10 +1101,12 @@
                         );
 
                         this.hint.container = this.node.clone(false).attr({
-                            "class": this.options.selector.hint + " " + this.node.attr('class'),
+                            "class": _options.selector.hint,
                             "readonly": true,
                             "tabindex": -1
-                        }).removeAttr("id placeholder name autofocus autocomplete alt").css(this.hint.css);
+                        }).addClass(this.node.attr('class'))
+                            .removeAttr("id placeholder name autofocus autocomplete alt")
+                            .css(this.hint.css);
 
                         this.helper.removeDataAttributes(this.hint.container);
 
