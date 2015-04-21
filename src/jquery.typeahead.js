@@ -4,9 +4,9 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-04-20)
+ * @version 2.0.0 (2015-04-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
- */
+*/
 ;
 (function (window, document, $, undefined) {
 
@@ -481,7 +481,7 @@
                     if (request.data) {
                         for (var i in request.data) {
                             if (!request.data.hasOwnProperty(i)) continue;
-                            if (~request.data[i].indexOf('{{query}}')) {
+                            if (~String(request.data[i]).indexOf('{{query}}')) {
                                 request.data[i] = request.data[i].replace('{{query}}', this.query);
                             }
                         }

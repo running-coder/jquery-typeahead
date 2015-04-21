@@ -4,10 +4,9 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-04-20)
+ * @version 2.0.0 (2015-04-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
-
 ;
 (function (window, document, $, undefined) {
 
@@ -15,8 +14,7 @@
 
     "use strict";
 
-    
-    var _options = {
+        var _options = {
         input: null,
         minLength: 2,           // Modified feature, now accepts 0 to search on focus
         maxItem: 8,
@@ -60,6 +58,7 @@
             onInit: null,
             onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
+            onLayoutBuilt: null,// -> New callback, when the result HTML is build, modify it before it get showed
             onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
@@ -69,17 +68,14 @@
         debug: false
     };
 
-    
-    var _namespace = ".typeahead";
+        var _namespace = ".typeahead";
 
-    
-    var _accent = {
+        var _accent = {
         from: "ãàáäâẽèéëêìíïîõòóöôùúüûñç",
         to: "aaaaaeeeeeiiiiooooouuuunc"
     };
 
-    
-    var Typeahead = function (node, options) {
+        var Typeahead = function (node, options) {
 
         this.rawQuery = '';             // Unmodified input query
         this.query = '';                // Input query
@@ -263,6 +259,9 @@
 
                 scope.hideLayout();
 
+                scope.rawQuery = '';
+                scope.query = '';
+
                 if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, scope, scope.item, e])) {
                     return false;
                 }
@@ -292,13 +291,19 @@
                         scope.rawQuery = scope.node[0].value;
                         scope.query = scope.node[0].value.replace(/^\s+/, '');
 
-                        if (!scope.query) {}
+                        if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
+                            if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
+                                scope.hint.container.val('')
+                            }
+                        }
 
                         if (scope.options.dynamic) {
                             scope.isGenerated = null;
                             scope.helper.typeWatch(function () {
                                 if (scope.query.length >= scope.options.minLength) {
                                     scope.generateSource();
+                                } else {
+                                    scope.hideLayout();
                                 }
                             }, scope.options.delay);
                             return;
@@ -341,7 +346,8 @@
                 this.xhr = {};
             }
 
-            var group,
+            var scope = this,
+                group,
                 dataInLocalstorage;
 
             for (group in this.options.source) {
@@ -374,7 +380,6 @@
                         path: null,
                         dataType: 'json',
                         group: group,
-                        scope: this,
                         callback: {
                             onDone: null,
                             onFail: null,
@@ -421,7 +426,7 @@
                     if (request.data) {
                         for (var i in request.data) {
                             if (!request.data.hasOwnProperty(i)) continue;
-                            if (~request.data[i].indexOf('{{query}}')) {
+                            if (~String(request.data[i]).indexOf('{{query}}')) {
                                 request.data[i] = request.data[i].replace('{{query}}', this.query);
                             }
                         }
@@ -435,13 +440,13 @@
 
                         this.callback.onDone instanceof Function && this.callback.onDone(data);
 
-                        this.scope.populateSource(data, this.group, this.path);
+                        scope.populateSource(data, this.group, this.path);
 
                     }).fail(function (a,b,c) {
 
                         this.callback.onFail instanceof Function && this.callback.onFail();
                         _debug.log({
-                            'node': this.scope.node.selector,
+                            'node': scope.node.selector,
                             'function': 'generateSource()',
                             'arguments': request.url,
                             'message': 'Ajax request failed.'
@@ -460,8 +465,7 @@
 
         },
 
-        
-        populateSource: function (data, group, path) {
+                populateSource: function (data, group, path) {
 
             var isValid = true;
 
@@ -563,8 +567,7 @@
 
         },
 
-        
-        navigate: function (e) {
+                navigate: function (e) {
 
             this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
 
@@ -666,7 +669,6 @@
 
             this.result = [];
             this.resultCount = 0;
-            this.item = null;
 
             var scope = this,
                 group,
@@ -905,10 +907,10 @@
                                                 }
                                             }
 
-                                            scope.query = item[_key];
+                                            scope.query = scope.rawQuery = item[_key];
                                             scope.node.val(scope.query).focus();
 
-                                            scope.selectedItem = item;
+                                            scope.item = item;
 
                                             scope.searchResult();
                                             scope.buildLayout();
@@ -948,6 +950,10 @@
 
                     }
                 });
+
+            if (this.options.callback.onLayoutBuilt) {
+                htmlList = this.helper.executeCallback(this.options.callback.onLayoutBuilt, [this.node, htmlList, this.result]) || htmlList;
+            }
 
             this.container
                 .addClass('result')
@@ -1015,10 +1021,12 @@
                         );
 
                         this.hint.container = this.node.clone(false).attr({
-                            "class": this.options.selector.hint + " " + this.node.attr('class'),
+                            "class": _options.selector.hint,
                             "readonly": true,
                             "tabindex": -1
-                        }).removeAttr("id placeholder name autofocus autocomplete alt").css(this.hint.css);
+                        }).addClass(this.node.attr('class'))
+                            .removeAttr("id placeholder name autofocus autocomplete alt")
+                            .css(this.hint.css);
 
                         this.helper.removeDataAttributes(this.hint.container);
 
@@ -1177,8 +1185,7 @@
                 }
             }).insertAfter(scope.container.find('.' + scope.options.selector.query));
 
-            
-            function _selectFilter(item) {
+                        function _selectFilter(item) {
 
                 this.filters.dropdown = item;
 
@@ -1291,8 +1298,7 @@
                 return true;
             },
 
-            
-            removeAccent: function (string) {
+                        removeAccent: function (string) {
 
                 if (typeof string !== "string") {
                     return;
@@ -1309,8 +1315,7 @@
                 return string;
             },
 
-            
-            sort: function (field, reverse, primer) {
+                        sort: function (field, reverse, primer) {
 
                 var key = function (x) {
                     for (var i = 0; i < field.length; i++) {
@@ -1327,13 +1332,11 @@
                 }
             },
 
-            
-            replaceAt: function (string, offset, length, replace) {
+                        replaceAt: function (string, offset, length, replace) {
                 return string.substring(0, offset) + replace + string.substring(offset + length);
             },
 
-            
-            highlight: function (string, key, accents) {
+                        highlight: function (string, key, accents) {
 
                 string = String(string);
 
@@ -1391,8 +1394,7 @@
             },
 
 
-            
-            getCaret: function (element) {
+                        getCaret: function (element) {
                 if (element.selectionStart) {
                     return element.selectionStart;
                 } else if (document.selection) {
@@ -1413,8 +1415,7 @@
                 return 0;
             },
 
-            
-            executeCallback: function (callback, extraParams) {
+                        executeCallback: function (callback, extraParams) {
 
                 if (!callback) {
                     return false;
@@ -1464,8 +1465,7 @@
 
                 }
 
-                _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : []));
-                return true;
+                return _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : [])) || true;
 
             },
 
@@ -1481,16 +1481,13 @@
         }
     };
 
-    
-    $.fn.typeahead = $.typeahead = function (options) {
+        $.fn.typeahead = $.typeahead = function (options) {
         return _api.typeahead(this, options);
     };
 
-    
-    var _api = {
+        var _api = {
 
-        
-        typeahead: function (node, options) {
+                typeahead: function (node, options) {
 
             if (!options || !options.source || typeof options.source !== 'object') {
                 _debug.log({
