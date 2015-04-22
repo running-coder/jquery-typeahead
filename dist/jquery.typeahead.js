@@ -1,40 +1,40 @@
-/**
+/*!
  * jQuery Typeahead
  * Copyright (C) 2015 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-04-21)
+ * @version 2.0.0 (2015-04-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
-*/
+ */
 ;
-(function (window, document, $, undefined) {
+(function(window, document, $, undefined) {
 
     window.Typeahead = {};
 
     "use strict";
 
-        var _options = {
+    var _options = {
         input: null,
-        minLength: 2,           // Modified feature, now accepts 0 to search on focus
+        minLength: 2, // Modified feature, now accepts 0 to search on focus
         maxItem: 8,
         dynamic: false,
         delay: 300,
-        order: null,            // ONLY sorts the first "display" key
+        order: null, // ONLY sorts the first "display" key
         offset: false,
-        hint: false,            // -> Improved feature, Added support for excessive "space" characters
+        hint: false, // -> Improved feature, Added support for excessive "space" characters
         accent: false,
         highlight: true,
-        group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
-        maxItemPerGroup: null,  // -> Renamed option
-        dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
-        dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
+        group: false, // -> Improved feature, Array second index is a custom group title (html allowed)
+        maxItemPerGroup: null, // -> Renamed option
+        dropdownFilter: false, // -> Renamed option, true will take group options string will filter on object key
+        dynamicFilter: null, // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
         backdrop: false,
         cache: false,
         ttl: 3600000,
-        compression: false,     // -> Requires LZString library
-        suggestion: false,      // -> New feature, save last searches and display suggestion on matched characters
-        searchOnFocus: false,   // -> New feature, display search results on input focus
+        compression: false, // -> Requires LZString library
+        suggestion: false, // -> New feature, save last searches and display suggestion on matched characters
+        searchOnFocus: false, // -> New feature, display search results on input focus
         selector: {
             container: "typeahead-container",
             group: "typeahead-group",
@@ -50,53 +50,53 @@
             backdrop: "typeahead-backdrop",
             hint: "typeahead-hint"
         },
-        display: ["display"],     // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
+        display: ["display"], // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
-        emptyTemplate: false,   // -> New feature, display an empty template if no result
-        source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: onDone, onFail, onComplete
+        emptyTemplate: false, // -> New feature, display an empty template if no result
+        source: null, // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: onDone, onFail, onComplete
         callback: {
             onInit: null,
-            onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
+            onSearch: null, // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
-            onLayoutBuilt: null,// -> New callback, when the result HTML is build, modify it before it get showed
-            onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
+            onLayoutBuilt: null, // -> New callback, when the result HTML is build, modify it before it get showed
+            onNavigate: null, // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
-            onClick: null,      // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
+            onClick: null, // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
             onSubmit: null
         },
         debug: false
     };
 
-        var _namespace = ".typeahead";
+    var _namespace = ".typeahead";
 
-        var _accent = {
+    var _accent = {
         from: "ãàáäâẽèéëêìíïîõòóöôùúüûñç",
         to: "aaaaaeeeeeiiiiooooouuuunc"
     };
 
-        var Typeahead = function (node, options) {
+    var Typeahead = function(node, options) {
 
-        this.rawQuery = '';             // Unmodified input query
-        this.query = '';                // Input query
-        this.source = {};               // The generated source kept in memory
-        this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
-        this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
-        this.groupCount = 0;            // Number of groups generated, if limit reached the search can be done
-        this.result = [];               // Results based on Source-query match (only contains the displayed elements)
-        this.resultCount = 0;           // Total results based on Source-query match
-        this.options = options;         // Typeahead options (Merged default & user defined)
-        this.node = node;               // jQuery object of the Typeahead <input>
-        this.container = null;          // Typeahead container, usually right after <form>
-        this.resultContainer = null;    // Typeahead result container (html)
-        this.item = null;               // The selected item
-        this.dropdownFilter = null;     // The selected dropdown filter (if any)
-        this.xhr = {};                  // Ajax request(s) stack
-        this.hintIndex = null;          // Numeric value of the hint index in the result list
-        this.filters = {};              // Filter list for searching, dropdown and dynamic(s)
+        this.rawQuery = ''; // Unmodified input query
+        this.query = ''; // Input query
+        this.source = {}; // The generated source kept in memory
+        this.isGenerated = null; // Generated results -> null: not generated, false: generating, true generated
+        this.generatedGroupCount = 0; // Number of groups generated, if limit reached the search can be done
+        this.groupCount = 0; // Number of groups generated, if limit reached the search can be done
+        this.result = []; // Results based on Source-query match (only contains the displayed elements)
+        this.resultCount = 0; // Total results based on Source-query match
+        this.options = options; // Typeahead options (Merged default & user defined)
+        this.node = node; // jQuery object of the Typeahead <input>
+        this.container = null; // Typeahead container, usually right after <form>
+        this.resultContainer = null; // Typeahead result container (html)
+        this.item = null; // The selected item
+        this.dropdownFilter = null; // The selected dropdown filter (if any)
+        this.xhr = {}; // Ajax request(s) stack
+        this.hintIndex = null; // Numeric value of the hint index in the result list
+        this.filters = {}; // Filter list for searching, dropdown and dynamic(s)
 
-        this.backdrop = {};             // The backdrop object
-        this.hint = {};                 // The hint object
+        this.backdrop = {}; // The backdrop object
+        this.hint = {}; // The hint object
 
         this.__construct();
 
@@ -104,13 +104,13 @@
 
     Typeahead.prototype = {
 
-        extendOptions: function () {
+        extendOptions: function() {
             if (this.options.dynamic) {
                 this.options.cache = false;
                 this.options.compression = false;
             }
             if (this.options.cache) {
-                this.options.cache = (function () {
+                this.options.cache = (function() {
                     var supported = typeof window.localStorage !== "undefined";
                     if (supported) {
                         try {
@@ -150,15 +150,14 @@
             }
 
             this.options = $.extend(
-                true,
-                {},
+                true, {},
                 _options,
                 this.options
             );
 
         },
 
-        unifySourceFormat: function () {
+        unifySourceFormat: function() {
 
             if (this.options.source instanceof Array) {
                 this.options.source = {
@@ -218,7 +217,7 @@
             return true;
         },
 
-        init: function () {
+        init: function() {
 
             this.helper.executeCallback(this.options.callback.onInit, [this.node]);
 
@@ -234,7 +233,7 @@
 
         },
 
-        delegateEvents: function () {
+        delegateEvents: function() {
 
             var scope = this,
                 events = [
@@ -245,7 +244,7 @@
                     'dynamic' + _namespace
                 ];
 
-            this.container.on("click" + _namespace, function (e) {
+            this.container.on("click" + _namespace, function(e) {
                 e.stopPropagation();
 
                 if (scope.options.dropdownFilter) {
@@ -255,7 +254,7 @@
                 }
             });
 
-            this.node.closest('form').on("submit", function (e) {
+            this.node.closest('form').on("submit", function(e) {
 
                 scope.hideLayout();
 
@@ -267,7 +266,7 @@
                 }
             });
 
-            this.node.off(_namespace).on(events.join(' '), function (e) {
+            this.node.off(_namespace).on(events.join(' '), function(e) {
 
                 switch (e.type) {
                     case "focus":
@@ -299,7 +298,7 @@
 
                         if (scope.options.dynamic) {
                             scope.isGenerated = null;
-                            scope.helper.typeWatch(function () {
+                            scope.helper.typeWatch(function() {
                                 if (scope.query.length >= scope.options.minLength) {
                                     scope.generateSource();
                                 } else {
@@ -331,7 +330,7 @@
 
         },
 
-        generateSource: function () {
+        generateSource: function() {
 
             if (this.isGenerated && !this.options.dynamic) {
                 return;
@@ -436,13 +435,13 @@
                         request.jsonpCallback = 'callback_' + group;
                     }
 
-                    this.xhr[group] = $.ajax(request).done(function (data) {
+                    this.xhr[group] = $.ajax(request).done(function(data) {
 
                         this.callback.onDone instanceof Function && this.callback.onDone(data);
 
                         scope.populateSource(data, this.group, this.path);
 
-                    }).fail(function (a,b,c) {
+                    }).fail(function(a, b, c) {
 
                         this.callback.onFail instanceof Function && this.callback.onFail();
                         _debug.log({
@@ -454,7 +453,7 @@
 
                         _debug.print();
 
-                    }).complete(function () {
+                    }).complete(function() {
 
                         this.callback.onComplete instanceof Function && this.callback.onComplete();
 
@@ -465,7 +464,7 @@
 
         },
 
-                populateSource: function (data, group, path) {
+        populateSource: function(data, group, path) {
 
             var isValid = true;
 
@@ -487,7 +486,9 @@
                 _debug.log({
                     'node': this.node.selector,
                     'function': 'populateSource()',
-                    'arguments': JSON.stringify({group: group}),
+                    'arguments': JSON.stringify({
+                        group: group
+                    }),
                     'message': 'Invalid data type, must be Array type.'
                 });
 
@@ -553,7 +554,7 @@
 
         },
 
-        incrementGeneratedGroup: function () {
+        incrementGeneratedGroup: function() {
 
             this.generatedGroupCount += 1;
 
@@ -567,7 +568,7 @@
 
         },
 
-                navigate: function (e) {
+        navigate: function(e) {
 
             this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
 
@@ -663,7 +664,7 @@
             }
 
         },
-        searchResult: function () {
+        searchResult: function() {
 
             this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
 
@@ -766,7 +767,7 @@
                     scope.helper.sort(
                         displayKeys,
                         scope.options.order === "asc",
-                        function (a) {
+                        function(a) {
                             return a.toString().toUpperCase()
                         }
                     )
@@ -777,7 +778,7 @@
 
         },
 
-        buildLayout: function () {
+        buildLayout: function() {
 
             if (!this.resultContainer) {
                 this.resultContainer = $("<div/>", {
@@ -793,7 +794,7 @@
             var scope = this,
                 htmlList = $("<ul/>", {
                     "class": this.options.selector.list,
-                    "html": function () {
+                    "html": function() {
 
                         if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
                             return $("<li/>", {
@@ -807,7 +808,7 @@
                         for (var i in scope.result) {
                             if (!scope.result.hasOwnProperty(i)) continue;
 
-                            (function (index, item, ulScope) {
+                            (function(index, item, ulScope) {
 
                                 var _group,
                                     _liHtml,
@@ -843,8 +844,7 @@
                                     if (scope.options.highlight) {
                                         if (_display[_displayKey]) {
                                             _display[_displayKey] = scope.helper.highlight(_display[_displayKey], _query, scope.options.accent);
-                                        }
-                                        else {
+                                        } else {
 
                                             _debug.log({
                                                 'node': scope.node.selector,
@@ -864,12 +864,12 @@
                                         "href": "#",
                                         "data-group": _group,
                                         "data-index": index,
-                                        "html": function () {
+                                        "html": function() {
 
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
 
                                             if (_template) {
-                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index) {
+                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function(match, index) {
                                                     return _display[index] || item[index] || match;
                                                 });
                                             } else {
@@ -879,7 +879,9 @@
                                             $(this).append(_aHtml);
 
                                         },
-                                        "click": ({"item": item}, function (e) {
+                                        "click": ({
+                                            "item": item
+                                        }, function(e) {
 
                                             scope.helper.executeCallback(scope.options.callback.onClick, [scope.node, this, item, e]);
 
@@ -917,14 +919,14 @@
                                             scope.hideLayout();
 
                                         }),
-                                        "mouseenter": function (e) {
+                                        "mouseenter": function(e) {
 
                                             $(this).closest('ul').find('li.active').removeClass('active');
                                             $(this).closest('li').addClass('active');
 
                                             scope.helper.executeCallback(scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
                                         },
-                                        "mouseleave": function (e) {
+                                        "mouseleave": function(e) {
 
                                             $(this).closest('li').removeClass('active');
 
@@ -965,8 +967,7 @@
                 if (this.backdrop.container) {
                     this.backdrop.container.show();
                 } else {
-                    this.backdrop.css = $.extend(
-                        {
+                    this.backdrop.css = $.extend({
                             "opacity": 0.6,
                             "filter": 'alpha(opacity=60)',
                             "position": 'fixed',
@@ -983,7 +984,7 @@
                     this.backdrop.container = $("<div/>", {
                         "class": this.options.selector.backdrop,
                         "css": this.backdrop.css,
-                        "click": function () {
+                        "click": function() {
                             scope.hideLayout();
                         }
                     }).insertAfter(this.container);
@@ -1006,8 +1007,7 @@
 
                     if (!this.hint.container) {
 
-                        this.hint.css = $.extend(
-                            {
+                        this.hint.css = $.extend({
                                 "border-color": "transparent",
                                 "position": "absolute",
                                 "display": "inline",
@@ -1021,10 +1021,10 @@
                         );
 
                         this.hint.container = this.node.clone(false).attr({
-                            "class": _options.selector.hint,
-                            "readonly": true,
-                            "tabindex": -1
-                        }).addClass(this.node.attr('class'))
+                                "class": _options.selector.hint,
+                                "readonly": true,
+                                "tabindex": -1
+                            }).addClass(this.node.attr('class'))
                             .removeAttr("id placeholder name autofocus autocomplete alt")
                             .css(this.hint.css);
 
@@ -1079,7 +1079,7 @@
             }
         },
 
-        buildDropdownLayout: function () {
+        buildDropdownLayout: function() {
 
             if (!this.options.dropdownFilter) {
                 return;
@@ -1088,14 +1088,14 @@
 
             $('<span/>', {
                 "class": this.options.selector.filter,
-                "html": function () {
+                "html": function() {
 
                     $(this).append(
                         $('<button/>', {
                             "type": "button",
                             "class": scope.options.selector.filterButton,
                             "html": "<span class='" + scope.options.selector.filterValue + "'>" + "all" + "</span> <span class='caret'></span>",
-                            "click": function (e) {
+                            "click": function(e) {
 
                                 e.stopPropagation();
 
@@ -1116,7 +1116,7 @@
                     $(this).append(
                         $('<ul/>', {
                             "class": scope.options.selector.dropdown,
-                            "html": function () {
+                            "html": function() {
 
                                 var items = scope.options.dropdownFilter;
 
@@ -1140,7 +1140,7 @@
 
                                 for (var i = 0; i < items.length; i++) {
 
-                                    (function (i, item, ulScope) {
+                                    (function(i, item, ulScope) {
 
                                         if ((!item.key && item.value !== "*") || !item.value) {
                                             _debug.log({
@@ -1168,7 +1168,9 @@
                                                 "html": $("<a/>", {
                                                     "href": "javascript:;",
                                                     "html": item.display || item.value,
-                                                    "click": ({"item": item}, function (e) {
+                                                    "click": ({
+                                                        "item": item
+                                                    }, function(e) {
                                                         e.preventDefault();
                                                         _selectFilter.apply(scope, [item]);
                                                     })
@@ -1185,7 +1187,7 @@
                 }
             }).insertAfter(scope.container.find('.' + scope.options.selector.query));
 
-                        function _selectFilter(item) {
+            function _selectFilter(item) {
 
                 this.filters.dropdown = item;
 
@@ -1206,11 +1208,11 @@
 
         },
 
-        showLayout: function () {
+        showLayout: function() {
 
             var scope = this;
 
-            $('html').off(_namespace).on("click" + _namespace, function () {
+            $('html').off(_namespace).on("click" + _namespace, function() {
                 scope.hideLayout();
                 $(this).off(_namespace);
             });
@@ -1241,7 +1243,7 @@
 
         },
 
-        hideLayout: function () {
+        hideLayout: function() {
 
             if (this.options.filter) {
                 this.container
@@ -1275,7 +1277,7 @@
 
         },
 
-        __construct: function () {
+        __construct: function() {
             this.extendOptions();
 
             if (!this.unifySourceFormat()) {
@@ -1289,7 +1291,7 @@
 
         helper: {
 
-            isEmpty: function (obj) {
+            isEmpty: function(obj) {
                 for (var prop in obj) {
                     if (obj.hasOwnProperty(prop))
                         return false;
@@ -1298,7 +1300,7 @@
                 return true;
             },
 
-                        removeAccent: function (string) {
+            removeAccent: function(string) {
 
                 if (typeof string !== "string") {
                     return;
@@ -1315,9 +1317,9 @@
                 return string;
             },
 
-                        sort: function (field, reverse, primer) {
+            sort: function(field, reverse, primer) {
 
-                var key = function (x) {
+                var key = function(x) {
                     for (var i = 0; i < field.length; i++) {
                         if (typeof x[field[i]] !== 'undefined') {
                             return primer(x[field[i]])
@@ -1327,16 +1329,16 @@
 
                 reverse = [-1, 1][+!!reverse];
 
-                return function (a, b) {
+                return function(a, b) {
                     return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
                 }
             },
 
-                        replaceAt: function (string, offset, length, replace) {
+            replaceAt: function(string, offset, length, replace) {
                 return string.substring(0, offset) + replace + string.substring(offset + length);
             },
 
-                        highlight: function (string, key, accents) {
+            highlight: function(string, key, accents) {
 
                 string = String(string);
 
@@ -1356,7 +1358,7 @@
                 );
             },
 
-            joinObject: function (object, join) {
+            joinObject: function(object, join) {
                 var string = "",
                     iteration = 0;
 
@@ -1375,7 +1377,7 @@
                 return string;
             },
 
-            removeDataAttributes: function (target) {
+            removeDataAttributes: function(target) {
 
                 var i,
                     dataAttrsToDelete = [],
@@ -1394,7 +1396,7 @@
             },
 
 
-                        getCaret: function (element) {
+            getCaret: function(element) {
                 if (element.selectionStart) {
                     return element.selectionStart;
                 } else if (document.selection) {
@@ -1415,7 +1417,7 @@
                 return 0;
             },
 
-                        executeCallback: function (callback, extraParams) {
+            executeCallback: function(callback, extraParams) {
 
                 if (!callback) {
                     return false;
@@ -1470,9 +1472,9 @@
             },
 
 
-            typeWatch: (function () {
+            typeWatch: (function() {
                 var timer = 0;
-                return function (callback, ms) {
+                return function(callback, ms) {
                     clearTimeout(timer);
                     timer = setTimeout(callback, ms);
                 }
@@ -1481,13 +1483,13 @@
         }
     };
 
-        $.fn.typeahead = $.typeahead = function (options) {
+    $.fn.typeahead = $.typeahead = function(options) {
         return _api.typeahead(this, options);
     };
 
-        var _api = {
+    var _api = {
 
-                typeahead: function (node, options) {
+        typeahead: function(node, options) {
 
             if (!options || !options.source || typeof options.source !== 'object') {
                 _debug.log({
@@ -1540,7 +1542,7 @@
     var _debug = {
 
         table: {},
-        log: function (debugObject) {
+        log: function(debugObject) {
 
             if (!debugObject.message || typeof debugObject.message !== "string") {
                 return;
@@ -1553,7 +1555,7 @@
             }, debugObject)
 
         },
-        print: function () {
+        print: function() {
 
             if (Typeahead.prototype.helper.isEmpty(this.table) || !console || !console.table) {
                 return;
@@ -1571,12 +1573,12 @@
 
     };
     if (!('trim' in String.prototype)) {
-        String.prototype.trim = function () {
+        String.prototype.trim = function() {
             return this.replace(/^\s+/, '').replace(/\s+$/, '');
         };
     }
     if (!('indexOf' in Array.prototype)) {
-        Array.prototype.indexOf = function (find, i ) {
+        Array.prototype.indexOf = function(find, i) {
             if (i === undefined) i = 0;
             if (i < 0) i += this.length;
             if (i < 0) i = 0;

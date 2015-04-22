@@ -1,23 +1,18 @@
-//var pkg = require('./package.json');
-//
-//console.log(pkg.name)
-//console.log(pkg)
-
 module.exports = function (grunt) {
 
     grunt.initConfig({
 
         pkg: grunt.file.readJSON('package.json'),
 
-        banner: '/**\r\n' +
-            ' * jQuery Typeahead\r\n' +
-            ' * Copyright (C) 2015 RunningCoder.org\r\n' +
-            ' * Licensed under the MIT license\r\n' +
-            ' *\r\n' +
-            ' * @author <%= pkg.author.name %>\r\n' +
-            ' * @version <%= pkg.version %> (<%= grunt.template.today("yyyy-mm-dd") %>)\r\n' +
-            ' * @link http://www.runningcoder.org/jquerytypeahead/\r\n' +
-            '*/\r\n',
+        banner: '/*!\n' +
+        ' * jQuery Typeahead\n' +
+        ' * Copyright (C) 2015 RunningCoder.org\n' +
+        ' * Licensed under the MIT license\n' +
+        ' *\n' +
+        ' * @author <%= pkg.author.name %>\n' +
+        ' * @version <%= pkg.version %> (<%= grunt.template.today("yyyy-mm-dd") %>)\n' +
+        ' * @link http://www.runningcoder.org/jquerytypeahead/\n' +
+        '*/\n',
 
         clean: {
             dist: ["dist"]
@@ -29,6 +24,10 @@ module.exports = function (grunt) {
                     {
                         src: ['src/jquery.typeahead.js'],
                         dest: 'dist/jquery.typeahead.js'
+                    },
+                    {
+                        src: ['src/jquery.typeahead.js'],
+                        dest: 'dist/jquery.typeahead.min.js'
                     }
                 ]
             }
@@ -40,23 +39,39 @@ module.exports = function (grunt) {
                     singleline: true,
                     multiline: true
                 },
-                src: [ 'dist/*.js']
+                src: [ 'dist/jquery.typeahead.js']
             }
         },
 
         replace: {
-            removeDebug: {
+            banner: {
                 options: {
                     patterns: [
                         {
-                            match: /\s?\{debug\}[\s\S]*?\{\/debug\}/g,
-                            replacement: ''
+                            match: /\/\*![\S\s]+?\*\/[\r\n]*/,
+                            replacement: '<%= banner %>'
                         }
                     ]
                 },
                 files: [
                     {
                         src: ['src/jquery.typeahead.js'],
+                        dest: 'src/jquery.typeahead.js'
+                    }
+                ]
+            },
+            removeDebug: {
+                options: {
+                    patterns: [
+                        {
+                            match: /\/\/\s?\{debug}[\s\S]*?\{\/debug}/g,
+                            replacement: ''
+                        }
+                    ]
+                },
+                files: [
+                    {
+                        src: ['dist/jquery.typeahead.min.js'],
                         dest: 'dist/jquery.typeahead.min.js'
                     }
                 ]
@@ -65,7 +80,7 @@ module.exports = function (grunt) {
                 options: {
                     patterns: [
                         {
-                            match: /\/\*[\S\s]+?\*\//gm,
+                            match: /\/\*[^!][\S\s]+?\*\//gm,
                             replacement: ''
                         }
                     ]
@@ -79,26 +94,19 @@ module.exports = function (grunt) {
             }
         },
 
-        concat: {
-            options: {
-                banner: '<%= banner %>'
-            },
-            dist: {
-                src: ['dist/jquery.typeahead.js'],
-                dest: 'dist/jquery.typeahead.js'
-            },
-            src: {
-                src: ['src/jquery.typeahead.js'],
-                dest: 'src/jquery.typeahead.js'
+        jsbeautifier : {
+            files : ['dist/jquery.typeahead.js'],
+            options : {
             }
         },
 
         uglify: {
-            options: {
-                mangle: true,
-                banner: '<%= banner %>'
-            },
             dist: {
+                options: {
+                    mangle: true,
+                    compress: true,
+                    banner: '<%= banner %>'
+                },
                 files: {
                     'dist/jquery.typeahead.min.js': ['dist/jquery.typeahead.min.js']
                 }
@@ -112,9 +120,18 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-stripcomments');
     grunt.loadNpmTasks('grunt-replace');
-    grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks("grunt-jsbeautifier");
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
-    grunt.registerTask('default', ['clean:dist', 'copy:dist', 'comments:dist', 'replace', 'concat', 'uglify:dist']);
+    grunt.registerTask('default', [
+        'clean:dist',
+        'replace:banner',
+        'copy:dist',
+        'comments',
+        'replace:removeComments',
+        'jsbeautifier',
+        'replace:removeDebug',
+        'uglify'
+    ]);
 
 };

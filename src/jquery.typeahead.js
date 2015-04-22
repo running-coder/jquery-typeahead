@@ -1,10 +1,10 @@
-/**
+/*!
  * jQuery Typeahead
  * Copyright (C) 2015 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-04-21)
+ * @version 2.0.0 (2015-04-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
