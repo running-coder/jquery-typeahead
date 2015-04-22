@@ -1,10 +1,10 @@
-/**
+/*!
  * jQuery Typeahead
  * Copyright (C) 2015 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-04-20)
+ * @version 2.0.0 (2015-04-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -351,7 +351,12 @@
 
                         scope.searchResult();
                         scope.buildLayout();
-                        scope.showLayout();
+
+                        if (scope.result.length > 0 || scope.options.emptyTemplate) {
+                            scope.showLayout();
+                        } else {
+                            scope.hideLayout();
+                        }
 
                         break;
                 }
@@ -369,9 +374,9 @@
             this.generatedGroupCount = 0;
             this.isGenerated = false;
 
-            // Clear previous request(s)
             if (!this.helper.isEmpty(this.xhr)) {
                 for (var i in this.xhr) {
+                    if (!this.xhr.hasOwnProperty(i)) continue;
                     this.xhr[i].abort();
                 }
                 this.xhr = {};

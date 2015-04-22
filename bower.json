@@ -15,6 +15,7 @@
         "input",
         "autocomplete"
     ],
+    "ignore": [],
     "licenses": "MIT",
     "homepage": "http://www.runningcoder.org/jquerytypeahead/",
     "repository": {
@@ -22,6 +23,7 @@
         "url": "git://github.com/running-coder/jquery-typeahead.git"
     },
     "dependencies": {
-        "jquery": ">=1.7.2"
+        "jquery": ">=1.7.2",
+        "lz-string": "~1.4.2"
     }
 }
