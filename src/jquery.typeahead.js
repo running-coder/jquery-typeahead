@@ -361,7 +361,12 @@
 
                         scope.searchResult();
                         scope.buildLayout();
-                        scope.showLayout();
+
+                        if (scope.result.length > 0 || scope.options.emptyTemplate) {
+                            scope.showLayout();
+                        } else {
+                            scope.hideLayout();
+                        }
 
                         break;
                 }
@@ -379,9 +384,9 @@
             this.generatedGroupCount = 0;
             this.isGenerated = false;
 
-            // Clear previous request(s)
             if (!this.helper.isEmpty(this.xhr)) {
                 for (var i in this.xhr) {
+                    if (!this.xhr.hasOwnProperty(i)) continue;
                     this.xhr[i].abort();
                 }
                 this.xhr = {};
