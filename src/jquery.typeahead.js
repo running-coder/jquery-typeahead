@@ -65,6 +65,7 @@
             onInit: null,
             onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
+            onLayoutBuilt: null,// -> New callback, when the result HTML is build, modify it before it get showed
             onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
@@ -297,6 +298,9 @@
 
                 scope.hideLayout();
 
+                scope.rawQuery = '';
+                scope.query = '';
+
                 if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, scope, scope.item, e])) {
                     return false;
                 }
@@ -326,13 +330,19 @@
                         scope.rawQuery = scope.node[0].value;
                         scope.query = scope.node[0].value.replace(/^\s+/, '');
 
-                        if (!scope.query) {}
+                        if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
+                            if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
+                                scope.hint.container.val('')
+                            }
+                        }
 
                         if (scope.options.dynamic) {
                             scope.isGenerated = null;
                             scope.helper.typeWatch(function () {
                                 if (scope.query.length >= scope.options.minLength) {
                                     scope.generateSource();
+                                } else {
+                                    scope.hideLayout();
                                 }
                             }, scope.options.delay);
                             return;
@@ -382,7 +392,8 @@
                 this.xhr = {};
             }
 
-            var group,
+            var scope = this,
+                group,
                 dataInLocalstorage;
 
             for (group in this.options.source) {
@@ -421,7 +432,6 @@
                         path: null,
                         dataType: 'json',
                         group: group,
-                        scope: this,
                         callback: {
                             onDone: null,
                             onFail: null,
@@ -476,7 +486,7 @@
                     if (request.data) {
                         for (var i in request.data) {
                             if (!request.data.hasOwnProperty(i)) continue;
-                            if (~request.data[i].indexOf('{{query}}')) {
+                            if (~String(request.data[i]).indexOf('{{query}}')) {
                                 request.data[i] = request.data[i].replace('{{query}}', this.query);
                             }
                         }
@@ -491,7 +501,7 @@
 
                         this.callback.onDone instanceof Function && this.callback.onDone(data);
 
-                        this.scope.populateSource(data, this.group, this.path);
+                        scope.populateSource(data, this.group, this.path);
 
                     }).fail(function (a,b,c) {
 
@@ -499,7 +509,7 @@
 
                         // {debug}
                         _debug.log({
-                            'node': this.scope.node.selector,
+                            'node': scope.node.selector,
                             'function': 'generateSource()',
                             'arguments': request.url,
                             'message': 'Ajax request failed.'
@@ -748,7 +758,9 @@
 
             this.result = [];
             this.resultCount = 0;
-            this.item = null;
+
+            // @TODO Verify this... item click resets the item
+            //this.item = null;
 
             var scope = this,
                 group,
@@ -994,10 +1006,10 @@
                                                 }
                                             }
 
-                                            scope.query = item[_key];
+                                            scope.query = scope.rawQuery = item[_key];
                                             scope.node.val(scope.query).focus();
 
-                                            scope.selectedItem = item;
+                                            scope.item = item;
 
                                             scope.searchResult();
                                             scope.buildLayout();
@@ -1037,6 +1049,10 @@
 
                     }
                 });
+
+            if (this.options.callback.onLayoutBuilt) {
+                htmlList = this.helper.executeCallback(this.options.callback.onLayoutBuilt, [this.node, htmlList, this.result]) || htmlList;
+            }
 
             this.container
                 .addClass('result')
@@ -1104,10 +1120,12 @@
                         );
 
                         this.hint.container = this.node.clone(false).attr({
-                            "class": this.options.selector.hint + " " + this.node.attr('class'),
+                            "class": _options.selector.hint,
                             "readonly": true,
                             "tabindex": -1
-                        }).removeAttr("id placeholder name autofocus autocomplete alt").css(this.hint.css);
+                        }).addClass(this.node.attr('class'))
+                            .removeAttr("id placeholder name autofocus autocomplete alt")
+                            .css(this.hint.css);
 
                         this.helper.removeDataAttributes(this.hint.container);
 
@@ -1347,7 +1365,6 @@
                     .removeClass('hint');
                 if (this.hint.container) {
                     this.hint.container
-                        //.val("")
                         .hide();
                 }
             }
@@ -1620,8 +1637,7 @@
 
                 }
 
-                _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : []));
-                return true;
+                return _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : [])) || true;
 
             },
 
