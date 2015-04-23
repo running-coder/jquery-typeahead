@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-04-22)
+ * @version 2.0.0 (2015-04-23)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -394,7 +394,8 @@
 
             var scope = this,
                 group,
-                dataInLocalstorage;
+                dataInLocalstorage,
+                isValidStorage;
 
             for (group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
@@ -407,13 +408,18 @@
                             dataInLocalstorage = LZString.decompressFromUTF16(dataInLocalstorage);
                         }
 
-                        dataInLocalstorage = JSON.parse(dataInLocalstorage + "");
+                        // In case the storage key:value are not readable anymore
+                        isValidStorage = false;
+                        try {
+                            dataInLocalstorage = JSON.parse(dataInLocalstorage + "");
 
-                        if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
+                            if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
+                                this.populateSource(dataInLocalstorage.data, group);
+                                isValidStorage = true;
+                            }
+                        } catch (error) {}
 
-                            this.populateSource(dataInLocalstorage.data, group);
-                            continue;
-                        }
+                        if (isValidStorage) continue;
                     }
                 }
 
