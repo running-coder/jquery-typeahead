@@ -990,25 +990,34 @@
                 storage[group] = [];
 
                 // Lists from configuration
-                if (options.source[group].data && options.source[group].data instanceof Array) {
+                if (options.source[group].data && (options.source[group].data instanceof Array || typeof options.source[group].data === "function")) {
 
-                    for (var i in options.source[group].data) {
+                    var providedData;
+                    if (options.source[group].data instanceof Array) {
+                        providedData = options.source[group].data;
+                    }
 
-                        if (!options.source[group].data.hasOwnProperty(i)) {
+                    if (typeof options.source[group].data === "function") {
+                        providedData = options.source[group].data(query);
+                    }
+
+                    for (var i in providedData) {
+
+                        if (!providedData.hasOwnProperty(i)) {
                             continue;
                         }
 
-                        if (options.source[group].data[i] instanceof Object) {
+                        if (providedData[i] instanceof Object) {
                             break;
                         }
 
                         var obj = {};
-                        obj[options.display] = options.source[group].data[i];
-                        options.source[group].data[i] = obj;
+                        obj[options.display] = providedData[i];
+                        providedData[i] = obj;
 
                     }
 
-                    storage[group] = storage[group].concat(options.source[group].data);
+                    storage[group] = storage[group].concat(providedData);
 
                     if (!options.source[group].url) {
 
