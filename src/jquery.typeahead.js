@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-04-23)
+ * @version 2.0.0 (2015-04-26)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -57,7 +57,8 @@
             backdrop: "typeahead-backdrop",
             hint: "typeahead-hint"
         },
-        display: ["display"],     // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
+        display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
+        href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on <a> results
         template: null,
         emptyTemplate: false,   // -> New feature, display an empty template if no result
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: onDone, onFail, onComplete
@@ -90,7 +91,7 @@
         to: "aaaaaeeeeeiiiiooooouuuunc"
     };
 
-    // RESERVED WORDS: group, display, data, matchedKey, {{query}}, {{callback}}
+    // RESERVED WORDS: group, display, data, matchedKey, {{query}}, {{callback}}, href
 
     /**
      * @constructor
@@ -118,6 +119,7 @@
         this.xhr = {};                  // Ajax request(s) stack
         this.hintIndex = null;          // Numeric value of the hint index in the result list
         this.filters = {};              // Filter list for searching, dropdown and dynamic(s)
+        this.requests = {};             // Store the group:request instead of generating them every time
 
         this.backdrop = {};             // The backdrop object
         this.hint = {};                 // The hint object
@@ -383,6 +385,7 @@
 
             this.generatedGroupCount = 0;
             this.isGenerated = false;
+            //this.requests = [];
 
             if (!this.helper.isEmpty(this.xhr)) {
                 for (var i in this.xhr) {
@@ -392,8 +395,7 @@
                 this.xhr = {};
             }
 
-            var scope = this,
-                group,
+            var group,
                 dataInLocalstorage,
                 isValidStorage;
 
@@ -417,7 +419,8 @@
                                 this.populateSource(dataInLocalstorage.data, group);
                                 isValidStorage = true;
                             }
-                        } catch (error) {}
+                        } catch (error) {
+                        }
 
                         if (isValidStorage) continue;
                     }
@@ -430,94 +433,133 @@
                     continue;
                 }
 
-                // Get group source from Ajax
+                // Get group source from Ajax / JsonP
                 if (this.options.source[group].url) {
 
-                    var request = {
-                        url: null,
-                        path: null,
-                        dataType: 'json',
-                        group: group,
-                        callback: {
-                            onDone: null,
-                            onFail: null,
-                            onComplete: null
-                        }
-                    };
+                    if (!this.requests[group]) {
+                        this.requests[group] = this.generateRequestObject(group);
+                    }
 
-                    // request compatibility
-                    if (this.options.source[group].url instanceof Array) {
-                        if (this.options.source[group].url[0] instanceof Object) {
+                }
+            }
 
-                            request = $.extend(true, request, this.options.source[group].url[0]);
+            this.handleRequests();
 
-                            // {debug}
-                            if (!this.options.dynamic && request.dataType != 'jsonp') {
-                                _debug.log({
-                                    'node': this.node.selector,
-                                    'function': 'generateSource()',
-                                    'message': 'WARNING - You are doing Ajax request without options.dynamic set to true!'
-                                });
+        },
 
-                                _debug.print();
+        generateRequestObject: function (group) {
+
+            var xhrObject = {
+                request: {
+                    url: null,
+                    dataType: 'json'
+                },
+                extra: {
+                    path: null,
+                    group: group,
+                    callback: {
+                        onDone: null,
+                        onFail: null,
+                        onComplete: null
+                    }
+                },
+                validForGroup: [group]
+            };
+
+            if (!(this.options.source[group].url instanceof Array) && this.options.source[group].url instanceof Object) {
+                this.options.source[group].url = [this.options.source[group].url];
+            }
+
+            if (this.options.source[group].url instanceof Array) {
+                if (this.options.source[group].url[0] instanceof Object) {
+
+                    if (this.options.source[group].url[0].callback) {
+                        xhrObject.extra.callback = this.options.source[group].url[0].callback;
+                        delete this.options.source[group].url[0].callback;
+                    }
+
+                    xhrObject.request = $.extend(true, xhrObject.request, this.options.source[group].url[0]);
+
+                } else if (typeof this.options.source[group].url[0] === "string") {
+                    xhrObject.request.url = this.options.source[group].url[0];
+                }
+                if (this.options.source[group].url[1] && typeof this.options.source[group].url[1] === "string") {
+                    xhrObject.extra.path = this.options.source[group].url[1];
+                }
+            } else if (typeof this.options.source[group].url === "string") {
+                xhrObject.request.url = this.options.source[group].url;
+            }
+
+            if (xhrObject.request.dataType.toLowerCase() === 'jsonp') {
+                // JSONP needs unique jsonpCallback name to run concurrently
+                xhrObject.request.jsonpCallback = 'callback_' + group;
+            }
+
+            var stringRequest;
+
+            for (var _group in this.requests) {
+                if (!this.requests.hasOwnProperty(_group)) continue;
+
+                stringRequest = JSON.stringify(this.requests[_group].request);
+
+                if (stringRequest === JSON.stringify(xhrObject.request)) {
+                    this.requests[_group].validForGroup.push(group);
+                    xhrObject.isDuplicated = true;
+                    delete xhrObject.validForGroup;
+                    break;
+                }
+            }
+
+            return xhrObject;
+
+        },
+
+        handleRequests: function () {
+
+            var scope = this;
+
+            for (var group in this.requests) {
+                if (!this.requests.hasOwnProperty(group)) continue;
+                if (this.requests[group].isDuplicated) continue;
+
+                (function (group, xhrObject) {
+
+                    var _request;
+
+                    if (xhrObject.request.data) {
+                        for (var i in xhrObject.request.data) {
+                            if (!xhrObject.request.data.hasOwnProperty(i)) continue;
+                            if (~String(xhrObject.request.data[i]).indexOf('{{query}}')) {
+                                // Prevent the main request from being changed
+                                xhrObject = $.extend(true, {}, xhrObject);
+                                xhrObject.request.data[i] = xhrObject.request.data[i].replace('{{query}}', scope.query);
+                                break;
                             }
-                            // {/debug}
-
-                        } else if (typeof this.options.source[group].url[0] === "string") {
-                            request.url = this.options.source[group].url[0];
-                        }
-                        if (this.options.source[group].url[1]) {
-                            request.path = this.options.source[group].url[1];
-                        }
-                    } else if (this.options.source[group].url instanceof Object) {
-
-                        request = $.extend(true, request, this.options.source[group].url);
-
-                        // {debug}
-                        if (!this.options.dynamic && request.dataType != 'jsonp') {
-                            _debug.log({
-                                'node': this.node.selector,
-                                'function': 'generateSource()',
-                                'message': 'WARNING - You are doing Ajax request without options.dynamic set to true!'
-                            });
-
-                            _debug.print();
-                        }
-                        // {/debug}
-
-                    } else if (typeof this.options.source[group].url === "string") {
-                        request.url = this.options.source[group].url;
-                    }
-
-                    if (request.data) {
-                        for (var i in request.data) {
-                            if (!request.data.hasOwnProperty(i)) continue;
-                            if (~String(request.data[i]).indexOf('{{query}}')) {
-                                request.data[i] = request.data[i].replace('{{query}}', this.query);
-                            }
                         }
                     }
 
-                    if (request.dataType.toLowerCase() === 'jsonp') {
-                        // JSONP needs unique jsonpCallback name to run concurrently
-                        request.jsonpCallback = 'callback_' + group;
-                    }
+                    scope.xhr[group] = $.ajax(xhrObject.request).done(function (data) {
 
-                    this.xhr[group] = $.ajax(request).done(function (data) {
+                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
 
-                        this.callback.onDone instanceof Function && this.callback.onDone(data);
+                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _request.extra.callback.onDone instanceof Function && _request.extra.callback.onDone(data);
 
-                        scope.populateSource(data, this.group, this.path);
+                            scope.populateSource(data, _request.extra.group, _request.extra.path);
+                        }
 
-                    }).fail(function (a,b,c) {
+                    }).fail(function () {
 
-                        this.callback.onFail instanceof Function && this.callback.onFail();
+                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _request.extra.callback.onFail instanceof Function && _request.extra.callback.onFail();
+                        }
 
                         // {debug}
                         _debug.log({
                             'node': scope.node.selector,
                             'function': 'generateSource()',
-                            'arguments': request.url,
+                            'arguments': _request.request.url,
                             'message': 'Ajax request failed.'
                         });
 
@@ -526,11 +568,15 @@
 
                     }).complete(function () {
 
-                        this.callback.onComplete instanceof Function && this.callback.onComplete();
+                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _request.extra.callback.onComplete instanceof Function && _request.extra.callback.onComplete();
+                        }
 
                     });
 
-                }
+                }(group, this.requests[group]));
+
             }
 
         },
@@ -902,7 +948,7 @@
                             return $("<li/>", {
                                 "html": $("<a/>", {
                                     "href": "javascript:;",
-                                    "html": scope.options.emptyTemplate.replace(/\{\{query\}\}/gi, scope.query)
+                                    "html": scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query)
                                 })
                             });
                         }
@@ -917,6 +963,7 @@
                                     _aHtml,
                                     _display = {},
                                     _displayKeys = scope.options.source[item.group].display || scope.options.display,
+                                    _href = scope.options.source[item.group].href || scope.options.href,
                                     _displayKey,
                                     _handle,
                                     _template;
@@ -932,7 +979,7 @@
                                                 "class": scope.options.selector.group,
                                                 "html": $("<a/>", {
                                                     "href": "javascript:;",
-                                                    "html": scope.options.group[1] && scope.options.group[1].replace(/(\{\{group\}\})/gi, item[scope.options.group[0]] || _group) || _group
+                                                    "html": scope.options.group[1] && scope.options.group[1].replace(/(\{\{group}})/gi, item[scope.options.group[0]] || _group) || _group
                                                 }),
                                                 "data-search-group": _group
                                             })
@@ -966,7 +1013,22 @@
 
                                 _liHtml = $("<li/>", {
                                     "html": $("<a/>", {
-                                        "href": "#",
+                                        "href": function () {
+
+                                            if (_href) {
+                                                if (typeof _href === "string") {
+                                                    _href = _href.replace(/\{\{([a-z0-9_\-]+)}}/gi, function (match, index) {
+                                                        return item[index] && scope.helper.slugify(item[index]) || match;
+                                                    });
+                                                } else if (typeof _href === "function") {
+                                                    _href = _href(item);
+                                                }
+                                                item['href'] = _href;
+                                            }
+
+                                            return _href || "javascript:;";
+
+                                        },
                                         "data-group": _group,
                                         "data-index": index,
                                         "html": function () {
@@ -974,7 +1036,7 @@
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
 
                                             if (_template) {
-                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\}\}/gi, function (match, index) {
+                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)}}/gi, function (match, index) {
                                                     return _display[index] || item[index] || match;
                                                 });
                                             } else {
@@ -1439,6 +1501,20 @@
             },
 
             /**
+             * Creates a valid url from string
+             *
+             * @param {String} string
+             * @returns {string}
+             */
+            slugify: function (string) {
+
+                string = this.removeAccent(string);
+                string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
+
+                return string;
+            },
+
+            /**
              * Sort list of object by key
              *
              * @param {String|Array} field
@@ -1782,7 +1858,6 @@
 // {/debug}
 
 // IE8 Shims
-// @Link: https://gist.github.com/dhm116/1790197
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
             return this.replace(/^\s+/, '').replace(/\s+$/, '');
