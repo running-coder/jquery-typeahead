@@ -429,7 +429,13 @@
                 // Get group source from data
                 if (this.options.source[group].data && !this.options.source[group].url) {
 
-                    this.populateSource(this.options.source[group].data, group);
+
+                    this.populateSource(
+                        typeof this.options.source[group].data === "function" &&
+                            this.options.source[group].data() ||
+                            this.options.source[group].data,
+                        group
+                    );
                     continue;
                 }
 
@@ -591,7 +597,8 @@
          */
         populateSource: function (data, group, path) {
 
-            var isValid = true;
+            var isValid = true,
+                extraData;
 
             if (typeof path === "string") {
                 var exploded = path.split('.'),
@@ -624,8 +631,29 @@
 
             if (isValid) {
 
-                if (this.options.source[group].data && this.options.source[group].url) {
-                    data = data.concat(this.options.source[group].data);
+                extraData = this.options.source[group].data;
+
+                if (extraData) {
+                    if (typeof extraData === "function") {
+                        extraData = extraData();
+                    }
+
+                    if (extraData instanceof Array) {
+                        data = data.concat(extraData);
+                    }
+                    // {debug}
+                    else {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'populateSource()',
+                            'arguments': JSON.stringify(extraData),
+                            'message': 'WARNING - this.options.source.' + group + '.data Must be an Array or a function that returns an Array.'
+                        });
+
+                        _debug.print();
+                    }
+                    // {/debug}
+
                 }
 
                 var tmpObj,
@@ -830,7 +858,6 @@
 
             for (group in this.source) {
                 if (!this.source.hasOwnProperty(group)) continue;
-
                 if (this.dropdownFilter && group !== this.dropdownFilter) continue;
 
                 itemPerGroupCount = 0;
@@ -1361,7 +1388,7 @@
              * @private
              * Select the filter and rebuild the result group
              *
-             * @param {string} [oneFilter]
+             * @param {string} item
              */
             function _selectFilter(item) {
 
@@ -1404,7 +1431,7 @@
 
             if (this.options.backdrop) {
                 this.container
-                    .addClass('backdrop')
+                    .addClass('backdrop');
                 if (this.backdrop.container) {
                     this.backdrop.container
                         .show();
@@ -1439,8 +1466,7 @@
 
             if (this.options.backdrop) {
                 this.container
-                    .removeClass('backdrop')
-                //.removeAttr('style');
+                    .removeClass('backdrop');
                 if (this.backdrop.container) {
                     this.backdrop.container
                         .hide();
