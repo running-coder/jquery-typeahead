@@ -211,6 +211,13 @@
             for (var group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
 
+                // Backward compatibility for source.url declaration
+                if (typeof this.options.source[group] === "string" || this.options.source[group] instanceof Array) {
+                    this.options.source[group] = {
+                        url: this.options.source[group]
+                    };
+                }
+
                 if (!this.options.source[group].data && !this.options.source[group].url) {
 
                     // {debug}
@@ -1280,7 +1287,21 @@
             }
 
             //var dropdownNamespace = _namespace + '.dropdown';
-            var scope = this;
+            var scope = this,
+                defaultText;
+
+            if (typeof this.options.dropdownFilter === "boolean") {
+                defaultText = "all";
+            } else if (typeof this.options.dropdownFilter === "string") {
+                defaultText = this.options.dropdownFilter
+            } else if (this.options.dropdownFilter instanceof Array) {
+                for (var i = 0; i < this.options.dropdownFilter.length; i++) {
+                    if (this.options.dropdownFilter[i].value === "*" && this.options.dropdownFilter[i].display) {
+                        defaultText = this.options.dropdownFilter[i].display;
+                        break;
+                    }
+                }
+            }
 
             $('<span/>', {
                 "class": this.options.selector.filter,
@@ -1290,7 +1311,7 @@
                         $('<button/>', {
                             "type": "button",
                             "class": scope.options.selector.filterButton,
-                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + "all" + "</span> <span class='caret'></span>",
+                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='caret'></span>",
                             "click": function (e) {
 
                                 e.stopPropagation();
