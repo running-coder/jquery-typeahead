@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-04-26)
+ * @version 2.0.0-rc.1 (2015-04-27)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
@@ -28,12 +28,12 @@
         group: false, // -> Improved feature, Array second index is a custom group title (html allowed)
         maxItemPerGroup: null, // -> Renamed option
         dropdownFilter: false, // -> Renamed option, true will take group options string will filter on object key
-        dynamicFilter: null, // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
+        dynamicFilter: null, // -> *Coming soon* New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
         backdrop: false,
         cache: false,
         ttl: 3600000,
         compression: false, // -> Requires LZString library
-        suggestion: false, // -> New feature, save last searches and display suggestion on matched characters
+        suggestion: false, // -> *Coming soon* New feature, save last searches and display suggestion on matched characters
         searchOnFocus: false, // -> New feature, display search results on input focus
         selector: {
             container: "typeahead-container",
