@@ -8,18 +8,18 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="jquery.typeahead.css">
 
     <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
-    <script src="../../jquery.typeahead.js"></script>
+    <!--script src="../dist/jquery.typeahead.min.js"></script-->
+    <script src="../src/jquery.typeahead.js"></script>
 
 </head>
 <body>
 
 <div style="width: 100%; max-width: 800px; margin: 0 auto;">
 
-    <h1>Country_v2 Demo with Bootstrap 3.2 styles</h1>
+    <h1>Country_v2 Demo</h1>
 
     <ul>
         <li>
@@ -30,25 +30,22 @@
         </li>
     </ul>
 
-    <form id=""
-          name=""
-          action="">
+    <form>
         <div class="typeahead-container">
-            <div class="input-group">
+            <div class="typeahead-field">
 
-                <span class="typeahead-query">
-                    <input id="q"
-                           name="q"
-                           class="form-control"
-                           type="search"
-                           placeholder="Search"
-                           autocomplete="off">
-                </span>
-                <span class="input-group-btn">
-                    <button type="submit" class="btn btn-default">
-                        <span class="glyphicon glyphicon-search"></span>
-                    </button>
-                </span>
+            <span class="typeahead-query">
+                <input id="q"
+                       name="q"
+                       type="search"
+                       autofocus
+                       autocomplete="off">
+            </span>
+            <span class="typeahead-button">
+                <button type="submit">
+                    <span class="search-icon"></span>
+                </button>
+            </span>
 
             </div>
         </div>
@@ -113,20 +110,16 @@
                 "Yerevan", "Zagreb"]
         };
 
+        console.log(data.capitals.length)
+
         $('#q').typeahead({
             minLength: 1,
             order: "asc",
             group: true,
-            groupMaxItem: 5,
+            groupMaxItem: 6,
             hint: true,
-            filter: "lists",
-            selector: {
-                filter: "input-group-btn",
-                filterButton: "btn btn-default",
-                dropdown: "dropdown-menu dropdown-menu-right",
-                list: "dropdown-menu",
-                hint: "form-control"
-            },
+            dropdownFilter: "All",
+            template: "{{display}}, <small><em>{{group}}</em></small>",
             source: {
                 country: {
                     data: data.countries

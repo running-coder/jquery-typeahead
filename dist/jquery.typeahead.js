@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.1 (2015-04-27)
+ * @version 2.0.0-rc.1 (2015-04-28)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
@@ -46,6 +46,7 @@
             filterButton: "typeahead-filter-button",
             filterValue: "typeahead-filter-value",
             dropdown: "typeahead-dropdown",
+            dropdownCarret: "typeahead-caret",
             button: "typeahead-button",
             backdrop: "typeahead-backdrop",
             hint: "typeahead-hint"
@@ -285,7 +286,7 @@
                         }
                         break;
                     case "keydown":
-                        if (scope.isGenerated && scope.result.length) {
+                        if (scope.isGenerated && scope.result.length && scope.container.hasClass('result')) {
                             if (e.keyCode && ~[13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                                 scope.navigate(e);
                             }
@@ -385,7 +386,6 @@
                     }
                 }
                 if (this.options.source[group].data && !this.options.source[group].url) {
-
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
@@ -573,7 +573,7 @@
 
             if (isValid) {
 
-                extraData = this.options.source[group].data;
+                extraData = this.options.source[group].url && this.options.source[group].data;
 
                 if (extraData) {
                     if (typeof extraData === "function") {
@@ -737,7 +737,7 @@
 
             activeItem = itemList.filter('.active');
 
-            if (this.options.hint) {
+            if (this.options.hint && this.hint.container) {
                 if (activeItem.length > 0) {
                     this.hint.container.css('color', 'transparent')
                 } else {
@@ -998,25 +998,7 @@
 
                                             e.preventDefault();
 
-                                            var _tmpSearch = "",
-                                                _key;
-
-                                            for (var i in _display) {
-                                                if (!_display.hasOwnProperty(i)) continue;
-                                                _tmpSearch = _display[i];
-                                                if (scope.options.highlight) {
-                                                    _tmpSearch = _tmpSearch.replace(/<\/?strong>/gi, "")
-                                                }
-                                                if (scope.options.accent) {
-                                                    _tmpSearch = scope.helper.removeAccent(_tmpSearch);
-                                                }
-                                                if (~_tmpSearch.indexOf(_query)) {
-                                                    _key = i;
-                                                    break;
-                                                }
-                                            }
-
-                                            scope.query = scope.rawQuery = item[_key];
+                                            scope.query = scope.rawQuery = item[item.matchedKey];
                                             scope.node.val(scope.query).focus();
 
                                             scope.item = item;
@@ -1215,7 +1197,7 @@
                         $('<button/>', {
                             "type": "button",
                             "class": scope.options.selector.filterButton,
-                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='caret'></span>",
+                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCarret + "'></span>",
                             "click": function(e) {
 
                                 e.stopPropagation();
@@ -1225,9 +1207,18 @@
                                 if (!filterContainer.is(':visible')) {
                                     scope.container.addClass('filter');
                                     filterContainer.show();
+
+                                    $('html').off(_namespace + ".dropdownFilter").on("click" + _namespace + ".dropdownFilter", function() {
+                                        scope.container.removeClass('filter');
+                                        filterContainer.hide();
+                                        $(this).off(_namespace + ".dropdownFilter");
+                                    });
+
                                 } else {
                                     scope.container.removeClass('filter');
                                     filterContainer.hide();
+
+                                    $('html').off(_namespace + ".dropdownFilter");
                                 }
 
                             }
@@ -1341,60 +1332,21 @@
             if (this.options.hint) {
                 this.container
                     .addClass('hint');
-                if (this.hint.container) {
-                    this.hint.container
-                        .show();
-                }
             }
 
             if (this.options.backdrop) {
                 this.container
                     .addClass('backdrop');
-                if (this.backdrop.container) {
-                    this.backdrop.container
-                        .show();
-                }
             }
 
             this.container
                 .addClass('result')
-                .find(this.resultContainer)
-                .show();
-
 
         },
 
         hideLayout: function() {
 
-            if (this.options.filter) {
-                this.container
-                    .removeClass('filter')
-                    .find('.' + this.options.selector.dropdown.replace(" ", "."))
-                    .hide();
-            }
-
-            if (this.options.hint) {
-                this.container
-                    .removeClass('hint');
-                if (this.hint.container) {
-                    this.hint.container
-                        .hide();
-                }
-            }
-
-            if (this.options.backdrop) {
-                this.container
-                    .removeClass('backdrop');
-                if (this.backdrop.container) {
-                    this.backdrop.container
-                        .hide();
-                }
-            }
-
-            this.container
-                .removeClass('result')
-                .find(this.resultContainer)
-                .hide();
+            this.container.removeClass('filter hint result backdrop');
 
         },
 
