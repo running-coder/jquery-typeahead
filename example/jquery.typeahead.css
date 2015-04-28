@@ -324,6 +324,7 @@ input {
 }
 
 .typeahead-container.result .typeahead-list,
+.typeahead-container.result .typeahead-result > .dropdown-menu,
 .typeahead-container.filter .typeahead-dropdown,
 .typeahead-container.filter .input-group-btn .dropdown-menu,
 .typeahead-container.hint .typeahead-hint,
