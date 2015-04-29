@@ -36,6 +36,7 @@
         suggestion: false, // -> *Coming soon* New feature, save last searches and display suggestion on matched characters
         searchOnFocus: false, // -> New feature, display search results on input focus
         resultContainer: null, // -> New feature, list the results inside any container string or jQuery object
+        generateOnLoad: null, // -> New feature, forces the source to be generated on page load even if the input is not focused!
         display: ["display"], // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         href: null, // -> New feature, String or Function to format the url for right-click & open in new tab on <a> results
         template: null,
@@ -249,8 +250,6 @@
             this.helper.executeCallback(this.options.callback.onInit, [this.node]);
 
             this.container = this.node.closest('.' + this.options.selector.container);
-
-            console.log(this.options)
             _debug.log({
                 'node': this.node.selector,
                 'function': 'init()',
@@ -269,7 +268,8 @@
                     'input' + _namespace,
                     'propertychange' + _namespace,
                     'keydown' + _namespace,
-                    'dynamic' + _namespace
+                    'dynamic' + _namespace,
+                    'generateOnLoad' + _namespace
                 ];
 
             this.container.on("click" + _namespace, function(e) {
@@ -297,6 +297,7 @@
             this.node.off(_namespace).on(events.join(' '), function(e) {
 
                 switch (e.type) {
+                    case "generateOnLoad":
                     case "focus":
                         if (scope.isGenerated && scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
                             scope.showLayout();
@@ -360,6 +361,10 @@
                 }
 
             });
+
+            if (this.options.generateOnLoad) {
+                this.node.trigger('generateOnLoad' + _namespace);
+            }
 
         },
 
