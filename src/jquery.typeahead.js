@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.1 (2015-04-28)
+ * @version 2.0.0-rc.1 (2015-04-29)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -41,22 +41,7 @@
         compression: false,     // -> Requires LZString library
         suggestion: false,      // -> *Coming soon* New feature, save last searches and display suggestion on matched characters
         searchOnFocus: false,   // -> New feature, display search results on input focus
-        selector: {
-            container: "typeahead-container",
-            group: "typeahead-group",
-            result: "typeahead-result",
-            list: "typeahead-list",
-            display: "typeahead-display",
-            query: "typeahead-query",
-            filter: "typeahead-filter",
-            filterButton: "typeahead-filter-button",
-            filterValue: "typeahead-filter-value",
-            dropdown: "typeahead-dropdown",
-            dropdownCarret: "typeahead-caret",
-            button: "typeahead-button",
-            backdrop: "typeahead-backdrop",
-            hint: "typeahead-hint"
-        },
+        resultContainer: null,  // -> New feature, list the results inside any container string or jQuery object
         display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on <a> results
         template: null,
@@ -72,6 +57,22 @@
             onMouseLeave: null,
             onClick: null,      // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
             onSubmit: null
+        },
+        selector: {
+            container: "typeahead-container",
+            group: "typeahead-group",
+            result: "typeahead-result",
+            list: "typeahead-list",
+            display: "typeahead-display",
+            query: "typeahead-query",
+            filter: "typeahead-filter",
+            filterButton: "typeahead-filter-button",
+            filterValue: "typeahead-filter-value",
+            dropdown: "typeahead-dropdown",
+            dropdownCarret: "typeahead-caret",
+            button: "typeahead-button",
+            backdrop: "typeahead-backdrop",
+            hint: "typeahead-hint"
         },
         debug: false
     };
@@ -181,6 +182,26 @@
                 this.options.group = [this.options.group];
             }
 
+            if (this.options.resultContainer) {
+                if (typeof this.options.resultContainer === "string") {
+                    this.options.resultContainer = $(this.options.resultContainer);
+                }
+
+                if (!(this.options.resultContainer instanceof jQuery) || !this.options.resultContainer[0]) {
+                    // {debug}
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'extendOptions()',
+                        'message': 'Invalid jQuery selector or jQuery Object for "options.resultContainer".'
+                    });
+
+                    _debug.print();
+                    // {/debug}
+                } else {
+                    this.resultContainer = this.options.resultContainer;
+                }
+            }
+
             this.options = $.extend(
                 true,
                 {},
@@ -269,11 +290,13 @@
 
             this.container = this.node.closest('.' + this.options.selector.container);
 
+            console.log(this.options)
+
             // {debug}
             _debug.log({
                 'node': this.node.selector,
                 'function': 'init()',
-                'arguments': JSON.stringify(this.options),
+                //'arguments': JSON.stringify(this.options),
                 'message': 'OK - Typeahead activated on ' + this.node.selector
             });
 
@@ -857,7 +880,8 @@
                 comparedQuery = this.query,
                 itemPerGroupCount,
                 displayKeys,
-                missingDisplayKey = {};
+                missingDisplayKey = {},
+                filter = true;
 
             if (this.options.accent) {
                 comparedQuery = this.helper.removeAccent(comparedQuery);
@@ -869,6 +893,9 @@
 
                 itemPerGroupCount = 0;
 
+                // @TODO finish filter #23
+                filter = (typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true) || false;
+
                 for (item in this.source[group]) {
 
                     if (!this.source[group].hasOwnProperty(item)) continue;
@@ -879,34 +906,38 @@
 
                     for (var i = 0; i < displayKeys.length; i++) {
 
-                        comparedDisplay = this.source[group][item][displayKeys[i]];
+                        if (filter) {
+                            comparedDisplay = this.source[group][item][displayKeys[i]];
 
-                        if (!comparedDisplay) {
-                            missingDisplayKey[i] = {
-                                display: displayKeys[i],
-                                data: this.source[group][item]
-                            };
-                            continue;
+                            if (!comparedDisplay) {
+                                // {debug}
+                                missingDisplayKey[i] = {
+                                    display: displayKeys[i],
+                                    data: this.source[group][item]
+                                };
+                                // {/debug}
+                                continue;
+                            }
+
+                            comparedDisplay = comparedDisplay.toString();
+
+                            if (this.options.accent) {
+                                comparedDisplay = this.helper.removeAccent(comparedDisplay);
+                            }
+
+                            match = comparedDisplay.toLowerCase().indexOf(comparedQuery.toLowerCase()) + 1;
+
+                            if (!match) continue;
+                            if (match && this.options.offset && match !== 1) continue;
+                            if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
                         }
-
-                        comparedDisplay = comparedDisplay.toString();
-
-                        if (this.options.accent) {
-                            comparedDisplay = this.helper.removeAccent(comparedDisplay);
-                        }
-
-                        match = comparedDisplay.toLowerCase().indexOf(comparedQuery.toLowerCase()) + 1;
-
-                        if (!match) continue;
-                        if (match && this.options.offset && match !== 1) continue;
-                        if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
-
-                        this.source[group][item].group = group;
-                        this.source[group][item].matchedKey = displayKeys[i];
 
                         if (this.filters.dropdown && this.filters.dropdown.value !== '*') {
                             if (this.filters.dropdown.value != this.source[group][item][this.filters.dropdown.key]) continue;
                         }
+
+                        this.source[group][item].group = group;
+                        this.source[group][item].matchedKey = displayKeys[i];
 
                         this.result.push(this.source[group][item]);
 
@@ -964,6 +995,7 @@
                 this.resultContainer = $("<div/>", {
                     "class": this.options.selector.result
                 });
+
                 this.container.append(this.resultContainer);
             }
 
@@ -1138,9 +1170,9 @@
                 htmlList = this.helper.executeCallback(this.options.callback.onLayoutBuilt, [this.node, htmlList, this.result]) || htmlList;
             }
 
-            this.container
-                .addClass('result')
-                .find(this.resultContainer)
+            this.container.addClass('result');
+
+            this.resultContainer
                 .html(htmlList);
 
             if (this.options.backdrop) {
@@ -1407,13 +1439,9 @@
                 this.filters.dropdown = item;
 
                 this.container
+                    .removeClass('filter')
                     .find('.' + this.options.selector.filterValue)
                     .html(item.display || item.value);
-
-                this.container
-                    .find('.' + this.options.selector.dropdown.replace(" ", "."))
-                    .hide();
-
 
                 this.node.trigger('dynamic' + _namespace);
 
@@ -1785,7 +1813,7 @@
                     _debug.log({
                         'node': node.selector,
                         'function': '$.typeahead()',
-                        'arguments': JSON.stringify(options),
+                        //'arguments': JSON.stringify(options),
                         'message': 'Undefined "options.input" - Typeahead dropped'
                     });
 

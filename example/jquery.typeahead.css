@@ -114,29 +114,27 @@ input {
     box-sizing: border-box;
 }
 
-.typeahead-container .typeahead-query {
+.typeahead-query {
     width: 100%;
 }
 
-.typeahead-container .typeahead-filter {
+.typeahead-filter {
     position: relative;
 }
 
-.typeahead-container .typeahead-filter button {
+.typeahead-filter button {
     border-left-width: 0;
     border-right-width: 0;
 }
 
-.typeahead-container .typeahead-field,
-.typeahead-container .input-group {
+.typeahead-field {
     position: relative;
     display: table;
     border-collapse: separate;
     width: 100%;
 }
 
-.typeahead-container .typeahead-button,
-.typeahead-container .input-group-btn {
+.typeahead-button {
     position: relative;
     font-size: 0;
     white-space: nowrap;
@@ -144,8 +142,7 @@ input {
     vertical-align: middle;
 }
 
-.typeahead-container .typeahead-field > span,
-.typeahead-container .input-group > span {
+.typeahead-field > span {
     display: table-cell;
     vertical-align: middle;
 }
@@ -155,14 +152,12 @@ input {
     INPUT, BUTTON, A & DROPDOWN
 \*------------------------------------*/
 
-.typeahead-container .typeahead-field .typeahead-button button
-.typeahead-container .input-group > span:last-child button {
+.typeahead-button button {
     border-top-right-radius: 2px;
     border-bottom-right-radius: 2px;
 }
 
-.typeahead-container .typeahead-field input,
-.typeahead-container .form-control {
+.typeahead-field input {
     display: block;
     width: 100%;
     height: 32px;
@@ -240,30 +235,27 @@ input {
     border-color: #cccccc;
 }
 
-.typeahead-container .typeahead-button > :last-child,
-.typeahead-container .input-group-btn > :last-child {
+.typeahead-button button {
     margin-left: -1px;
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
 }
 
-.typeahead-container .typeahead-list,
-.typeahead-container .typeahead-dropdown,
-.typeahead-container .dropdown-menu {
+.typeahead-list,
+.typeahead-dropdown {
     position: absolute;
     top: 100%;
     left: 0;
     z-index: 1000;
     width: 100%;
-    float: left;
     min-width: 160px;
     padding: 5px 0;
     margin: 2px 0 0;
     list-style: none;
     font-size: 13px;
     text-align: left;
-    background-color: #ffffff;
-    border: 1px solid #cccccc;
+    background-color: #fff;
+    border: 1px solid #ccc;
     border: 1px solid rgba(0, 0, 0, 0.15);
     border-radius: 2px;
     -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
@@ -271,26 +263,30 @@ input {
     background-clip: padding-box;
 }
 
-.typeahead-container .typeahead-dropdown,
-.typeahead-container .input-group .dropdown-menu {
+.typeahead-result.detached .typeahead-list {
+    font-family: "Open Sans", Arial, Helvetica, Sans-Serif;
+    position: relative;
+    z-index: 1041;
+    top: auto;
+    left: auto;
+}
+
+.typeahead-dropdown {
     right: 0;
     left: auto;
     z-index: 1001;
 }
 
-.typeahead-container .typeahead-list > li:first-child,
-.typeahead-container .dropdown-menu > li:first-child {
+.typeahead-list > li:first-child {
     border-top: none;
 }
 
-.typeahead-container .typeahead-list > li,
-.typeahead-container .dropdown-menu > li {
+.typeahead-list > li {
     border-top: solid 1px rgba(0, 0, 0, 0.15);
 }
 
-.typeahead-container .typeahead-list > li > a,
-.typeahead-container .typeahead-dropdown > li > a,
-.typeahead-container .dropdown-menu > li > a {
+.typeahead-list > li > a,
+.typeahead-dropdown > li > a {
     display: block;
     padding: 6px 20px;
     clear: both;
@@ -301,40 +297,34 @@ input {
     text-decoration: none;
 }
 
-.typeahead-container .typeahead-list > li > a:hover,
-.typeahead-container .typeahead-list > li > a:focus,
-.typeahead-container .typeahead-list > li.active > a,
-.typeahead-container .typeahead-dropdown> li > a:hover,
-.typeahead-container .typeahead-dropdown > li > a:focus,
-.typeahead-container .typeahead-dropdown > li.active > a,
-.typeahead-container .dropdown-menu > li > a:hover,
-.typeahead-container .dropdown-menu > li > a:focus,
-.typeahead-container .dropdown-menu > li.active > a:focus {
+.typeahead-list > li > a:hover,
+.typeahead-list > li > a:focus,
+.typeahead-list > li.active > a,
+.typeahead-dropdown > li > a:hover,
+.typeahead-dropdown > li > a:focus,
+.typeahead-dropdown > li.active > a {
     background-color: #ebebeb;
     color: #333;
 }
 
-.typeahead-container .typeahead-list > li.typeahead-group > a,
-.typeahead-container .typeahead-list > li.typeahead-group > a:hover,
-.typeahead-container .typeahead-list > li.typeahead-group > a:focus,
-.typeahead-container .typeahead-list > li.typeahead-group.active > a {
+.typeahead-list > li.typeahead-group > a,
+.typeahead-list > li.typeahead-group > a:hover,
+.typeahead-list > li.typeahead-group > a:focus,
+.typeahead-list > li.typeahead-group.active > a {
     border-color: #9cb4c5;
     color: #305d8c;
     background-color: #d6dde7;
 }
 
 .typeahead-container.result .typeahead-list,
-.typeahead-container.result .typeahead-result > .dropdown-menu,
 .typeahead-container.filter .typeahead-dropdown,
-.typeahead-container.filter .input-group-btn .dropdown-menu,
 .typeahead-container.hint .typeahead-hint,
-.typeahead-container.backdrop + .typeahead-backdrop{
+.typeahead-container.backdrop + .typeahead-backdrop {
     display: block !important;
 }
 
 .typeahead-container .typeahead-list,
 .typeahead-container .typeahead-dropdown,
-.typeahead-container .dropdown-menu,
 .typeahead-container .typeahead-hint,
 .typeahead-container + .typeahead-backdrop {
     display: none !important;
@@ -345,15 +335,14 @@ input {
     EXTRA
 \*------------------------------------*/
 
-.typeahead-container .typeahead-dropdown .divider,
-.typeahead-container .dropdown-menu .divider {
+.typeahead-dropdown .divider {
     height: 1px;
     margin: 5px 0;
     overflow: hidden;
     background-color: #e5e5e5;
 }
 
-.typeahead-container .typeahead-caret {
+.typeahead-caret {
     display: inline-block;
     width: 0;
     height: 0;
@@ -364,7 +353,7 @@ input {
     border-left: 4px solid transparent;
 }
 
-.typeahead-container .search-icon {
+.typeahead-search-icon {
     min-width: 40px;
     height: 18px;
     font-size: 13px;
