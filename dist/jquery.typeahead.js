@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.1 (2015-04-29)
+ * @version 2.0.0-rc.2 (2015-04-30)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
@@ -37,13 +37,14 @@
         searchOnFocus: false, // -> New feature, display search results on input focus
         resultContainer: null, // -> New feature, list the results inside any container string or jQuery object
         generateOnLoad: null, // -> New feature, forces the source to be generated on page load even if the input is not focused!
-        display: ["display"], // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         href: null, // -> New feature, String or Function to format the url for right-click & open in new tab on <a> results
+        display: ["display"], // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
         emptyTemplate: false, // -> New feature, display an empty template if no result
         source: null, // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: onDone, onFail, onComplete
         callback: {
             onInit: null,
+            onReady: null, // -> New callback, when the Typeahead initial preparation is completed
             onSearch: null, // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
             onLayoutBuilt: null, // -> New callback, when the result HTML is build, modify it before it get showed
@@ -797,7 +798,7 @@
                 itemPerGroupCount,
                 displayKeys,
                 missingDisplayKey = {},
-                filter = true;
+                filter;
 
             if (this.options.accent) {
                 comparedQuery = this.helper.removeAccent(comparedQuery);
@@ -808,7 +809,7 @@
                 if (this.dropdownFilter && group !== this.dropdownFilter) continue;
 
                 itemPerGroupCount = 0;
-                filter = (typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true) || false;
+                filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
 
                 for (item in this.source[group]) {
 
@@ -1386,6 +1387,8 @@
             this.init();
             this.delegateEvents();
             this.buildDropdownLayout();
+
+            this.helper.executeCallback(this.options.callback.onReady, [this.node]);
         },
 
         helper: {

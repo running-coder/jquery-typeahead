@@ -235,10 +235,32 @@ input {
     border-color: #cccccc;
 }
 
+.typeahead-filter button,
 .typeahead-button button {
     margin-left: -1px;
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
+}
+
+.typeahead-query {
+    position: relative;
+    z-index: 2;
+}
+
+.typeahead-filter,
+.typeahead-button {
+    z-index: 1;
+}
+
+.typeahead-container.filter .typeahead-filter,
+.typeahead-filter:hover,
+.typeahead-filter:hover,
+.typeahead-filter:active,
+.typeahead-filter:focus,
+.typeahead-button:hover,
+.typeahead-button:active,
+.typeahead-button:focus {
+    z-index: 1001;
 }
 
 .typeahead-list,

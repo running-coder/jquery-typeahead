@@ -112,6 +112,17 @@ module.exports = function (grunt) {
                 }
             }
 
+        },
+
+        cssmin: {
+            options: {
+                roundingPrecision: -1
+            },
+            target: {
+                files: {
+                    'dist/jquery.typeahead.min.css': ['src/jquery.typeahead.css']
+                }
+            }
         }
 
     });
@@ -122,6 +133,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-replace');
     grunt.loadNpmTasks("grunt-jsbeautifier");
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
 
     grunt.registerTask('default', [
         'clean:dist',
@@ -131,7 +143,9 @@ module.exports = function (grunt) {
         'replace:removeComments',
         'jsbeautifier',
         'replace:removeDebug',
-        'uglify'
+        'uglify',
+        'cssmin'
+
     ]);
 
 };
