@@ -176,6 +176,17 @@ input {
     transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
 
+.typeahead-field input.disabled,
+.typeahead-field input[disabled] {
+    cursor: not-allowed;
+    background-color: #eee;
+    opacity: 1;
+}
+
+input.typeahead-hint[readonly] {
+    background-color: transparent;
+}
+
 .typeahead-container button {
     display: inline-block;
     margin-bottom: 0;

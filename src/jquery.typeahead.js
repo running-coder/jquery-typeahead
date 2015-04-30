@@ -57,7 +57,8 @@
             onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
-            onClick: null,      // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
+            onClickBefore: null,// -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
+            onClickAfter: null, // -> New feature, happens after the default clicked behaviors has been executed
             onSubmit: null
         },
         selector: {
@@ -202,6 +203,12 @@
                 } else {
                     this.resultContainer = this.options.resultContainer;
                 }
+            }
+
+            // Compatibility onClick callback
+            if (this.options.callback && this.options.callback.onClick) {
+                this.options.callback.onClickBefore = this.options.callback.onClickAfter;
+                delete this.options.callback.onClick;
             }
 
             this.options = $.extend(
@@ -1118,7 +1125,7 @@
                                         },
                                         "click": ({"item": item}, function (e) {
 
-                                            scope.helper.executeCallback(scope.options.callback.onClick, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback(scope.options.callback.onBeforeClick, [scope.node, this, item, e]);
 
                                             if (e.isDefaultPrevented()) {
                                                 return;
@@ -1134,6 +1141,8 @@
                                             scope.searchResult();
                                             scope.buildLayout();
                                             scope.hideLayout();
+
+                                            scope.helper.executeCallback(scope.options.callback.onAfterClick, [scope.node, this, item, e]);
 
                                         }),
                                         "mouseenter": function (e) {
