@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.2 (2015-04-30)
+ * @version 2.0.0-rc.2 (2015-05-03)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -95,7 +95,7 @@
         to: "aaaaaeeeeeiiiiooooouuuunc"
     };
 
-    // RESERVED WORDS: group, display, data, matchedKey, {{query}}, {{callback}}, href
+    // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, , href
 
     /**
      * @constructor
@@ -207,7 +207,7 @@
 
             // Compatibility onClick callback
             if (this.options.callback && this.options.callback.onClick) {
-                this.options.callback.onClickBefore = this.options.callback.onClickAfter;
+                this.options.callback.onClickBefore = this.options.callback.onClick;
                 delete this.options.callback.onClick;
             }
 
@@ -341,7 +341,7 @@
                 scope.rawQuery = '';
                 scope.query = '';
 
-                if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, scope, scope.item, e])) {
+                if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, this, scope.item, e])) {
                     return false;
                 }
             });
@@ -910,8 +910,8 @@
                 for (item in this.source[group]) {
 
                     if (!this.source[group].hasOwnProperty(item)) continue;
-                    if (this.result.length >= this.options.maxItem) break;
-                    if (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup) break;
+                    if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
+                    if (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup && !this.options.callback.onResult) break;
 
                     displayKeys = this.options.source[group].display || this.options.display;
 
@@ -947,12 +947,19 @@
                             if (this.filters.dropdown.value != this.source[group][item][this.filters.dropdown.key]) continue;
                         }
 
+                        this.resultCount += 1;
+
+                        if (this.options.callback.onResult &&
+                            (this.result.length >= this.options.maxItem ||
+                                (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup))) {
+                            continue;
+                        }
+
                         this.source[group][item].group = group;
                         this.source[group][item].matchedKey = displayKeys[i];
 
                         this.result.push(this.source[group][item]);
 
-                        this.resultCount += 1;
                         itemPerGroupCount += 1;
 
                         break;
@@ -1017,7 +1024,7 @@
             }
 
             var scope = this,
-                htmlList = $("<ul/>", {
+                resultHtmlList = $("<ul/>", {
                     "class": this.options.selector.list,
                     "html": function () {
 
@@ -1035,7 +1042,7 @@
 
                             (function (index, item, ulScope) {
 
-                                var _group,
+                                var _group = item.group,
                                     _liHtml,
                                     _aHtml,
                                     _display = {},
@@ -1046,7 +1053,6 @@
                                     _template;
 
                                 if (scope.options.group) {
-                                    _group = item.group;
                                     if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
                                         _group = item[scope.options.group[0]];
                                     }
@@ -1125,7 +1131,7 @@
                                         },
                                         "click": ({"item": item}, function (e) {
 
-                                            scope.helper.executeCallback(scope.options.callback.onBeforeClick, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
 
                                             if (e.isDefaultPrevented()) {
                                                 return;
@@ -1142,7 +1148,7 @@
                                             scope.buildLayout();
                                             scope.hideLayout();
 
-                                            scope.helper.executeCallback(scope.options.callback.onAfterClick, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback(scope.options.callback.onClickAfter, [scope.node, this, item, e]);
 
                                         }),
                                         "mouseenter": function (e) {
@@ -1180,13 +1186,13 @@
                 });
 
             if (this.options.callback.onLayoutBuilt) {
-                htmlList = this.helper.executeCallback(this.options.callback.onLayoutBuilt, [this.node, htmlList, this.result]) || htmlList;
+                resultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuilt, [this.node, this.query, this.result, resultHtmlList]) || resultHtmlList;
             }
 
             this.container.addClass('result');
 
             this.resultContainer
-                .html(htmlList);
+                .html(resultHtmlList);
 
             if (this.options.backdrop) {
 
@@ -1473,24 +1479,18 @@
                 $(this).off(_namespace);
             });
 
-            if (this.options.hint) {
-                this.container
-                    .addClass('hint');
+            // Do not add display classes if there are no results
+            if (!this.result.length && !this.options.emptyTemplate) {
+                return;
             }
 
-            if (this.options.backdrop) {
-                this.container
-                    .addClass('backdrop');
-            }
-
-            this.container
-                .addClass('result')
+            this.container.addClass('result hint backdrop');
 
         },
 
         hideLayout: function () {
 
-            this.container.removeClass('filter hint result backdrop');
+            this.container.removeClass('result hint backdrop filter');
 
         },
 
@@ -1531,13 +1531,10 @@
                     return;
                 }
 
-                string = string.toLowerCase();
+                string = string.toLowerCase().replace(new RegExp('[' + _accent.from + ']', 'g'), function (match) {
+                    return _accent.to[_accent.from.indexOf(match)];
+                });
 
-                if (new RegExp(_accent.from).test(string)) {
-                    for (var i = 0, l = _accent.from.length; i < l; i++) {
-                        string = string.replace(new RegExp(_accent.from.charAt(i), 'gi'), _accent.to.charAt(i));
-                    }
-                }
 
                 return string;
             },

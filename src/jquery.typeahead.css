@@ -116,6 +116,7 @@ input {
 
 .typeahead-query {
     width: 100%;
+    background: #fff;
 }
 
 .typeahead-filter {
@@ -315,6 +316,7 @@ input.typeahead-hint[readonly] {
 }
 
 .typeahead-list > li {
+    position: relative;
     border-top: solid 1px rgba(0, 0, 0, 0.15);
 }
 
@@ -347,6 +349,7 @@ input.typeahead-hint[readonly] {
     border-color: #9cb4c5;
     color: #305d8c;
     background-color: #d6dde7;
+    cursor: default;
 }
 
 .typeahead-container.result .typeahead-list,
