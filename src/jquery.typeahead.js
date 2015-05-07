@@ -1878,7 +1878,23 @@
 
         },
         print: function () {
+The fix:
 
+        print: function () {
+            var console = (window.console = window.console || {}); // ie8 console undefined fix
+            if (Typeahead.prototype.helper.isEmpty(this.table) || !console || !console.table) {
+                return;
+            }
+
+            if (console.group !== undefined || console.table !== undefined) {
+                console.groupCollapsed('--- jQuery Typeahead Debug ---');
+                console.table(this.table);
+                console.groupEnd();
+            }
+
+            this.table = {};
+
+        }
             if (Typeahead.prototype.helper.isEmpty(this.table) || !console || !console.table) {
                 return;
             }
