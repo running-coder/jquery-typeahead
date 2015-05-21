@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.2 (2015-05-03)
+ * @version 2.0.0-rc.2 (2015-05-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -53,7 +53,8 @@
             onReady: null,      // -> New callback, when the Typeahead initial preparation is completed
             onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
-            onLayoutBuilt: null,// -> New callback, when the result HTML is build, modify it before it get showed
+            onLayoutBuiltBefore: null,  // -> New callback, when the result HTML is build, modify it before it get showed
+            onLayoutBuiltAfter: null,   // -> New callback, modify the dom right after the results gets inserted in the result container
             onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
@@ -359,7 +360,7 @@
                         }
                         break;
                     case "keydown":
-                        if (scope.isGenerated && scope.result.length && scope.container.hasClass('result')) {
+                        if (scope.isGenerated && scope.result.length) {
                             if (e.keyCode && ~[13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                                 scope.navigate(e);
                             }
@@ -474,8 +475,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                            this.options.source[group].data() ||
-                            this.options.source[group].data,
+                        this.options.source[group].data() ||
+                        this.options.source[group].data,
                         group
                     );
                     continue;
@@ -780,7 +781,7 @@
 
             this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
 
-            var itemList = this.container.find('.' + this.options.selector.result).find('> ul > li:not([data-search-group])'),
+            var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
                 activeItem = itemList.filter('.active'),
                 activeItemIndex = activeItem[0] && itemList.index(activeItem) || null;
 
@@ -951,7 +952,8 @@
 
                         if (this.options.callback.onResult &&
                             (this.result.length >= this.options.maxItem ||
-                                (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup))) {
+                            (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup))
+                        ) {
                             continue;
                         }
 
@@ -1119,8 +1121,12 @@
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
 
                                             if (_template) {
-                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)}}/gi, function (match, index) {
-                                                    return _display[index] || item[index] || match;
+                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\|?(\w+)?}}/gi, function (match, index, option) {
+                                                    match = item[index] || match;
+                                                    if (option) {
+                                                        if (option === "raw") return match;
+                                                    }
+                                                    return _display[index] || match;
                                                 });
                                             } else {
                                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
@@ -1185,14 +1191,18 @@
                     }
                 });
 
-            if (this.options.callback.onLayoutBuilt) {
-                resultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuilt, [this.node, this.query, this.result, resultHtmlList]) || resultHtmlList;
+            if (this.options.callback.onLayoutBuiltBefore) {
+                resultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]) || resultHtmlList;
             }
 
             this.container.addClass('result');
 
             this.resultContainer
                 .html(resultHtmlList);
+
+            if (this.options.callback.onLayoutBuiltAfter) {
+                this.helper.executeCallback(this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
+            }
 
             if (this.options.backdrop) {
 
