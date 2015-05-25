@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.2 (2015-05-21)
+ * @version 2.0.0-rc.2 (2015-05-25)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -23,7 +23,7 @@
     var _options = {
         input: null,
         minLength: 2,           // Modified feature, now accepts 0 to search on focus
-        maxItem: 8,
+        maxItem: 8,             // Modified feature, now accepts 0 as "Infinity" meaning all the results will be displayed
         dynamic: false,
         delay: 300,
         order: null,            // ONLY sorts the first "display" key
@@ -172,6 +172,10 @@
                     // {/debug}
                     this.options.compression = false;
                 }
+            }
+
+            if (!/^\d+$/.test(this.options.maxItem) || this.options.maxItem === 0) {
+                this.options.maxItem = Infinity;
             }
 
             if (!/^\d+$/.test(this.options.maxItemPerGroup)) {
@@ -369,8 +373,8 @@
                     case "propertychange":
                     case "input":
 
-                        scope.rawQuery = scope.node[0].value;
-                        scope.query = scope.node[0].value.replace(/^\s+/, '');
+                        scope.rawQuery = scope.node[0].value.toString();
+                        scope.query = scope.node[0].value.replace(/^\s+/, '').toString();
 
                         if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
                             if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
@@ -954,7 +958,7 @@
                             (this.result.length >= this.options.maxItem ||
                             (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup))
                         ) {
-                            continue;
+                            break;
                         }
 
                         this.source[group][item].group = group;
@@ -1145,7 +1149,7 @@
 
                                             e.preventDefault();
 
-                                            scope.query = scope.rawQuery = item[item.matchedKey];
+                                            scope.query = scope.rawQuery = item[item.matchedKey].toString();
                                             scope.node.val(scope.query).focus();
 
                                             scope.item = item;
