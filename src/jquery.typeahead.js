@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.2 (2015-05-25)
+ * @version 2.0.0-rc.3 (2015-05-26)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -112,7 +112,8 @@
         this.source = {};               // The generated source kept in memory
         this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
         this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
-        this.groupCount = 0;            // Number of groups generated, if limit reached the search can be done
+        this.groupCount = 0;            // Number of groups, this value gets counted on the initial source unification
+        this.groupBy = "group";         // This option will change according to filtering or custom grouping
         this.result = [];               // Results based on Source-query match (only contains the displayed elements)
         this.resultCount = 0;           // Total results based on Source-query match
         this.options = options;         // Typeahead options (Merged default & user defined)
@@ -174,11 +175,11 @@
                 }
             }
 
-            if (!/^\d+$/.test(this.options.maxItem) || this.options.maxItem === 0) {
+            if (typeof this.options.maxItem !== "undefined" && (!/^\d+$/.test(this.options.maxItem) || this.options.maxItem === 0)) {
                 this.options.maxItem = Infinity;
             }
 
-            if (!/^\d+$/.test(this.options.maxItemPerGroup)) {
+            if (this.options.maxItemPerGroup && !/^\d+$/.test(this.options.maxItemPerGroup)) {
                 this.options.maxItemPerGroup = null;
             }
 
@@ -208,6 +209,10 @@
                 } else {
                     this.resultContainer = this.options.resultContainer;
                 }
+            }
+
+            if (this.options.group && typeof this.options.group[0] === "string" && this.options.maxItemPerGroup) {
+                this.groupBy = this.options.group[0];
             }
 
             // Compatibility onClick callback
@@ -466,6 +471,8 @@
                             if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
                                 this.populateSource(dataInLocalstorage.data, group);
                                 isValidStorage = true;
+                            } else {
+                                window.localStorage.removeItem(this.node.selector + ":" + group);
                             }
                         } catch (error) {
                         }
@@ -669,79 +676,12 @@
                     'arguments': JSON.stringify({group: group}),
                     'message': 'Invalid data type, must be Array type.'
                 });
-
                 _debug.print();
                 // {/debug}
-
-                return false;
+                return;
             }
 
-            if (isValid) {
-
-                extraData = this.options.source[group].url && this.options.source[group].data;
-
-                if (extraData) {
-                    if (typeof extraData === "function") {
-                        extraData = extraData();
-                    }
-
-                    if (extraData instanceof Array) {
-                        data = data.concat(extraData);
-                    }
-                    // {debug}
-                    else {
-                        _debug.log({
-                            'node': this.node.selector,
-                            'function': 'populateSource()',
-                            'arguments': JSON.stringify(extraData),
-                            'message': 'WARNING - this.options.source.' + group + '.data Must be an Array or a function that returns an Array.'
-                        });
-
-                        _debug.print();
-                    }
-                    // {/debug}
-
-                }
-
-                var tmpObj,
-                    display;
-
-                if (this.options.source[group].display) {
-                    display = this.options.source[group].display[0];
-                } else {
-                    display = this.options.display[0];
-                }
-
-                for (var i = 0; i < data.length; i++) {
-                    if (typeof data[i] === "string") {
-                        tmpObj = {};
-                        tmpObj[display] = data[i];
-                        data[i] = tmpObj;
-                    }
-                }
-
-                this.source[group] = data;
-
-                if (this.options.cache) {
-
-                    var storage = JSON.stringify({
-                        data: data,
-                        ttl: new Date().getTime() + this.options.ttl
-                    });
-
-                    if (this.options.compression) {
-                        storage = LZString.compressToUTF16(storage);
-                    }
-
-                    localStorage.setItem(
-                        this.node.selector + ":" + group,
-                        storage
-                    );
-                }
-
-                this.incrementGeneratedGroup();
-
-            } else {
+            if (!isValid) {
                 // {debug}
                 _debug.log({
                     'node': this.node.selector,
@@ -752,7 +692,73 @@
 
                 _debug.print();
                 // {/debug}
+                return;
             }
+
+            extraData = this.options.source[group].url && this.options.source[group].data;
+
+            if (extraData) {
+                if (typeof extraData === "function") {
+                    extraData = extraData();
+                }
+
+                if (extraData instanceof Array) {
+                    data = data.concat(extraData);
+                }
+                // {debug}
+                else {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'populateSource()',
+                        'arguments': JSON.stringify(extraData),
+                        'message': 'WARNING - this.options.source.' + group + '.data Must be an Array or a function that returns an Array.'
+                    });
+
+                    _debug.print();
+                }
+                // {/debug}
+
+            }
+
+            var tmpObj,
+                display;
+
+            if (this.options.source[group].display) {
+                display = this.options.source[group].display[0];
+            } else {
+                display = this.options.display[0];
+            }
+
+            // @TODO: possibly optimize this?
+            for (var i = 0; i < data.length; i++) {
+                if (typeof data[i] === "string") {
+                    tmpObj = {};
+                    tmpObj[display] = data[i];
+                    data[i] = tmpObj;
+                }
+            }
+
+            // @TODO: find a way to save the order from options.source so it appears correctly?
+            this.source[group] = data;
+
+            if (this.options.cache && !localStorage.getItem(this.node.selector + ":" + group)) {
+
+                var storage = JSON.stringify({
+                    data: data,
+                    ttl: new Date().getTime() + this.options.ttl
+                });
+
+                if (this.options.compression) {
+                    storage = LZString.compressToUTF16(storage);
+                }
+
+                localStorage.setItem(
+                    this.node.selector + ":" + group,
+                    storage
+                );
+            }
+
+            this.incrementGeneratedGroup();
 
         },
 
@@ -879,7 +885,6 @@
         },
 
         // @TODO implement dynamicFilter
-        // @TODO disable filtering? #23
         searchResult: function () {
 
             this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
@@ -887,16 +892,14 @@
             this.result = [];
             this.resultCount = 0;
 
-            // @TODO Verify this... item click resets the item
-            //this.item = null;
-
             var scope = this,
                 group,
                 item,
                 match,
                 comparedDisplay,
                 comparedQuery = this.query,
-                itemPerGroupCount,
+                itemPerGroup = {},
+                groupBy = this.filters.dropdown && this.filters.dropdown.key || this.groupBy,
                 displayKeys,
                 missingDisplayKey = {},
                 filter;
@@ -907,29 +910,44 @@
 
             for (group in this.source) {
                 if (!this.source.hasOwnProperty(group)) continue;
-                if (this.dropdownFilter && group !== this.dropdownFilter) continue;
+                if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
 
-                itemPerGroupCount = 0;
+                if (this.options.maxItemPerGroup && groupBy === "group") {
+                    if (!itemPerGroup[group]) {
+                        itemPerGroup[group] = 0;
+                    } else if (itemPerGroup[group] >= this.options.maxItemPerGroup && !this.options.callback.onResult) {
+                        break;
+                    }
+                }
+
                 filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
 
-                for (item in this.source[group]) {
-
-                    if (!this.source[group].hasOwnProperty(item)) continue;
+                for (var k = 0; k < this.source[group].length; k++) {
                     if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
-                    if (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup && !this.options.callback.onResult) break;
+
+                    item = this.source[group][k];
+                    item.group = group;
+
+                    if (this.options.maxItemPerGroup && groupBy !== "group") {
+                        if (!itemPerGroup[item[groupBy]]) {
+                            itemPerGroup[item[groupBy]] = 0;
+                        } else if (itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup && !this.options.callback.onResult) {
+                            continue;
+                        }
+                    }
 
                     displayKeys = this.options.source[group].display || this.options.display;
 
                     for (var i = 0; i < displayKeys.length; i++) {
 
                         if (filter) {
-                            comparedDisplay = this.source[group][item][displayKeys[i]];
+                            comparedDisplay = item[displayKeys[i]];
 
                             if (!comparedDisplay) {
                                 // {debug}
                                 missingDisplayKey[i] = {
                                     display: displayKeys[i],
-                                    data: this.source[group][item]
+                                    data: item
                                 };
                                 // {/debug}
                                 continue;
@@ -948,25 +966,25 @@
                             if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
                         }
 
-                        if (this.filters.dropdown && this.filters.dropdown.value !== '*') {
-                            if (this.filters.dropdown.value != this.source[group][item][this.filters.dropdown.key]) continue;
+                        if (this.filters.dropdown) {
+                            if (this.filters.dropdown.value != item[this.filters.dropdown.key]) continue;
                         }
 
                         this.resultCount += 1;
 
-                        if (this.options.callback.onResult &&
-                            (this.result.length >= this.options.maxItem ||
-                            (this.options.maxItemPerGroup && itemPerGroupCount >= this.options.maxItemPerGroup))
+                        if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
+                            this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
                         ) {
                             break;
                         }
 
-                        this.source[group][item].group = group;
-                        this.source[group][item].matchedKey = displayKeys[i];
+                        item.matchedKey = displayKeys[i];
 
-                        this.result.push(this.source[group][item]);
+                        this.result.push(item);
 
-                        itemPerGroupCount += 1;
+                        if (this.options.maxItemPerGroup) {
+                            itemPerGroup[item[groupBy]] += 1;
+                        }
 
                         break;
                     }
@@ -1467,9 +1485,13 @@
              *
              * @param {string} item
              */
-            function _selectFilter(item) {
+            function _selectFilter (item) {
 
-                this.filters.dropdown = item;
+                if (item.value === "*") {
+                    delete this.filters.dropdown;
+                } else {
+                    this.filters.dropdown = item;
+                }
 
                 this.container
                     .removeClass('filter')
