@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.3 (2015-05-26)
+ * @version 2.0.0-rc.3 (2015-05-28)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
@@ -41,7 +41,7 @@
         display: ["display"], // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
         emptyTemplate: false, // -> New feature, display an empty template if no result
-        source: null, // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: onDone, onFail, onComplete
+        source: null, // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
         callback: {
             onInit: null,
             onReady: null, // -> New callback, when the Typeahead initial preparation is completed
@@ -462,9 +462,10 @@
                     path: null,
                     group: group,
                     callback: {
-                        onDone: null,
-                        onFail: null,
-                        onComplete: null
+                        done: null,
+                        fail: null,
+                        complete: null,
+                        always: null
                     }
                 },
                 validForGroup: [group]
@@ -540,36 +541,57 @@
                         }
                     }
 
-                    scope.xhr[group] = $.ajax(xhrObject.request).done(function(data) {
+                    scope.xhr[group] = $.ajax(xhrObject.request).done(function(data, textStatus, jqXHR) {
 
+                        var tmpData;
                         for (var i = 0; i < xhrObject.validForGroup.length; i++) {
 
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.extra.callback.onDone instanceof Function && _request.extra.callback.onDone(data);
+
+                            if (_request.extra.callback.done instanceof Function) {
+
+                                tmpData = _request.extra.callback.done(data, textStatus, jqXHR);
+                                data = tmpData instanceof Array && tmpData || data;
+                                if (!(tmpData instanceof Array)) {
+                                    _debug.log({
+                                        'node': scope.node.selector,
+                                        'function': 'Ajax.callback.done()',
+                                        'message': 'Invalid returned data has to be an Array'
+                                    });
+                                    _debug.print();
+                                }
+                            }
 
                             scope.populateSource(data, _request.extra.group, _request.extra.path);
                         }
 
-                    }).fail(function() {
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+
 
                         for (var i = 0; i < xhrObject.validForGroup.length; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.extra.callback.onFail instanceof Function && _request.extra.callback.onFail();
+                            _request.extra.callback.fail instanceof Function && _request.extra.callback.fail(jqXHR, textStatus, errorThrown);
                         }
                         _debug.log({
                             'node': scope.node.selector,
-                            'function': 'generateSource()',
-                            'arguments': _request.request.url,
-                            'message': 'Ajax request failed.'
+                            'function': 'Ajax.callback.fail()',
+                            'message': 'Request failed'
                         });
 
                         _debug.print();
 
-                    }).complete(function() {
+                    }).complete(function(jqXHR, textStatus) {
 
                         for (var i = 0; i < xhrObject.validForGroup.length; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.extra.callback.onComplete instanceof Function && _request.extra.callback.onComplete();
+                            _request.extra.callback.complete instanceof Function && _request.extra.callback.complete(jqXHR, textStatus);
+                        }
+
+                    }).always(function(data, textStatus, jqXHR) {
+
+                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _request.extra.callback.always instanceof Function && _request.extra.callback.always(data, textStatus, jqXHR);
                         }
 
                     });
@@ -1115,7 +1137,19 @@
                 });
 
             if (this.options.callback.onLayoutBuiltBefore) {
-                resultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]) || resultHtmlList;
+                var tmpResultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
+
+                if (tmpResultHtmlList instanceof jQuery) {
+                    resultHtmlList = tmpResultHtmlList;
+                } else {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'callback.onLayoutBuiltBefore()',
+                        'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
+                    });
+
+                    _debug.print();
+                }
             }
 
             this.container.addClass('result');
