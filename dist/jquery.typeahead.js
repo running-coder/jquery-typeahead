@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.3 (2015-05-28)
+ * @version 2.0.0-rc.3 (2015-05-29)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
@@ -1045,8 +1045,12 @@
 
                                             if (_href) {
                                                 if (typeof _href === "string") {
-                                                    _href = _href.replace(/\{\{([a-z0-9_\-]+)}}/gi, function(match, index) {
+                                                    _href = _href.replace(/\{\{([a-z0-9_\-]+)\|?(\w+)?}}/gi, function(match, index, option) {
+                                                        if (option && option === "raw") {
+                                                            return item[index] || match;
+                                                        }
                                                         return item[index] && scope.helper.slugify(item[index]) || match;
+
                                                     });
                                                 } else if (typeof _href === "function") {
                                                     _href = _href(item);
