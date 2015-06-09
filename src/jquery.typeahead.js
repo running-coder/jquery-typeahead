@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.3 (2015-05-29)
+ * @version 2.0.0-rc.3 (2015-06-09)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -1074,14 +1074,14 @@
 
             var scope = this,
                 resultHtmlList = $("<ul/>", {
-                    "class": this.options.selector.list,
+                    "class": this.options.selector.list + (scope.helper.isEmpty(scope.result) ? ' empty' : ''),
                     "html": function () {
 
                         if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
                             return $("<li/>", {
                                 "html": $("<a/>", {
                                     "href": "javascript:;",
-                                    "html": scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query)
+                                    "html": typeof scope.options.emptyTemplate === "function" && scope.options.emptyTemplate(scope.query) || scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query)
                                 })
                             });
                         }
@@ -1149,12 +1149,8 @@
 
                                             if (_href) {
                                                 if (typeof _href === "string") {
-                                                    _href = _href.replace(/\{\{([a-z0-9_\-]+)\|?(\w+)?}}/gi, function (match, index, option) {
-                                                        if (option && option === "raw") {
-                                                            return item[index] || match;
-                                                        }
+                                                    _href = _href.replace(/\{\{([a-z0-9_\-]+)}}/gi, function (match, index) {
                                                         return item[index] && scope.helper.slugify(item[index]) || match;
-
                                                     });
                                                 } else if (typeof _href === "function") {
                                                     _href = _href(item);
@@ -1529,7 +1525,7 @@
              *
              * @param {string} item
              */
-            function _selectFilter (item) {
+            function _selectFilter(item) {
 
                 if (item.value === "*") {
                     delete this.filters.dropdown;
