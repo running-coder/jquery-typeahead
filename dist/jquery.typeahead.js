@@ -39,6 +39,7 @@
         searchOnFocus: false, // -> New feature, display search results on input focus
         resultContainer: null, // -> New feature, list the results inside any container string or jQuery object
         generateOnLoad: null, // -> New feature, forces the source to be generated on page load even if the input is not focused!
+        mustSelectItem: false, // -> New option, the submit function only gets called if an item is selected
         href: null, // -> New feature, String or Function to format the url for right-click & open in new tab on <a> results
         display: ["display"], // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
@@ -303,6 +304,11 @@
             });
 
             this.node.closest('form').on("submit", function(e) {
+
+                if (scope.options.mustSelectItem && scope.helper.isEmpty(scope.item)) {
+                    e.preventDefault();
+                    return;
+                }
 
                 scope.hideLayout();
 
@@ -762,6 +768,11 @@
                     return;
 
                 } else {
+
+                    if (this.options.mustSelectItem && this.helper.isEmpty(this.item)) {
+                        return;
+                    }
+
                     this.hideLayout();
                     return;
                 }
@@ -832,6 +843,8 @@
 
         },
         searchResult: function() {
+
+            this.item = {};
 
             this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
 
@@ -1101,6 +1114,11 @@
                                             "item": item
                                         }, function(e) {
 
+                                            if (scope.options.mustSelectItem && scope.helper.isEmpty(item)) {
+                                                e.preventDefault();
+                                                return;
+                                            }
+
                                             scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
 
                                             if (e.isDefaultPrevented()) {
@@ -1112,11 +1130,11 @@
                                             scope.query = scope.rawQuery = item[item.matchedKey].toString();
                                             scope.node.val(scope.query).focus();
 
-                                            scope.item = item;
-
                                             scope.searchResult();
                                             scope.buildLayout();
                                             scope.hideLayout();
+
+                                            scope.item = item;
 
                                             scope.helper.executeCallback(scope.options.callback.onClickAfter, [scope.node, this, item, e]);
 
@@ -1258,6 +1276,8 @@
                             "position": "relative"
                         });
                     }
+
+                    this.hint.container.css('color', this.hint.css.color)
 
                     var _displayKeys,
                         _group,
