@@ -60,6 +60,22 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            version: {
+                options: {
+                    patterns: [
+                        {
+                            match: /version: '.*?'/,
+                            replacement: 'version: \'<%= pkg.version %>\''
+                        }
+                    ]
+                },
+                files: [
+                    {
+                        src: ['src/jquery.typeahead.js'],
+                        dest: 'src/jquery.typeahead.js'
+                    }
+                ]
+            },
             removeDebug: {
                 options: {
                     patterns: [
@@ -138,6 +154,7 @@ module.exports = function (grunt) {
     grunt.registerTask('default', [
         'clean:dist',
         'replace:banner',
+        'replace:version',
         'copy:dist',
         'comments',
         'replace:removeComments',

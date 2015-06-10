@@ -4,13 +4,15 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.3 (2015-06-09)
+ * @version 2.0.0-rc.4 (2015-06-10)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
 (function (window, document, $, undefined) {
 
-    window.Typeahead = {};
+    window.Typeahead = {
+        version: '2.0.0-rc.4'
+    };
 
     "use strict";
 
@@ -60,6 +62,8 @@
             onMouseLeave: null,
             onClickBefore: null,// -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
             onClickAfter: null, // -> New feature, happens after the default clicked behaviors has been executed
+            onSendRequest: null,// -> New callback, gets called when the Ajax request(s) are sent
+            onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
             onSubmit: null
         },
         selector: {
@@ -486,8 +490,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                        this.options.source[group].data() ||
-                        this.options.source[group].data,
+                            this.options.source[group].data() ||
+                            this.options.source[group].data,
                         group
                     );
                     continue;
@@ -577,7 +581,12 @@
 
         handleRequests: function () {
 
-            var scope = this;
+            var scope = this,
+                requestsCount = Object.keys(this.requests).length;
+
+            if (requestsCount) {
+                this.helper.executeCallback(this.options.callback.onSendRequest, [this.node, this.query]);
+            }
 
             for (var group in this.requests) {
                 if (!this.requests.hasOwnProperty(group)) continue;
@@ -624,6 +633,12 @@
                             }
 
                             scope.populateSource(data, _request.extra.group, _request.extra.path);
+
+                            requestsCount -= 1;
+                            if (requestsCount === 0) {
+                                scope.helper.executeCallback(scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
+                            }
+
                         }
 
                     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -999,7 +1014,7 @@
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
                             this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
-                        ) {
+                            ) {
                             break;
                         }
 
@@ -1842,7 +1857,6 @@
 
             },
 
-
             typeWatch: (function () {
                 var timer = 0;
                 return function (callback, ms) {
@@ -1853,8 +1867,6 @@
 
         }
     };
-
-//Typeahead.prototype.constructor = Typeahead;
 
     /**
      * @public
@@ -1991,6 +2003,18 @@
                 if (i in this && this[i] === find)
                     return i;
             return -1;
+        };
+    }
+    if (!Object.keys) {
+        Object.keys = function (obj) {
+            var keys = [],
+                k;
+            for (k in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, k)) {
+                    keys.push(k);
+                }
+            }
+            return keys;
         };
     }
 
