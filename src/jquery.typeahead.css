@@ -333,14 +333,18 @@ input.typeahead-hint[readonly] {
     text-decoration: none;
 }
 
-.typeahead-list > li > a:hover,
-.typeahead-list > li > a:focus,
-.typeahead-list > li.active > a,
+.typeahead-list:not(.empty) > li > a:hover,
+.typeahead-list:not(.empty) > li > a:focus,
+.typeahead-list:not(.empty) > li.active > a,
 .typeahead-dropdown > li > a:hover,
 .typeahead-dropdown > li > a:focus,
 .typeahead-dropdown > li.active > a {
     background-color: #ebebeb;
     color: #333;
+}
+
+.typeahead-list.empty > li > a {
+    cursor: default;
 }
 
 .typeahead-list > li.typeahead-group > a,
