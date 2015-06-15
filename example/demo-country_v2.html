@@ -31,6 +31,8 @@
     </ul>
 
     <form>
+        <p id="result-container"></p>
+
         <div class="typeahead-container">
             <div class="typeahead-field">
 
@@ -117,6 +119,7 @@
             groupMaxItem: 6,
             hint: true,
             dropdownFilter: "All",
+            href: "https://en.wikipedia.org/?title={{display}}",
             template: "{{display}}, <small><em>{{group}}</em></small>",
             source: {
                 country: {
@@ -124,6 +127,27 @@
                 },
                 capital: {
                     data: data.capitals
+                }
+            },
+            callback: {
+                onClickAfter: function (node, a, item, event) {
+
+                    var r = confirm("You will be redirected to:\n" + item.href + "\n\nContinue?");
+                    if (r == true) {
+                        window.open(item.href);
+                    }
+
+                    $('#result-container').text('');
+
+                },
+                onResult: function (node, query, obj, objCount) {
+
+                    var text = "";
+                    if (query !== "") {
+                        text = objCount + ' elements matching "' + query + '"';
+                    }
+                    $('#result-container').text(text);
+
                 }
             },
             debug: true

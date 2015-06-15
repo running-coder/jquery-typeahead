@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.4 (2015-06-10)
+ * @version 2.0.0-rc.4 (2015-06-14)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
@@ -293,7 +293,7 @@
                     'generateOnLoad' + _namespace
                 ];
 
-            this.container.on("click" + _namespace, function(e) {
+            this.container.on("click" + _namespace + ' touchstart' + _namespace, function(e) {
                 e.stopPropagation();
 
                 if (scope.options.dropdownFilter) {
@@ -930,7 +930,7 @@
                         this.resultCount += 1;
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
-                            this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
+                            this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGrou
                         ) {
                             break;
                         }
@@ -1357,11 +1357,12 @@
                                     scope.container.addClass('filter');
                                     filterContainer.show();
 
-                                    $('html').off(_namespace + ".dropdownFilter").on("click" + _namespace + ".dropdownFilter", function() {
-                                        scope.container.removeClass('filter');
-                                        filterContainer.hide();
-                                        $(this).off(_namespace + ".dropdownFilter");
-                                    });
+                                    $('html').off(_namespace + ".dropdownFilter")
+                                        .on("click" + _namespace + ".dropdownFilter" + ' touchstart' + _namespace + ".dropdownFilter", function() {
+                                            scope.container.removeClass('filter');
+                                            filterContainer.hide();
+                                            $(this).off(_namespace + ".dropdownFilter");
+                                        });
 
                                 } else {
                                     scope.container.removeClass('filter');
@@ -1473,7 +1474,7 @@
 
             var scope = this;
 
-            $('html').off(_namespace).on("click" + _namespace, function() {
+            $('html').off(_namespace).on("click" + _namespace + " touchstart" + _namespace, function() {
                 scope.hideLayout();
                 $(this).off(_namespace);
             });
