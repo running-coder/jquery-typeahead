@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.4 (2015-06-14)
+ * @version 2.0.0-rc.4 (2015-06-15)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -46,7 +46,7 @@
         resultContainer: null,  // -> New feature, list the results inside any container string or jQuery object
         generateOnLoad: null,   // -> New feature, forces the source to be generated on page load even if the input is not focused!
         mustSelectItem: false,  // -> New option, the submit function only gets called if an item is selected
-        href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on <a> results
+        href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on link results
         display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
         emptyTemplate: false,   // -> New feature, display an empty template if no result
