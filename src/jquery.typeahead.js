@@ -339,7 +339,7 @@
                     'generateOnLoad' + _namespace
                 ];
 
-            this.container.on("click" + _namespace + ' touchstart' + _namespace, function (e) {
+            this.container.off(_namespace).on("click" + _namespace + ' touchstart' + _namespace, function (e) {
                 e.stopPropagation();
 
                 if (scope.options.dropdownFilter) {
@@ -366,6 +366,7 @@
                 }
             });
 
+            var preventNextEvent = false;
             this.node.off(_namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
@@ -381,13 +382,17 @@
                     case "keydown":
                         if (scope.isGenerated && scope.result.length) {
                             if (e.keyCode && ~[13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                                preventNextEvent = true;
                                 scope.navigate(e);
                             }
                         }
                         break;
                     case "propertychange":
+                        if (preventNextEvent) {
+                            preventNextEvent = false;
+                            break;
+                        }
                     case "input":
-
                         scope.rawQuery = scope.node[0].value.toString();
                         scope.query = scope.node[0].value.replace(/^\s+/, '').toString();
 
@@ -408,9 +413,7 @@
                             }, scope.options.delay);
                             return;
                         }
-
                     case "dynamic":
-
                         if (!scope.isGenerated) {
                             break;
                         }
@@ -428,7 +431,6 @@
                         } else {
                             scope.hideLayout();
                         }
-
                         break;
                 }
 
@@ -496,8 +498,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                            this.options.source[group].data() ||
-                            this.options.source[group].data,
+                        this.options.source[group].data() ||
+                        this.options.source[group].data,
                         group
                     );
                     continue;
@@ -917,7 +919,7 @@
 
             if (this.options.hint && this.hint.container) {
                 if (activeItem.length > 0) {
-                    this.hint.container.css('color', 'transparent')
+                    this.hint.container.css('color', this.hint.container.css('background-color') || 'fff');
                 } else {
                     this.hint.container.css('color', this.hint.css.color)
                 }
@@ -1027,7 +1029,7 @@
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
                             this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGrou
-                            ) {
+                        ) {
                             break;
                         }
 
@@ -1356,33 +1358,37 @@
                             {
                                 "border-color": "transparent",
                                 "position": "absolute",
+                                "top": 0,
                                 "display": "inline",
-                                "z-index": 1,
+                                "z-index": -1,
                                 "float": "none",
                                 "color": "silver",
-                                "user-select": "none",
-                                "box-shadow": "none"
+                                "box-shadow": "none",
+                                "cursor": "default",
+                                "-webkit-user-select": "none",
+                                "-khtml-user-select": "none",
+                                "-moz-user-select": "none",
+                                "-ms-user-select": "none",
+                                "user-select": "none"
                             },
                             this.options.hint
                         );
 
-                        this.hint.container = this.node.clone(false).attr({
-                            "class": _options.selector.hint,
-                            "readonly": true,
-                            "tabindex": -1
-                        }).addClass(this.node.attr('class'))
-                            .removeAttr("id placeholder name autofocus autocomplete alt")
-                            .css(this.hint.css);
+                        this.hint.container = $('<input/>', {
+                            'type': this.node.attr('type'),
+                            'class': this.node.attr('class'),
+                            'readonly': true,
+                            'unselectable': 'on',
+                            'tabindex': -1,
+                            'click': function () {
+                                // IE8 Fix
+                                scope.node.focus();
+                            }
+                        }).addClass(_options.selector.hint)
+                            .css(this.hint.css)
+                            .insertAfter(this.node)
 
-                        this.helper.removeDataAttributes(this.hint.container);
-
-                        this.hint.container.insertBefore(this.node);
-
-                        this.node.css({
-                            "position": "relative",
-                            "z-index": 2,
-                            "background-color": "transparent"
-                        }).parent().css({
+                        this.node.parent().css({
                             "position": "relative"
                         });
                     }
@@ -1416,7 +1422,6 @@
                             break;
                         }
                     }
-
                 }
 
                 if (this.hint.container) {
@@ -1757,25 +1762,6 @@
                 return string;
             },
 
-            removeDataAttributes: function (target) {
-
-                var i,
-                    dataAttrsToDelete = [],
-                    dataAttrs = target.get(0).attributes;
-
-                for (i = 0; i < dataAttrs.length; i++) {
-                    if ('data-' === dataAttrs[i].name.substring(0, 5)) {
-                        dataAttrsToDelete.push(dataAttrs[i].name);
-                    }
-                }
-
-                for (i = 0; i < dataAttrsToDelete.length; i++) {
-                    target.removeAttr(dataAttrsToDelete[i]);
-                }
-
-            },
-
-
             /**
              * Get carret position, mainly used for right arrow navigation
              * @param element
@@ -2032,6 +2018,11 @@
 // {/debug}
 
 // IE8 Shims
+    window.console = window.console || {
+        log: function () {
+        }
+    };
+
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
             return this.replace(/^\s+/, '').replace(/\s+$/, '');

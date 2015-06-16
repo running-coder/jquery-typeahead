@@ -40,7 +40,7 @@
         resultContainer: null, // -> New feature, list the results inside any container string or jQuery object
         generateOnLoad: null, // -> New feature, forces the source to be generated on page load even if the input is not focused!
         mustSelectItem: false, // -> New option, the submit function only gets called if an item is selected
-        href: null, // -> New feature, String or Function to format the url for right-click & open in new tab on <a> results
+        href: null, // -> New feature, String or Function to format the url for right-click & open in new tab on link results
         display: ["display"], // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
         emptyTemplate: false, // -> New feature, display an empty template if no result
@@ -293,7 +293,7 @@
                     'generateOnLoad' + _namespace
                 ];
 
-            this.container.on("click" + _namespace + ' touchstart' + _namespace, function(e) {
+            this.container.off(_namespace).on("click" + _namespace + ' touchstart' + _namespace, function(e) {
                 e.stopPropagation();
 
                 if (scope.options.dropdownFilter) {
@@ -320,6 +320,7 @@
                 }
             });
 
+            var preventNextEvent = false;
             this.node.off(_namespace).on(events.join(' '), function(e) {
 
                 switch (e.type) {
@@ -335,13 +336,17 @@
                     case "keydown":
                         if (scope.isGenerated && scope.result.length) {
                             if (e.keyCode && ~[13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                                preventNextEvent = true;
                                 scope.navigate(e);
                             }
                         }
                         break;
                     case "propertychange":
+                        if (preventNextEvent) {
+                            preventNextEvent = false;
+                            break;
+                        }
                     case "input":
-
                         scope.rawQuery = scope.node[0].value.toString();
                         scope.query = scope.node[0].value.replace(/^\s+/, '').toString();
 
@@ -362,9 +367,7 @@
                             }, scope.options.delay);
                             return;
                         }
-
                     case "dynamic":
-
                         if (!scope.isGenerated) {
                             break;
                         }
@@ -382,7 +385,6 @@
                         } else {
                             scope.hideLayout();
                         }
-
                         break;
                 }
 
@@ -825,7 +827,7 @@
 
             if (this.options.hint && this.hint.container) {
                 if (activeItem.length > 0) {
-                    this.hint.container.css('color', 'transparent')
+                    this.hint.container.css('color', this.hint.container.css('background-color') || 'fff');
                 } else {
                     this.hint.container.css('color', this.hint.css.color)
                 }
@@ -1249,33 +1251,36 @@
                         this.hint.css = $.extend({
                                 "border-color": "transparent",
                                 "position": "absolute",
+                                "top": 0,
                                 "display": "inline",
-                                "z-index": 1,
+                                "z-index": -1,
                                 "float": "none",
                                 "color": "silver",
-                                "user-select": "none",
-                                "box-shadow": "none"
+                                "box-shadow": "none",
+                                "cursor": "default",
+                                "-webkit-user-select": "none",
+                                "-khtml-user-select": "none",
+                                "-moz-user-select": "none",
+                                "-ms-user-select": "none",
+                                "user-select": "none"
                             },
                             this.options.hint
                         );
 
-                        this.hint.container = this.node.clone(false).attr({
-                                "class": _options.selector.hint,
-                                "readonly": true,
-                                "tabindex": -1
-                            }).addClass(this.node.attr('class'))
-                            .removeAttr("id placeholder name autofocus autocomplete alt")
-                            .css(this.hint.css);
+                        this.hint.container = $('<input/>', {
+                                'type': this.node.attr('type'),
+                                'class': this.node.attr('class'),
+                                'readonly': true,
+                                'unselectable': 'on',
+                                'tabindex': -1,
+                                'click': function() {
+                                    scope.node.focus();
+                                }
+                            }).addClass(_options.selector.hint)
+                            .css(this.hint.css)
+                            .insertAfter(this.node)
 
-                        this.helper.removeDataAttributes(this.hint.container);
-
-                        this.hint.container.insertBefore(this.node);
-
-                        this.node.css({
-                            "position": "relative",
-                            "z-index": 2,
-                            "background-color": "transparent"
-                        }).parent().css({
+                        this.node.parent().css({
                             "position": "relative"
                         });
                     }
@@ -1309,7 +1314,6 @@
                             break;
                         }
                     }
-
                 }
 
                 if (this.hint.container) {
@@ -1602,25 +1606,6 @@
                 return string;
             },
 
-            removeDataAttributes: function(target) {
-
-                var i,
-                    dataAttrsToDelete = [],
-                    dataAttrs = target.get(0).attributes;
-
-                for (i = 0; i < dataAttrs.length; i++) {
-                    if ('data-' === dataAttrs[i].name.substring(0, 5)) {
-                        dataAttrsToDelete.push(dataAttrs[i].name);
-                    }
-                }
-
-                for (i = 0; i < dataAttrsToDelete.length; i++) {
-                    target.removeAttr(dataAttrsToDelete[i]);
-                }
-
-            },
-
-
             getCaret: function(element) {
                 if (element.selectionStart) {
                     return element.selectionStart;
@@ -1814,6 +1799,10 @@
         }
 
     };
+    window.console = window.console || {
+        log: function() {}
+    };
+
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function() {
             return this.replace(/^\s+/, '').replace(/\s+$/, '');

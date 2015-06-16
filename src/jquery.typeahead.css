@@ -116,7 +116,6 @@ input {
 
 .typeahead-query {
     width: 100%;
-    background: #fff;
 }
 
 .typeahead-filter {
@@ -166,7 +165,7 @@ input {
     font-size: 13px;
     line-height: 1.42857143;
     color: #555555;
-    background: #fff;
+    background: transparent;
     border: 1px solid #cccccc;
     border-radius: 2px 0 0 2px;
     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
@@ -184,8 +183,13 @@ input {
     opacity: 1;
 }
 
-input.typeahead-hint[readonly] {
-    background-color: transparent;
+.typeahead-field input:first-child {
+    background: transparent;
+}
+
+.typeahead-field input,
+.typeahead-field input.typeahead-hint {
+    background: #fff;
 }
 
 .typeahead-container button {
@@ -249,7 +253,7 @@ input.typeahead-hint[readonly] {
 
 .typeahead-filter button,
 .typeahead-button button {
-    margin-left: -2px;
+    margin-left: -1px;
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
 }
@@ -334,14 +338,20 @@ input.typeahead-hint[readonly] {
     text-decoration: none;
 }
 
-.typeahead-list:not(.empty) > li > a:hover,
-.typeahead-list:not(.empty) > li > a:focus,
-.typeahead-list:not(.empty) > li.active > a,
+.typeahead-list > li > a:hover,
+.typeahead-list > li > a:focus,
+.typeahead-list > li.active > a,
 .typeahead-dropdown > li > a:hover,
 .typeahead-dropdown > li > a:focus,
 .typeahead-dropdown > li.active > a {
     background-color: #ebebeb;
     color: #333;
+}
+
+.typeahead-list.empty > li > a:hover,
+.typeahead-list.empty > li > a:focus,
+.typeahead-list.empty > li.active > a {
+    background-color: transparent;
 }
 
 .typeahead-list.empty > li > a {
