@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.4 (2015-06-14)
+ * @version 2.0.0-rc.4 (2015-06-16)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
@@ -1073,11 +1073,13 @@
 
                                             if (_href) {
                                                 if (typeof _href === "string") {
-                                                    _href = _href.replace(/\{\{([a-z0-9_\-]+)\|?(\w+)?}}/gi, function(match, index, option) {
+                                                    _href = _href.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function(match, index, option) {
+
+                                                        var value = scope.helper.getObjectRecursionProperty(item, index) || match;
                                                         if (option && option === "raw") {
-                                                            return item[index] || match;
+                                                            return value;
                                                         }
-                                                        return item[index] && scope.helper.slugify(item[index]) || match;
+                                                        return value !== match && scope.helper.slugify(value) || value;
 
                                                     });
                                                 } else if (typeof _href === "function") {
@@ -1096,12 +1098,13 @@
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
 
                                             if (_template) {
-                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-]+)\|?(\w+)?}}/gi, function(match, index, option) {
-                                                    match = item[index] || match;
-                                                    if (option) {
-                                                        if (option === "raw") return match;
+                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function(match, index, option) {
+
+                                                    var value = scope.helper.getObjectRecursionProperty(item, index) || match;
+                                                    if (option && option === "raw") {
+                                                        return value;
                                                     }
-                                                    return _display[index] || match;
+                                                    return scope.helper.getObjectRecursionProperty(_display, index) || value;
                                                 });
                                             } else {
                                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
@@ -1690,6 +1693,25 @@
                 }
 
                 return _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : [])) || true;
+
+            },
+
+            getObjectRecursionProperty: function(scope, objectString) {
+
+                var _exploded = objectString.split('.'),
+                    _isValid = true,
+                    _splitIndex = 0;
+
+                while (_splitIndex < _exploded.length) {
+                    if (typeof scope !== 'undefined') {
+                        scope = scope[_exploded[_splitIndex++]];
+                    } else {
+                        _isValid = false;
+                        break;
+                    }
+                }
+
+                return _isValid && scope || false;
 
             },
 
