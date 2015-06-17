@@ -4,14 +4,14 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.4 (2015-06-16)
+ * @version 2.0.0-rc.5 (2015-06-17)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
 (function(window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.0.0-rc.4'
+        version: '2.0.0-rc.5'
     };
 
     "use strict";
@@ -319,8 +319,8 @@
                     return false;
                 }
             });
-
             var preventNextEvent = false;
+
             this.node.off(_namespace).on(events.join(' '), function(e) {
 
                 switch (e.type) {
@@ -1642,27 +1642,12 @@
 
                 } else if (typeof callback === "string" || callback instanceof Array) {
 
-                    _callback = window;
-
                     if (typeof callback === "string") {
                         callback = [callback, []];
                     }
+                    _callback = this.helper.getObjectRecursionProperty(window, callback[0]);
 
-                    var _exploded = callback[0].split('.'),
-                        _params = callback[1],
-                        _isValid = true,
-                        _splitIndex = 0;
-
-                    while (_splitIndex < _exploded.length) {
-                        if (typeof _callback !== 'undefined') {
-                            _callback = _callback[_exploded[_splitIndex++]];
-                        } else {
-                            _isValid = false;
-                            break;
-                        }
-                    }
-
-                    if (!_isValid || typeof _callback !== "function") {
+                    if (typeof _callback !== "function") {
                         _debug.log({
                             'node': _node.selector,
                             'function': 'executeCallback()',
@@ -1677,7 +1662,7 @@
 
                 }
 
-                return _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : [])) || true;
+                return _callback.apply(this, $.merge(callback[1] || [], (extraParams) ? extraParams : [])) || true;
 
             },
 

@@ -4,14 +4,14 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.4 (2015-06-16)
+ * @version 2.0.0-rc.5 (2015-06-17)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
 (function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.0.0-rc.4'
+        version: '2.0.0-rc.5'
     };
 
     "use strict";
@@ -366,7 +366,9 @@
                 }
             });
 
+            // IE8 fix
             var preventNextEvent = false;
+
             this.node.off(_namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
@@ -450,7 +452,6 @@
 
             this.generatedGroupCount = 0;
             this.isGenerated = false;
-            //this.requests = [];
 
             if (!this.helper.isEmpty(this.xhr)) {
                 for (var i in this.xhr) {
@@ -498,8 +499,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                        this.options.source[group].data() ||
-                        this.options.source[group].data,
+                            this.options.source[group].data() ||
+                            this.options.source[group].data,
                         group
                     );
                     continue;
@@ -1029,7 +1030,7 @@
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
                             this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGrou
-                        ) {
+                            ) {
                             break;
                         }
 
@@ -1354,8 +1355,7 @@
 
                     if (!this.hint.container) {
 
-                        this.hint.css = $.extend(
-                            {
+                        this.hint.css = $.extend({
                                 "border-color": "transparent",
                                 "position": "absolute",
                                 "top": 0,
@@ -1825,27 +1825,12 @@
 
                 } else if (typeof callback === "string" || callback instanceof Array) {
 
-                    _callback = window;
-
                     if (typeof callback === "string") {
                         callback = [callback, []];
                     }
+                    _callback = this.helper.getObjectRecursionProperty(window, callback[0]);
 
-                    var _exploded = callback[0].split('.'),
-                        _params = callback[1],
-                        _isValid = true,
-                        _splitIndex = 0;
-
-                    while (_splitIndex < _exploded.length) {
-                        if (typeof _callback !== 'undefined') {
-                            _callback = _callback[_exploded[_splitIndex++]];
-                        } else {
-                            _isValid = false;
-                            break;
-                        }
-                    }
-
-                    if (!_isValid || typeof _callback !== "function") {
+                    if (typeof _callback !== "function") {
 
                         // {debug}
                         _debug.log({
@@ -1863,7 +1848,7 @@
 
                 }
 
-                return _callback.apply(this, $.merge(_params || [], (extraParams) ? extraParams : [])) || true;
+                return _callback.apply(this, $.merge(callback[1] || [], (extraParams) ? extraParams : [])) || true;
 
             },
 
