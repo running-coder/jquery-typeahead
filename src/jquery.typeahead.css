@@ -156,7 +156,8 @@ input {
     border-bottom-right-radius: 2px;
 }
 
-.typeahead-field input {
+.typeahead-field input,
+.typeahead-select {
     display: block;
     width: 100%;
     height: 32px;
@@ -172,7 +173,6 @@ input {
     -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
     -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
     transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-    -webkit-appearance: none;
 }
 
 .typeahead-field input.disabled,
@@ -182,12 +182,13 @@ input {
     opacity: 1;
 }
 
-.typeahead-field input:first-child {
+.typeahead-field input {
+    -webkit-appearance: none;
     background: transparent;
 }
 
-.typeahead-field input,
-.typeahead-field input.typeahead-hint {
+.typeahead-field input:last-child,
+.typeahead-hint {
     background: #fff;
 }
 

@@ -36,7 +36,7 @@
         group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
         maxItemPerGroup: null,  // -> Renamed option
         dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
-        dynamicFilter: null,    // -> *Coming soon* New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
+        dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
         backdrop: false,
         cache: false,
         ttl: 3600000,
@@ -126,10 +126,12 @@
         this.container = null;          // Typeahead container, usually right after <form>
         this.resultContainer = null;    // Typeahead result container (html)
         this.item = null;               // The selected item
-        this.dropdownFilter = null;     // The selected dropdown filter (if any)
         this.xhr = {};                  // Ajax request(s) stack
         this.hintIndex = null;          // Numeric value of the hint index in the result list
-        this.filters = {};              // Filter list for searching, dropdown and dynamic(s)
+        this.filters = {                // Filter list for searching, dropdown and dynamic(s)
+            dropdown: {},               // Dropdown menu if options.dropdownFilter is set
+            dynamic: {}                 // Checkbox / Radio / Select to filter the source data
+        };
         this.requests = {};             // Store the group:request instead of generating them every time
 
         this.backdrop = {};             // The backdrop object
@@ -194,6 +196,10 @@
 
             if (this.options.group && !(this.options.group instanceof Array)) {
                 this.options.group = [this.options.group];
+            }
+
+            if (this.options.dynamicFilter && !(this.options.dynamicFilter instanceof Array)) {
+                this.options.dynamicFilter = [this.options.dynamicFilter]
             }
 
             if (this.options.resultContainer) {
@@ -938,7 +944,6 @@
 
         },
 
-        // @TODO implement dynamicFilter
         searchResult: function () {
 
             this.item = {};
@@ -956,6 +961,7 @@
                 comparedQuery = this.query,
                 itemPerGroup = {},
                 groupBy = this.filters.dropdown && this.filters.dropdown.key || this.groupBy,
+                hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
                 missingDisplayKey = {},
                 filter;
@@ -980,6 +986,7 @@
 
                 for (var k = 0; k < this.source[group].length; k++) {
                     if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
+                    if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
                     item.group = group;
@@ -1182,7 +1189,7 @@
                                                 if (typeof _href === "string") {
                                                     _href = _href.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function (match, index, option) {
 
-                                                        var value = scope.helper.getObjectRecursionProperty(item, index) || match;
+                                                        var value = scope.helper.namespace(index, item, 'get') || match;
                                                         if (option && option === "raw") {
                                                             return value;
                                                         }
@@ -1207,11 +1214,13 @@
                                             if (_template) {
                                                 _aHtml = _template.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function (match, index, option) {
 
-                                                    var value = scope.helper.getObjectRecursionProperty(item, index) || match;
+                                                    //var value = scope.helper.getObjectRecursionProperty(item, index) || match;
+                                                    var value = scope.helper.namespace(index, item, 'get') || match;
                                                     if (option && option === "raw") {
                                                         return value;
                                                     }
-                                                    return scope.helper.getObjectRecursionProperty(_display, index) || value;
+                                                    return value = scope.helper.namespace(index, _display, 'get') || value;
+                                                    //return scope.helper.getObjectRecursionProperty(_display, index) || value;
                                                 });
                                             } else {
                                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
@@ -1594,6 +1603,97 @@
 
         },
 
+        dynamicFilter: {
+
+            validate: function (item) {
+
+                var isValid = false,
+                    itemFilter;
+
+                for (var filter in this.filters.dynamic) {
+                    if (!this.filters.dynamic.hasOwnProperty(filter)) continue;
+
+                    itemFilter = this.helper.namespace(filter, item, 'get');
+
+                    if (!itemFilter) continue;
+                    if (itemFilter == this.filters.dynamic[filter]) {
+                        isValid = true;
+                        break;
+                    }
+
+                }
+
+                return isValid;
+
+            },
+
+            set: function (key, value) {
+
+                if (!value ) {
+                    delete this.filters.dynamic[key];
+                } else {
+                    this.filters.dynamic[key] = value;
+                }
+
+                this.searchResult();
+                this.buildLayout();
+
+            },
+            bind: function () {
+
+                if (!this.options.dynamicFilter) {
+                    return;
+                }
+
+                var scope = this;
+
+                var filter;
+                for (var i = 0; i < this.options.dynamicFilter.length; i++) {
+
+                    filter = this.options.dynamicFilter[i];
+
+                    if (typeof filter.selector === "string") {
+                        filter.selector = $(filter.selector);
+                    }
+
+                    if (!(filter.selector instanceof jQuery) || !filter.selector[0]) {
+                        // {debug}
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'buildDynamicLayout()',
+                            'message': 'Invalid jQuery selector or jQuery Object for "filter.selector".'
+                        });
+
+                        _debug.print();
+                        // {/debug}
+                        continue;
+                    }
+
+                    (function (filter) {
+                        filter.selector.on('change', function () {
+                            scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)])
+                        })
+                    }(filter));
+
+                }
+            },
+
+            getValue: function (tag) {
+                var value;
+                if (tag.tagName === "SELECT") {
+                    value = tag.value;
+                } else if (tag.tagName === "INPUT") {
+                    if (tag.type === "checkbox") {
+                        value = tag.checked || null;
+                    } else if (tag.type === "radio") {
+                        // @TODO Get radio value...
+
+                    }
+                }
+                return value;
+            }
+        },
+
         showLayout: function () {
 
             var scope = this;
@@ -1628,6 +1728,7 @@
             this.init();
             this.delegateEvents();
             this.buildDropdownLayout();
+            this.dynamicFilter.bind.apply(this);
 
             this.helper.executeCallback(this.options.callback.onReady, [this.node]);
         },
@@ -1828,7 +1929,8 @@
                     if (typeof callback === "string") {
                         callback = [callback, []];
                     }
-                    _callback = this.helper.getObjectRecursionProperty(window, callback[0]);
+                    //_callback = this.helper.getObjectRecursionProperty(window, callback[0]);
+                    _callback = this.helper.namespace(callback[0], window, 'get');
 
                     if (typeof _callback !== "function") {
 
@@ -1852,23 +1954,44 @@
 
             },
 
-            getObjectRecursionProperty: function (scope, objectString) {
+            namespace: function (namespaceString, objectReference, method, objectValue) {
 
-                var _exploded = objectString.split('.'),
-                    _isValid = true,
-                    _splitIndex = 0;
-
-                while (_splitIndex < _exploded.length) {
-                    if (typeof scope !== 'undefined') {
-                        scope = scope[_exploded[_splitIndex++]];
-                    } else {
-                        _isValid = false;
-                        break;
-                    }
+                if (typeof namespaceString !== "string" || namespaceString === "") {
+                    window.debug('window.namespace.' + method + ' - Missing namespaceString.');
+                    return false;
                 }
 
-                return _isValid && scope || false;
+                var parts = namespaceString.split('.'),
+                    parent = objectReference || window,
+                    value = objectValue || {},
+                    currentPart = '';
 
+                for (var i = 0, length = parts.length; i < length; i++) {
+                    currentPart = parts[i];
+
+                    if (!parent[currentPart]) {
+                        if (~['get', 'delete'].indexOf(method)) {
+                            return false;
+                        }
+                        parent[currentPart] = {};
+                    }
+
+                    if (~['set', 'create', 'delete'].indexOf(method)) {
+                        if (i === length - 1) {
+                            if (method === 'set' || method === 'create') {
+                                parent[currentPart] = value;
+                            } else {
+
+                                delete parent[currentPart];
+                                return true;
+                            }
+                        }
+                    }
+
+                    parent = parent[currentPart];
+
+                }
+                return parent;
             },
 
             typeWatch: (function () {
