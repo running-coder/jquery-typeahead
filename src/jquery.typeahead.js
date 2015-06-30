@@ -4,14 +4,14 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.5 (2015-06-17)
+ * @version 2.0.0-rc.6 (2015-06-30)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
 (function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.0.0-rc.5'
+        version: '2.0.0-rc.6'
     };
 
     "use strict";
@@ -409,7 +409,6 @@
                                 scope.hint.container.val('')
                             }
                         }
-
                         if (scope.options.dynamic) {
                             scope.isGenerated = null;
                             scope.helper.typeWatch(function () {
@@ -425,7 +424,6 @@
                         if (!scope.isGenerated) {
                             break;
                         }
-
                         if (scope.query.length < scope.options.minLength) {
                             scope.hideLayout();
                             break;
@@ -439,6 +437,7 @@
                         } else {
                             scope.hideLayout();
                         }
+
                         break;
                 }
 
@@ -514,11 +513,9 @@
 
                 // Get group source from Ajax / JsonP
                 if (this.options.source[group].url) {
-
                     if (!this.requests[group]) {
                         this.requests[group] = this.generateRequestObject(group);
                     }
-
                 }
             }
 
@@ -1036,7 +1033,7 @@
                         this.resultCount += 1;
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
-                            this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGrou
+                            this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
                             ) {
                             break;
                         }
@@ -1214,13 +1211,13 @@
                                             if (_template) {
                                                 _aHtml = _template.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function (match, index, option) {
 
-                                                    //var value = scope.helper.getObjectRecursionProperty(item, index) || match;
                                                     var value = scope.helper.namespace(index, item, 'get') || match;
                                                     if (option && option === "raw") {
                                                         return value;
                                                     }
-                                                    return value = scope.helper.namespace(index, _display, 'get') || value;
-                                                    //return scope.helper.getObjectRecursionProperty(_display, index) || value;
+
+                                                    return scope.helper.namespace(index, _display, 'get') || value;
+
                                                 });
                                             } else {
                                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
@@ -1375,7 +1372,6 @@
                                 "box-shadow": "none",
                                 "cursor": "default",
                                 "-webkit-user-select": "none",
-                                "-khtml-user-select": "none",
                                 "-moz-user-select": "none",
                                 "-ms-user-select": "none",
                                 "user-select": "none"
@@ -1447,7 +1443,6 @@
                 return;
             }
 
-            //var dropdownNamespace = _namespace + '.dropdown';
             var scope = this,
                 defaultText;
 
@@ -1607,32 +1602,57 @@
 
             validate: function (item) {
 
-                var isValid = false,
-                    itemFilter;
+                var isValid,
+                    softValid = null,
+                    hardValid = null,
+                    itemValue;
 
-                for (var filter in this.filters.dynamic) {
-                    if (!this.filters.dynamic.hasOwnProperty(filter)) continue;
-
-                    itemFilter = this.helper.namespace(filter, item, 'get');
-
-                    if (!itemFilter) continue;
-                    if (itemFilter == this.filters.dynamic[filter]) {
-                        isValid = true;
-                        break;
+                for (var key in this.filters.dynamic) {
+                    if (!this.filters.dynamic.hasOwnProperty(key)) continue;
+                    if (!!~key.indexOf('.')) {
+                        itemValue = this.helper.namespace(key, item, 'get');
+                    } else {
+                        itemValue = item[key];
                     }
 
+                    if (this.filters.dynamic[key].modifier === '|' && !softValid) {
+                        softValid = itemValue == this.filters.dynamic[key].value || false;
+                    }
+
+                    if (this.filters.dynamic[key].modifier === '&') {
+                        // Leaving "==" in case of comparing number with string
+                        if (itemValue == this.filters.dynamic[key].value) {
+                            hardValid = true;
+                        } else {
+                            hardValid = false;
+                            break;
+                        }
+                    }
                 }
 
-                return isValid;
+                isValid = softValid;
+                if (hardValid !== null) {
+                    isValid = hardValid;
+                    if (hardValid === true && softValid !== null) {
+                        isValid = softValid;
+                    }
+                }
+
+                return !!isValid;
 
             },
 
             set: function (key, value) {
 
-                if (!value ) {
-                    delete this.filters.dynamic[key];
+                var matches = key.match(/^([|&])?(.+)/);
+
+                if (!value) {
+                    delete this.filters.dynamic[matches[2]];
                 } else {
-                    this.filters.dynamic[key] = value;
+                    this.filters.dynamic[matches[2]] = {
+                        modifier: matches[1] || '|',
+                        value: value
+                    };
                 }
 
                 this.searchResult();
@@ -1656,12 +1676,12 @@
                         filter.selector = $(filter.selector);
                     }
 
-                    if (!(filter.selector instanceof jQuery) || !filter.selector[0]) {
+                    if (!(filter.selector instanceof jQuery) || !filter.selector[0] || !filter.key) {
                         // {debug}
                         _debug.log({
                             'node': this.node.selector,
                             'function': 'buildDynamicLayout()',
-                            'message': 'Invalid jQuery selector or jQuery Object for "filter.selector".'
+                            'message': 'Invalid jQuery selector or jQuery Object for "filter.selector" or missing filter.key'
                         });
 
                         _debug.print();
@@ -1670,9 +1690,9 @@
                     }
 
                     (function (filter) {
-                        filter.selector.on('change', function () {
-                            scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)])
-                        })
+                        filter.selector.off(_namespace).on('change' + _namespace, function () {
+                            scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)]);
+                        }).trigger('change' + _namespace);
                     }(filter));
 
                 }
@@ -1685,9 +1705,8 @@
                 } else if (tag.tagName === "INPUT") {
                     if (tag.type === "checkbox") {
                         value = tag.checked || null;
-                    } else if (tag.type === "radio") {
-                        // @TODO Get radio value...
-
+                    } else if (tag.type === "radio" && tag.checked) {
+                        value = tag.value;
                     }
                 }
                 return value;
