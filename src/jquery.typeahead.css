@@ -175,13 +175,6 @@ input {
     transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
 
-.typeahead-field input.disabled,
-.typeahead-field input[disabled] {
-    cursor: not-allowed;
-    background-color: #eee;
-    opacity: 1;
-}
-
 .typeahead-field input {
     -webkit-appearance: none;
     background: transparent;
@@ -239,6 +232,8 @@ input {
     box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
 
+.typeahead-field input.disabled,
+.typeahead-field input[disabled],
 .typeahead-container button.disabled,
 .typeahead-container button[disabled] {
     cursor: not-allowed;
