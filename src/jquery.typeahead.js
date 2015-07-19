@@ -489,6 +489,16 @@
                             if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
                                 this.populateSource(dataInLocalstorage.data, group);
                                 isValidStorage = true;
+
+                                // {debug}
+                                _debug.log({
+                                    'node': this.node.selector,
+                                    'function': 'generateSource()',
+                                    'message': 'Source for group "' + group + '" found in localStorage.'
+                                });
+                                _debug.print();
+                                // {/debug}
+
                             } else {
                                 window.localStorage.removeItem(this.node.selector + ":" + group);
                             }
