@@ -4,14 +4,14 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.6 (2015-07-14)
+ * @version 2.0.0 (2015-07-19)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;
 (function(window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.0.0-rc.6'
+        version: '2.0.0'
     };
 
     "use strict";
@@ -437,6 +437,13 @@
                             if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
                                 this.populateSource(dataInLocalstorage.data, group);
                                 isValidStorage = true;
+                                _debug.log({
+                                    'node': this.node.selector,
+                                    'function': 'generateSource()',
+                                    'message': 'Source for group "' + group + '" found in localStorage.'
+                                });
+                                _debug.print();
+
                             } else {
                                 window.localStorage.removeItem(this.node.selector + ":" + group);
                             }
@@ -630,18 +637,28 @@
 
         populateSource: function(data, group, path) {
 
-            var isValid = true,
-                extraData;
+            var extraData,
+                tmpData;
 
-            if (typeof path === "string") {
+            if (data && typeof path === "string") {
+
                 var exploded = path.split('.'),
                     splitIndex = 0;
 
                 while (splitIndex < exploded.length) {
-                    if (typeof data !== 'undefined') {
-                        data = data[exploded[splitIndex++]];
+                    tmpData = data[exploded[splitIndex++]];
+
+                    if (typeof tmpData !== 'undefined') {
+                        data = tmpData;
                     } else {
-                        isValid = false;
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'populateSource()',
+                            'arguments': path,
+                            'message': 'Invalid data path.'
+                        });
+
+                        _debug.print();
                         break;
                     }
                 }
@@ -657,20 +674,10 @@
                     'message': 'Invalid data type, must be Array type.'
                 });
                 _debug.print();
-                return;
+
+                data = [];
             }
 
-            if (!isValid) {
-                _debug.log({
-                    'node': this.node.selector,
-                    'function': 'populateSource()',
-                    'arguments': JSON.stringify(path),
-                    'message': 'Invalid path.'
-                });
-
-                _debug.print();
-                return;
-            }
 
             extraData = this.options.source[group].url && this.options.source[group].data;
 
@@ -691,7 +698,6 @@
 
                     _debug.print();
                 }
-
             }
 
             var tmpObj,

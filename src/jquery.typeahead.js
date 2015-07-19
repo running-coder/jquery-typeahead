@@ -4,14 +4,14 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0-rc.6 (2015-07-14)
+ * @version 2.0.0 (2015-07-19)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
 (function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.0.0-rc.6'
+        version: '2.0.0'
     };
 
     "use strict";
@@ -713,18 +713,30 @@
          */
         populateSource: function (data, group, path) {
 
-            var isValid = true,
-                extraData;
+            var extraData,
+                tmpData;
 
-            if (typeof path === "string") {
+            if (data && typeof path === "string") {
+
                 var exploded = path.split('.'),
                     splitIndex = 0;
 
                 while (splitIndex < exploded.length) {
-                    if (typeof data !== 'undefined') {
-                        data = data[exploded[splitIndex++]];
+                    tmpData = data[exploded[splitIndex++]];
+
+                    if (typeof tmpData !== 'undefined') {
+                        data = tmpData;
                     } else {
-                        isValid = false;
+                        // {debug}
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'populateSource()',
+                            'arguments': path,
+                            'message': 'Invalid data path.'
+                        });
+
+                        _debug.print();
+                        // {/debug}
                         break;
                     }
                 }
@@ -740,22 +752,10 @@
                 });
                 _debug.print();
                 // {/debug}
-                return;
+
+                data = [];
             }
 
-            if (!isValid) {
-                // {debug}
-                _debug.log({
-                    'node': this.node.selector,
-                    'function': 'populateSource()',
-                    'arguments': JSON.stringify(path),
-                    'message': 'Invalid path.'
-                });
-
-                _debug.print();
-                // {/debug}
-                return;
-            }
 
             extraData = this.options.source[group].url && this.options.source[group].data;
 
@@ -779,7 +779,6 @@
                     _debug.print();
                 }
                 // {/debug}
-
             }
 
             var tmpObj,
