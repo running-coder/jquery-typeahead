@@ -23,23 +23,9 @@ module.exports = function (grunt) {
                 files: [
                     {
                         src: ['src/jquery.typeahead.js'],
-                        dest: 'dist/jquery.typeahead.js'
-                    },
-                    {
-                        src: ['src/jquery.typeahead.js'],
                         dest: 'dist/jquery.typeahead.min.js'
                     }
                 ]
-            }
-        },
-
-        comments: {
-            dist: {
-                options: {
-                    singleline: true,
-                    multiline: true
-                },
-                src: [ 'dist/jquery.typeahead.js']
             }
         },
 
@@ -91,28 +77,6 @@ module.exports = function (grunt) {
                         dest: 'dist/jquery.typeahead.min.js'
                     }
                 ]
-            },
-            removeComments: {
-                options: {
-                    patterns: [
-                        {
-                            match: /\/\*[^!][\S\s]+?\*\//gm,
-                            replacement: ''
-                        }
-                    ]
-                },
-                files: [
-                    {
-                        src: ['dist/jquery.typeahead.js'],
-                        dest: 'dist/jquery.typeahead.js'
-                    }
-                ]
-            }
-        },
-
-        jsbeautifier : {
-            files : ['dist/jquery.typeahead.js'],
-            options : {
             }
         },
 
@@ -156,13 +120,9 @@ module.exports = function (grunt) {
         'replace:banner',
         'replace:version',
         'copy:dist',
-        'comments',
-        'replace:removeComments',
-        'jsbeautifier',
         'replace:removeDebug',
         'uglify',
         'cssmin'
-
     ]);
 
 };

@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-07-23)
+ * @version 2.0.0 (2015-07-24)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -170,13 +170,15 @@
             if (this.options.compression) {
                 if (typeof LZString !== 'object' || !this.options.cache) {
                     // {debug}
-                    _debug.log({
-                        'node': this.node.selector,
-                        'function': 'extendOptions()',
-                        'message': 'Missing LZString Library or options.cache, no compression will occur.'
-                    });
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'extendOptions()',
+                            'message': 'Missing LZString Library or options.cache, no compression will occur.'
+                        });
 
-                    _debug.print();
+                        _debug.print();
+                    }
                     // {/debug}
                     this.options.compression = false;
                 }
@@ -209,13 +211,15 @@
 
                 if (!(this.options.resultContainer instanceof jQuery) || !this.options.resultContainer[0]) {
                     // {debug}
-                    _debug.log({
-                        'node': this.node.selector,
-                        'function': 'extendOptions()',
-                        'message': 'Invalid jQuery selector or jQuery Object for "options.resultContainer".'
-                    });
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'extendOptions()',
+                            'message': 'Invalid jQuery selector or jQuery Object for "options.resultContainer".'
+                        });
 
-                    _debug.print();
+                        _debug.print();
+                    }
                     // {/debug}
                 } else {
                     this.resultContainer = this.options.resultContainer;
@@ -273,14 +277,16 @@
                 if (!this.options.source[group].data && !this.options.source[group].url) {
 
                     // {debug}
-                    _debug.log({
-                        'node': this.node.selector,
-                        'function': 'unifySourceFormat()',
-                        'arguments': JSON.stringify(this.options.source),
-                        'message': 'Undefined "options.source.' + group + '.[data|url]" is Missing - Typeahead dropped'
-                    });
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'unifySourceFormat()',
+                            'arguments': JSON.stringify(this.options.source),
+                            'message': 'Undefined "options.source.' + group + '.[data|url]" is Missing - Typeahead dropped'
+                        });
 
-                    _debug.print();
+                        _debug.print();
+                    }
                     // {/debug}
 
                     return false;
@@ -294,14 +300,16 @@
                     if (!(this.options.source[group].ignore instanceof RegExp)) {
 
                         // {debug}
-                        _debug.log({
-                            'node': this.node.selector,
-                            'function': 'unifySourceFormat()',
-                            'arguments': JSON.stringify(this.options.source[group].ignore),
-                            'message': 'Invalid ignore RegExp.'
-                        });
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': this.node.selector,
+                                'function': 'unifySourceFormat()',
+                                'arguments': JSON.stringify(this.options.source[group].ignore),
+                                'message': 'Invalid ignore RegExp.'
+                            });
 
-                        _debug.print();
+                            _debug.print();
+                        }
                         // {/debug}
 
                         delete this.options.source[group].ignore;
@@ -321,14 +329,16 @@
             this.container = this.node.closest('.' + this.options.selector.container);
 
             // {debug}
-            _debug.log({
-                'node': this.node.selector,
-                'function': 'init()',
-                //'arguments': JSON.stringify(this.options),
-                'message': 'OK - Typeahead activated on ' + this.node.selector
-            });
+            if (this.options.debug) {
+                _debug.log({
+                    'node': this.node.selector,
+                    'function': 'init()',
+                    //'arguments': JSON.stringify(this.options),
+                    'message': 'OK - Typeahead activated on ' + this.node.selector
+                });
 
-            _debug.print();
+                _debug.print();
+            }
             // {/debug}
 
         },
@@ -491,12 +501,14 @@
                                 isValidStorage = true;
 
                                 // {debug}
-                                _debug.log({
-                                    'node': this.node.selector,
-                                    'function': 'generateSource()',
-                                    'message': 'Source for group "' + group + '" found in localStorage.'
-                                });
-                                _debug.print();
+                                if (this.options.debug) {
+                                    _debug.log({
+                                        'node': this.node.selector,
+                                        'function': 'generateSource()',
+                                        'message': 'Source for group "' + group + '" found in localStorage.'
+                                    });
+                                    _debug.print();
+                                }
                                 // {/debug}
 
                             } else {
@@ -644,12 +656,14 @@
 
                                 // {debug}
                                 if (!(tmpData instanceof Array)) {
-                                    _debug.log({
-                                        'node': scope.node.selector,
-                                        'function': 'Ajax.callback.done()',
-                                        'message': 'Invalid returned data has to be an Array'
-                                    });
-                                    _debug.print();
+                                    if (scope.options.debug) {
+                                        _debug.log({
+                                            'node': scope.node.selector,
+                                            'function': 'Ajax.callback.done()',
+                                            'message': 'Invalid returned data has to be an Array'
+                                        });
+                                        _debug.print();
+                                    }
                                 }
                                 // {/debug}
                             }
@@ -672,13 +686,15 @@
                         }
 
                         // {debug}
-                        _debug.log({
-                            'node': scope.node.selector,
-                            'function': 'Ajax.callback.fail()',
-                            'message': 'Request failed'
-                        });
+                        if (scope.options.debug) {
+                            _debug.log({
+                                'node': scope.node.selector,
+                                'function': 'Ajax.callback.fail()',
+                                'message': 'Request failed'
+                            });
 
-                        _debug.print();
+                            _debug.print();
+                        }
                         // {/debug}
 
                     }).complete(function (jqXHR, textStatus) {
@@ -728,14 +744,16 @@
                         data = tmpData;
                     } else {
                         // {debug}
-                        _debug.log({
-                            'node': this.node.selector,
-                            'function': 'populateSource()',
-                            'arguments': path,
-                            'message': 'Invalid data path.'
-                        });
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': this.node.selector,
+                                'function': 'populateSource()',
+                                'arguments': path,
+                                'message': 'Invalid data path.'
+                            });
 
-                        _debug.print();
+                            _debug.print();
+                        }
                         // {/debug}
                         break;
                     }
@@ -744,13 +762,15 @@
 
             if (!(data instanceof Array)) {
                 // {debug}
-                _debug.log({
-                    'node': this.node.selector,
-                    'function': 'populateSource()',
-                    'arguments': JSON.stringify({group: group}),
-                    'message': 'Invalid data type, must be Array type.'
-                });
-                _debug.print();
+                if (this.options.debug) {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'populateSource()',
+                        'arguments': JSON.stringify({group: group}),
+                        'message': 'Invalid data type, must be Array type.'
+                    });
+                    _debug.print();
+                }
                 // {/debug}
 
                 data = [];
@@ -769,14 +789,16 @@
                 }
                 // {debug}
                 else {
-                    _debug.log({
-                        'node': this.node.selector,
-                        'function': 'populateSource()',
-                        'arguments': JSON.stringify(extraData),
-                        'message': 'WARNING - this.options.source.' + group + '.data Must be an Array or a function that returns an Array.'
-                    });
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'populateSource()',
+                            'arguments': JSON.stringify(extraData),
+                            'message': 'WARNING - this.options.source.' + group + '.data Must be an Array or a function that returns an Array.'
+                        });
 
-                    _debug.print();
+                        _debug.print();
+                    }
                 }
                 // {/debug}
             }
@@ -1017,10 +1039,12 @@
 
                             if (!comparedDisplay) {
                                 // {debug}
-                                missingDisplayKey[i] = {
-                                    display: displayKeys[i],
-                                    data: item
-                                };
+                                if (this.options.debug) {
+                                    missingDisplayKey[i] = {
+                                        display: displayKeys[i],
+                                        data: item
+                                    };
+                                }
                                 // {/debug}
                                 continue;
                             }
@@ -1064,15 +1088,17 @@
             }
 
             // {debug}
-            if (!this.helper.isEmpty(missingDisplayKey)) {
-                _debug.log({
-                    'node': this.node.selector,
-                    'function': 'searchResult()',
-                    'arguments': JSON.stringify(missingDisplayKey),
-                    'message': 'Missing keys for display, make sure options.display is set properly.'
-                });
+            if (this.options.debug) {
+                if (!this.helper.isEmpty(missingDisplayKey)) {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'searchResult()',
+                        'arguments': JSON.stringify(missingDisplayKey),
+                        'message': 'Missing keys for display, make sure options.display is set properly.'
+                    });
 
-                _debug.print();
+                    _debug.print();
+                }
             }
             // {/debug}
 
@@ -1175,16 +1201,16 @@
                                         }
                                         // {debug}
                                         else {
+                                            if (scope.options.debug) {
+                                                _debug.log({
+                                                    'node': scope.node.selector,
+                                                    'function': 'buildLayout()',
+                                                    'arguments': JSON.stringify(item),
+                                                    'message': 'WARNING - Missing display key: "' + _displayKey + '"'
+                                                });
 
-                                            _debug.log({
-                                                'node': scope.node.selector,
-                                                'function': 'buildLayout()',
-                                                'arguments': JSON.stringify(item),
-                                                'message': 'WARNING - Missing display key: "' + _displayKey + '"'
-                                            });
-
-                                            _debug.print();
-
+                                                _debug.print();
+                                            }
                                         }
                                         // {/debug}
                                     }
@@ -1307,13 +1333,15 @@
                 }
                 // {debug}
                 else {
-                    _debug.log({
-                        'node': this.node.selector,
-                        'function': 'callback.onLayoutBuiltBefore()',
-                        'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
-                    });
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'callback.onLayoutBuiltBefore()',
+                            'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
+                        });
 
-                    _debug.print();
+                        _debug.print();
+                    }
                 }
                 // {/debug}
             }
@@ -1540,14 +1568,16 @@
                                         if ((!item.key && item.value !== "*") || !item.value) {
 
                                             // {debug}
-                                            _debug.log({
-                                                'node': scope.node.selector,
-                                                'function': 'buildDropdownLayout()',
-                                                'arguments': JSON.stringify(item),
-                                                'message': 'WARNING - Missing key or value, skipping dropdown filter."'
-                                            });
+                                            if (scope.options.debug) {
+                                                _debug.log({
+                                                    'node': scope.node.selector,
+                                                    'function': 'buildDropdownLayout()',
+                                                    'arguments': JSON.stringify(item),
+                                                    'message': 'WARNING - Missing key or value, skipping dropdown filter."'
+                                                });
 
-                                            _debug.print();
+                                                _debug.print();
+                                            }
                                             // {/debug}
 
                                             return;
@@ -1690,13 +1720,15 @@
 
                     if (!(filter.selector instanceof jQuery) || !filter.selector[0] || !filter.key) {
                         // {debug}
-                        _debug.log({
-                            'node': this.node.selector,
-                            'function': 'buildDynamicLayout()',
-                            'message': 'Invalid jQuery selector or jQuery Object for "filter.selector" or missing filter.key'
-                        });
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': this.node.selector,
+                                'function': 'buildDynamicLayout()',
+                                'message': 'Invalid jQuery selector or jQuery Object for "filter.selector" or missing filter.key'
+                            });
 
-                        _debug.print();
+                            _debug.print();
+                        }
                         // {/debug}
                         continue;
                     }
@@ -1966,14 +1998,16 @@
                     if (typeof _callback !== "function") {
 
                         // {debug}
-                        _debug.log({
-                            'node': _node.selector,
-                            'function': 'executeCallback()',
-                            'arguments': JSON.stringify(callback),
-                            'message': 'WARNING - Invalid callback function"'
-                        });
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': _node.selector,
+                                'function': 'executeCallback()',
+                                'arguments': JSON.stringify(callback),
+                                'message': 'WARNING - Invalid callback function"'
+                            });
 
-                        _debug.print();
+                            _debug.print();
+                        }
                         // {/debug}
 
                         return false;
@@ -1988,7 +2022,18 @@
             namespace: function (namespaceString, objectReference, method, objectValue) {
 
                 if (typeof namespaceString !== "string" || namespaceString === "") {
-                    window.debug('window.namespace.' + method + ' - Missing namespaceString.');
+                    // {debug}
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': _node.selector,
+                            'function': 'namespace()',
+                            'arguments': namespaceString,
+                            'message': 'ERROR - Missing namespaceString"'
+                        });
+
+                        _debug.print();
+                    }
+                    // {/debug}
                     return false;
                 }
 
@@ -2154,6 +2199,11 @@
         }
 
     };
+    _debug.log({
+        'message': 'WARNING - You are using the DEBUG version. Use /dist/jquery.typeahead.min.js in production.'
+    });
+
+    _debug.print();
 // {/debug}
 
 // IE8 Shims
