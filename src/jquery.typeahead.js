@@ -83,6 +83,7 @@
             backdrop: "typeahead-backdrop",
             hint: "typeahead-hint"
         },
+        selectOnInputClick:false, // Selects the text in the input field when user clicks the field for editing
         debug: false
     };
 
@@ -347,6 +348,7 @@
 
             var scope = this,
                 events = [
+                    'click' + _namespace,
                     'focus' + _namespace,
                     'input' + _namespace,
                     'propertychange' + _namespace,
@@ -388,6 +390,11 @@
             this.node.off(_namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
+                    case "click":
+                        if (scope.options.selectOnInputClick) {
+                            this.select();                            
+                        }
+                        break;
                     case "generateOnLoad":
                     case "focus":
                         if (scope.isGenerated && scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
