@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-07-24)
+ * @version 2.0.0 (2015-08-12)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -100,6 +100,12 @@
         from: "ãàáäâẽèéëêìíïîõòóöôùúüûñç",
         to: "aaaaaeeeeeiiiiooooouuuunc"
     };
+
+    /**
+     * #62 IE9 doesn't trigger "input" event when text gets removed (backspace, ctrl+x, etc)
+     * @private
+     */
+    var _isIE9 = ~navigator.appVersion.indexOf("MSIE 9.");
 
     // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, , href
 
@@ -349,8 +355,9 @@
                 events = [
                     'focus' + _namespace,
                     'input' + _namespace,
-                    'propertychange' + _namespace,
+                    'propertychange' + _namespace,  // IE8 Fix
                     'keydown' + _namespace,
+                    'keyup' + _namespace,           // IE9 Fix
                     'dynamic' + _namespace,
                     'generateOnLoad' + _namespace
                 ];
@@ -403,6 +410,11 @@
                                 preventNextEvent = true;
                                 scope.navigate(e);
                             }
+                        }
+                        break;
+                    case "keyup":
+                        if (_isIE9 && scope.node[0].value.replace(/^\s+/, '').toString().length < scope.query.length) {
+                            scope.node.trigger('input' + _namespace);
                         }
                         break;
                     case "propertychange":
@@ -1734,7 +1746,7 @@
                     }
 
                     (function (filter) {
-                        filter.selector.off(_namespace).on('change' + _namespace, function () {
+                        filter.selector.off(_namespace).on('change' + _namespace,function () {
                             scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)]);
                         }).trigger('change' + _namespace);
                     }(filter));
