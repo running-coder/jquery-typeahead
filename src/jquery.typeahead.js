@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-08-12)
+ * @version 2.0.0 (2015-08-13)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -1234,13 +1234,13 @@
 
                                             if (_href) {
                                                 if (typeof _href === "string") {
-                                                    _href = _href.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function (match, index, option) {
+                                                    _href = _href.replace(/\{\{([\w\-\.]+)\|?(\w+)?}}/g, function (match, index, option) {
 
-                                                        var value = scope.helper.namespace(index, item, 'get') || match;
+                                                        var value = scope.helper.namespace(index, item, 'get', '');
                                                         if (option && option === "raw") {
                                                             return value;
                                                         }
-                                                        return value !== match && scope.helper.slugify(value) || value;
+                                                        return scope.helper.slugify(value);
 
                                                     });
                                                 } else if (typeof _href === "function") {
@@ -1259,14 +1259,13 @@
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
 
                                             if (_template) {
-                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function (match, index, option) {
+                                                _aHtml = _template.replace(/\{\{([\w\-\.]+)\|?(\w+)?}}/g, function (match, index, option) {
 
-                                                    var value = scope.helper.namespace(index, item, 'get') || match;
+                                                    var value = scope.helper.namespace(index, item, 'get', '');
                                                     if (option && option === "raw") {
                                                         return value;
                                                     }
-
-                                                    return scope.helper.namespace(index, _display, 'get') || value;
+                                                    return scope.helper.namespace(index, _display, 'get', '') || value;
 
                                                 });
                                             } else {
@@ -1835,7 +1834,6 @@
                     return _accent.to[_accent.from.indexOf(match)];
                 });
 
-
                 return string;
             },
 
@@ -1847,8 +1845,12 @@
              */
             slugify: function (string) {
 
-                string = this.removeAccent(string);
-                string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
+                string = String(string);
+
+                if (string !== "") {
+                    string = this.removeAccent(string);
+                    string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
+                }
 
                 return string;
             },
@@ -2057,9 +2059,9 @@
                 for (var i = 0, length = parts.length; i < length; i++) {
                     currentPart = parts[i];
 
-                    if (!parent[currentPart]) {
+                    if (typeof parent[currentPart] === "undefined") {
                         if (~['get', 'delete'].indexOf(method)) {
-                            return false;
+                            return typeof objectValue !== "undefined" ? objectValue : undefined;
                         }
                         parent[currentPart] = {};
                     }
