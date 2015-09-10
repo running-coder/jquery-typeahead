@@ -29,6 +29,7 @@
         dynamic: false,
         delay: 300,
         order: null,            // ONLY sorts the first "display" key
+        orderKeys:null,         // -> order results by specific key
         offset: false,
         hint: false,            // -> Improved feature, Added support for excessive "space" characters
         accent: false,
@@ -1124,7 +1125,9 @@
                     displayKey;
 
                 for (var i = 0; i < this.result.length; i++) {
-                    displayKey = this.options.source[this.result[i].group].display || this.options.display;
+                    displayKey = this.options.source[this.result[i].group].orderKeys || this.options.orderKeys;
+                    if (displayKey == null)
+                      displayKey = this.options.source[this.result[i].group].display || this.options.display;
                     if (!~displayKeys.indexOf(displayKey[0])) {
                         displayKeys.push(displayKey[0]);
                     }
