@@ -48,6 +48,7 @@
         mustSelectItem: false,  // -> New option, the submit function only gets called if an item is selected
         href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on link results
         display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
+        orderkey: ["display"],   // -> Improved feature, allows sort search on specific key
         template: null,
         emptyTemplate: false,   // -> New feature, display an empty template if no result
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
@@ -1124,7 +1125,7 @@
                     displayKey;
 
                 for (var i = 0; i < this.result.length; i++) {
-                    displayKey = this.options.source[this.result[i].group].display || this.options.display;
+                    displayKey = this.options.source[this.result[i].group].orderkey || this.options.orderkey;
                     if (!~displayKeys.indexOf(displayKey[0])) {
                         displayKeys.push(displayKey[0]);
                     }
