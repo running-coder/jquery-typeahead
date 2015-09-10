@@ -6,7 +6,7 @@
  * @author Tom Bertrand
  * @version 2.0.0 (2015-08-20)
  * @link http://www.runningcoder.org/jquerytypeahead/
-*/
+ */
 ;
 (function (window, document, $, undefined) {
 
@@ -538,8 +538,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                            this.options.source[group].data() ||
-                            this.options.source[group].data,
+                        this.options.source[group].data() ||
+                        this.options.source[group].data,
                         group
                     );
                     continue;
@@ -745,35 +745,23 @@
          */
         populateSource: function (data, group, path) {
 
-            var extraData,
-                tmpData;
+            var extraData = this.options.source[group].url && this.options.source[group].data;
 
-            if (data && typeof path === "string") {
+            data = typeof path === "string" ? this.helper.namespace(path, data) : data;
 
-                var exploded = path.split('.'),
-                    splitIndex = 0;
+            if (typeof data === 'undefined') {
+                // {debug}
+                if (this.options.debug) {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'populateSource()',
+                        'arguments': path,
+                        'message': 'Invalid data path.'
+                    });
 
-                while (splitIndex < exploded.length) {
-                    tmpData = data[exploded[splitIndex++]];
-
-                    if (typeof tmpData !== 'undefined') {
-                        data = tmpData;
-                    } else {
-                        // {debug}
-                        if (this.options.debug) {
-                            _debug.log({
-                                'node': this.node.selector,
-                                'function': 'populateSource()',
-                                'arguments': path,
-                                'message': 'Invalid data path.'
-                            });
-
-                            _debug.print();
-                        }
-                        // {/debug}
-                        break;
-                    }
+                    _debug.print();
                 }
+                // {/debug}
             }
 
             if (!(data instanceof Array)) {
@@ -788,12 +776,8 @@
                     _debug.print();
                 }
                 // {/debug}
-
                 data = [];
             }
-
-
-            extraData = this.options.source[group].url && this.options.source[group].data;
 
             if (extraData) {
                 if (typeof extraData === "function") {
@@ -820,13 +804,9 @@
             }
 
             var tmpObj,
-                display;
-
-            if (this.options.source[group].display) {
-                display = this.options.source[group].display[0];
-            } else {
-                display = this.options.display[0];
-            }
+                display = this.options.source[group].display ?
+                    this.options.source[group].display[0] :
+                    this.options.display[0];
 
             // @TODO: possibly optimize this?
             for (var i = 0; i < data.length; i++) {
@@ -1086,7 +1066,7 @@
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
                             this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
-                            ) {
+                        ) {
                             break;
                         }
 
@@ -1749,7 +1729,7 @@
                     }
 
                     (function (filter) {
-                        filter.selector.off(_namespace).on('change' + _namespace,function () {
+                        filter.selector.off(_namespace).on('change' + _namespace, function () {
                             scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)]);
                         }).trigger('change' + _namespace);
                     }(filter));
@@ -2057,6 +2037,7 @@
 
                 var parts = namespaceString.split('.'),
                     parent = objectReference || window,
+                    method = method || 'get',
                     value = objectValue || {},
                     currentPart = '';
 
@@ -2226,9 +2207,9 @@
 
 // IE8 Shims
     window.console = window.console || {
-        log: function () {
-        }
-    };
+            log: function () {
+            }
+        };
 
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
