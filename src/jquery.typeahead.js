@@ -4,14 +4,14 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.0.0 (2015-08-20)
+ * @version 2.1.0 (2015-09-12)
  * @link http://www.runningcoder.org/jquerytypeahead/
- */
+*/
 ;
 (function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.0.0'
+        version: '2.1.0'
     };
 
     "use strict";
@@ -49,6 +49,7 @@
         href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on link results
         display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
+        correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
         emptyTemplate: false,   // -> New feature, display an empty template if no result
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
         callback: {
@@ -107,7 +108,7 @@
      */
     var _isIE9 = ~navigator.appVersion.indexOf("MSIE 9.");
 
-    // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, , href
+    // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, compiled, href
 
     /**
      * @constructor
@@ -538,8 +539,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                        this.options.source[group].data() ||
-                        this.options.source[group].data,
+                            this.options.source[group].data() ||
+                            this.options.source[group].data,
                         group
                     );
                     continue;
@@ -745,7 +746,8 @@
          */
         populateSource: function (data, group, path) {
 
-            var extraData = this.options.source[group].url && this.options.source[group].data;
+            var scope = this,
+                extraData = this.options.source[group].url && this.options.source[group].data;
 
             data = typeof path === "string" ? this.helper.namespace(path, data) : data;
 
@@ -814,6 +816,47 @@
                     tmpObj = {};
                     tmpObj[display] = data[i];
                     data[i] = tmpObj;
+                }
+            }
+
+            if (this.options.correlativeTemplate) {
+
+                var template = this.options.source[group].template ||
+                    this.options.template;
+
+                if (!template) {
+                    // {debug}
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'populateSource()',
+                            'arguments': JSON.stringify(group),
+                            'message': 'WARNING - this.options.correlativeTemplate is enabled but no template was found.'
+                        });
+
+                        _debug.print();
+                    }
+                    // {/debug}
+                } else {
+
+                    template = template
+                        .replace(/<.+?>/g, '');
+
+                    for (var i = 0; i < data.length; i++) {
+                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g,function (match, index) {
+                                return scope.helper.namespace(index, data[i], 'get', '');
+                            }
+                        ).trim();
+                    }
+
+                    if (this.options.source[group].display) {
+                        if (!~this.options.source[group].display.indexOf('compiled')) {
+                            this.options.source[group].display.unshift('compiled');
+                        }
+                    } else if (!~this.options.display.indexOf('compiled')) {
+                        this.options.display.unshift('compiled');
+                    }
+
                 }
             }
 
@@ -985,13 +1028,16 @@
                 item,
                 match,
                 comparedDisplay,
-                comparedQuery = this.query,
+                comparedQuery = this.query.toLowerCase(),
                 itemPerGroup = {},
                 groupBy = this.filters.dropdown && this.filters.dropdown.key || this.groupBy,
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
                 missingDisplayKey = {},
-                filter;
+                filter,
+                correlativeMatch,
+                correlativeQuery,
+                correlativeDisplay;
 
             if (this.options.accent) {
                 comparedQuery = this.helper.removeAccent(comparedQuery);
@@ -1045,16 +1091,30 @@
                                 continue;
                             }
 
-                            comparedDisplay = comparedDisplay.toString();
+                            comparedDisplay = comparedDisplay.toString().toLowerCase();
 
                             if (this.options.accent) {
                                 comparedDisplay = this.helper.removeAccent(comparedDisplay);
                             }
 
-                            match = comparedDisplay.toLowerCase().indexOf(comparedQuery.toLowerCase()) + 1;
+                            match = comparedDisplay.indexOf(comparedQuery);
 
-                            if (!match) continue;
-                            if (match && this.options.offset && match !== 1) continue;
+                            if (this.options.correlativeTemplate && displayKeys[i] === 'compiled' && match < 0 && /\s/.test(comparedQuery)) {
+                                correlativeMatch = true;
+                                correlativeQuery = comparedQuery.split(' ');
+                                correlativeDisplay = comparedDisplay;
+                                for (var x = 0; x < correlativeQuery.length; x++) {
+                                    if (correlativeQuery[x] === "") continue;
+                                    if (!~correlativeDisplay.indexOf(correlativeQuery[x])) {
+                                        correlativeMatch = false;
+                                        break;
+                                    }
+                                    correlativeDisplay = correlativeDisplay.replace(correlativeQuery[x], '');
+                                }
+                            }
+
+                            if (match < 0 && !correlativeMatch) continue;
+                            if (this.options.offset && match !== 0) continue;
                             if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
                         }
 
@@ -1066,7 +1126,7 @@
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
                             this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
-                        ) {
+                            ) {
                             break;
                         }
 
@@ -1191,25 +1251,6 @@
                                 for (var i = 0; i < _displayKeys.length; i++) {
                                     _displayKey = _displayKeys[i];
                                     _display[_displayKey] = item[_displayKey];
-                                    if (scope.options.highlight) {
-                                        if (_display[_displayKey]) {
-                                            _display[_displayKey] = scope.helper.highlight(_display[_displayKey], _query, scope.options.accent);
-                                        }
-                                        // {debug}
-                                        else {
-                                            if (scope.options.debug) {
-                                                _debug.log({
-                                                    'node': scope.node.selector,
-                                                    'function': 'buildLayout()',
-                                                    'arguments': JSON.stringify(item),
-                                                    'message': 'WARNING - Missing display key: "' + _displayKey + '"'
-                                                });
-
-                                                _debug.print();
-                                            }
-                                        }
-                                        // {/debug}
-                                    }
                                 }
 
                                 _liHtml = $("<li/>", {
@@ -1218,7 +1259,7 @@
 
                                             if (_href) {
                                                 if (typeof _href === "string") {
-                                                    _href = _href.replace(/\{\{([\w\-\.]+)\|?(\w+)?}}/g, function (match, index, option) {
+                                                    _href = _href.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
                                                         var value = scope.helper.namespace(index, item, 'get', '');
                                                         if (option && option === "raw") {
@@ -1243,7 +1284,7 @@
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
 
                                             if (_template) {
-                                                _aHtml = _template.replace(/\{\{([\w\-\.]+)\|?(\w+)?}}/g, function (match, index, option) {
+                                                _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
                                                     var value = scope.helper.namespace(index, item, 'get', '');
                                                     if (option && option === "raw") {
@@ -1254,6 +1295,10 @@
                                                 });
                                             } else {
                                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
+                                            }
+
+                                            if (scope.options.highlight) {
+                                                _aHtml = scope.helper.highlight(_aHtml, _query.split(" "), scope.options.accent)
                                             }
 
                                             $(this).append(_aHtml);
@@ -1729,7 +1774,7 @@
                     }
 
                     (function (filter) {
-                        filter.selector.off(_namespace).on('change' + _namespace, function () {
+                        filter.selector.off(_namespace).on('change' + _namespace,function () {
                             scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)]);
                         }).trigger('change' + _namespace);
                     }(filter));
@@ -1885,24 +1930,32 @@
              * @param {Boolean} [accents]
              * @returns {*}
              */
-            highlight: function (string, key, accents) {
+            highlight: function (string, keys, accents) {
 
                 string = String(string);
 
-                var offset = string.toLowerCase().indexOf(key.toLowerCase());
-                if (accents) {
-                    offset = this.removeAccent(string).indexOf(this.removeAccent(key));
+                if (!(keys instanceof Array)) {
+                    keys = [keys];
                 }
 
-                if (offset === -1 || key.length === 0) {
-                    return string;
+                if (accents) {
+                    string = this.removeAccent(string);
                 }
-                return this.replaceAt(
-                    string,
-                    offset,
-                    key.length,
-                    "<strong>" + string.substr(offset, key.length) + "</strong>"
+
+                keys.sort(function(a, b){
+                    return b.length - a.length;
+                });
+
+                // Make sure the '|' join will be safe!
+                for (var i = 0; i < keys.length; i++) {
+                    keys[i] = keys[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
+                }
+
+                return string.replace(
+                    new RegExp('(' + keys.join('|') + ')(?!([^<]+)?>)', 'gi'),
+                    '<strong>$1</strong>'
                 );
+
             },
 
             joinObject: function (object, join) {
@@ -1990,8 +2043,7 @@
                     if (typeof callback === "string") {
                         callback = [callback, []];
                     }
-                    //_callback = this.helper.getObjectRecursionProperty(window, callback[0]);
-                    _callback = this.helper.namespace(callback[0], window, 'get');
+                    _callback = this.helper.namespace(callback[0], window);
 
                     if (typeof _callback !== "function") {
 
@@ -2207,9 +2259,9 @@
 
 // IE8 Shims
     window.console = window.console || {
-            log: function () {
-            }
-        };
+        log: function () {
+        }
+    };
 
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
