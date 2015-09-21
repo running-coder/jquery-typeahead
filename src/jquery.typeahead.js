@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.0 (2015-09-12)
+ * @version 2.1.0 (2015-09-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -1859,7 +1859,7 @@
                     return;
                 }
 
-                string = string.toLowerCase().replace(new RegExp('[' + _accent.from + ']', 'g'), function (match) {
+                string = string.replace(new RegExp('[' + _accent.from + ']', 'g'), function (match) {
                     return _accent.to[_accent.from.indexOf(match)];
                 });
 
