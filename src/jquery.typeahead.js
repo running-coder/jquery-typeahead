@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.0 (2015-09-21)
+ * @version 2.1.0 (2015-09-23)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -539,8 +539,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                            this.options.source[group].data() ||
-                            this.options.source[group].data,
+                        this.options.source[group].data() ||
+                        this.options.source[group].data,
                         group
                     );
                     continue;
@@ -807,8 +807,8 @@
 
             var tmpObj,
                 display = this.options.source[group].display ?
-                    this.options.source[group].display[0] :
-                    this.options.display[0];
+                    (this.options.source[group].display[0] === 'compiled' ? this.options.source[group].display[1] : this.options.source[group].display[0]) :
+                    (this.options.display[0] === 'compiled' ? this.options.display[1] : this.options.display[0]);
 
             // @TODO: possibly optimize this?
             for (var i = 0; i < data.length; i++) {
@@ -817,6 +817,7 @@
                     tmpObj[display] = data[i];
                     data[i] = tmpObj;
                 }
+                data[i].group = group;
             }
 
             if (this.options.correlativeTemplate) {
@@ -843,7 +844,7 @@
                         .replace(/<.+?>/g, '');
 
                     for (var i = 0; i < data.length; i++) {
-                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g,function (match, index) {
+                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
                                 return scope.helper.namespace(index, data[i], 'get', '');
                             }
                         ).trim();
@@ -1062,7 +1063,6 @@
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
-                    item.group = group;
 
                     if (this.options.maxItemPerGroup && groupBy !== "group") {
                         if (!itemPerGroup[item[groupBy]]) {
@@ -1126,7 +1126,7 @@
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
                             this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
-                            ) {
+                        ) {
                             break;
                         }
 
@@ -1774,7 +1774,7 @@
                     }
 
                     (function (filter) {
-                        filter.selector.off(_namespace).on('change' + _namespace,function () {
+                        filter.selector.off(_namespace).on('change' + _namespace, function () {
                             scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)]);
                         }).trigger('change' + _namespace);
                     }(filter));
@@ -1859,7 +1859,7 @@
                     return;
                 }
 
-                string = string.replace(new RegExp('[' + _accent.from + ']', 'g'), function (match) {
+                string = string.toLowerCase().replace(new RegExp('[' + _accent.from + ']', 'g'), function (match) {
                     return _accent.to[_accent.from.indexOf(match)];
                 });
 
@@ -1934,28 +1934,46 @@
 
                 string = String(string);
 
+                var searchString = accents && this.removeAccent(string) || string,
+                    matches = [];
+
                 if (!(keys instanceof Array)) {
                     keys = [keys];
                 }
 
-                if (accents) {
-                    string = this.removeAccent(string);
-                }
-
-                keys.sort(function(a, b){
+                keys.sort(function (a, b) {
                     return b.length - a.length;
                 });
 
                 // Make sure the '|' join will be safe!
-                for (var i = 0; i < keys.length; i++) {
+                for (var i = keys.length - 1; i >= 0; i--) {
+                    if (keys[i].trim() === "") {
+                        keys.splice(i, 1);
+                        continue;
+                    }
                     keys[i] = keys[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
                 }
 
-                return string.replace(
-                    new RegExp('(' + keys.join('|') + ')(?!([^<]+)?>)', 'gi'),
-                    '<strong>$1</strong>'
+                searchString.replace(
+                    new RegExp('(?:' + keys.join('|') + ')(?!([^<]+)?>)', 'gi'),
+                    function (match, index, offset) {
+                        matches.push({
+                            offset: offset,
+                            length: match.length
+                        });
+                    }
                 );
 
+                for (var i = matches.length - 1; i >= 0; i--) {
+                    string = this.replaceAt(
+                        string,
+                        matches[i].offset,
+                        matches[i].length,
+                        "<strong>" + string.substr(matches[i].offset, matches[i].length) + "</strong>"
+                    );
+                }
+
+                return string;
             },
 
             joinObject: function (object, join) {
@@ -2259,9 +2277,9 @@
 
 // IE8 Shims
     window.console = window.console || {
-        log: function () {
-        }
-    };
+            log: function () {
+            }
+        };
 
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
