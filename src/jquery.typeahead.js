@@ -4,14 +4,14 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.1 (2015-09-24)
+ * @version 2.1.2 (2015-09-28)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
 (function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.1.1'
+        version: '2.1.2'
     };
 
     "use strict";
@@ -539,8 +539,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                        this.options.source[group].data() ||
-                        this.options.source[group].data,
+                            this.options.source[group].data() ||
+                            this.options.source[group].data,
                         group
                     );
                     continue;
@@ -844,7 +844,7 @@
                         .replace(/<.+?>/g, '');
 
                     for (var i = 0; i < data.length; i++) {
-                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
+                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g,function (match, index) {
                                 return scope.helper.namespace(index, data[i], 'get', '');
                             }
                         ).trim();
@@ -919,10 +919,11 @@
                 activeItemIndex = activeItem[0] && itemList.index(activeItem) || null;
 
             if (e.keyCode === 27) {
-
-                e.preventDefault();
-                this.hideLayout();
-
+                // #57 ESC should not preventDefault if Typeahead is not opened
+                if (this.container.hasClass('result')) {
+                    e.preventDefault();
+                    this.hideLayout();
+                }
                 return;
             }
 
@@ -1126,7 +1127,7 @@
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
                             this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
-                        ) {
+                            ) {
                             break;
                         }
 
@@ -1774,7 +1775,7 @@
                     }
 
                     (function (filter) {
-                        filter.selector.off(_namespace).on('change' + _namespace, function () {
+                        filter.selector.off(_namespace).on('change' + _namespace,function () {
                             scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)]);
                         }).trigger('change' + _namespace);
                     }(filter));
@@ -2212,14 +2213,14 @@
                 node = $(options.input);
             }
 
-            if (node.length !== 1) {
+            if (!node.length) {
 
                 // {debug}
                 _debug.log({
                     'node': node.selector,
                     'function': '$.typeahead()',
                     'arguments': JSON.stringify(options.input),
-                    'message': 'Unable to find jQuery input element OR more than 1 input is found - Typeahead dropped'
+                    'message': 'Unable to find jQuery input element - Typeahead dropped'
                 });
 
                 _debug.print();
@@ -2228,8 +2229,11 @@
                 return;
             }
 
-            return window.Typeahead[node.selector] = new Typeahead(node, options);
-
+            var initNode;
+            for (var i = 0; i < node.length; i++) {
+                initNode = node.length === 1 ? node : $(node.selector.split(',')[i].trim());
+                window.Typeahead[initNode.selector] = new Typeahead(initNode, options);
+            }
         }
 
     };
@@ -2277,9 +2281,9 @@
 
 // IE8 Shims
     window.console = window.console || {
-            log: function () {
-            }
-        };
+        log: function () {
+        }
+    };
 
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {

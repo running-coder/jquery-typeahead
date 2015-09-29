@@ -11,7 +11,7 @@
         "input",
         "autocomplete"
     ],
-    "version": "2.1.1",
+    "version": "2.1.2",
     "author": {
         "name": "Tom Bertrand",
         "url": "http://www.runningcoder.org/jquerytypeahead/"
