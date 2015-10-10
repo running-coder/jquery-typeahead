@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.2 (2015-09-28)
+ * @version 2.1.2 (2015-10-10)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -641,9 +641,14 @@
 
                 (function (group, xhrObject) {
 
-                    var _request;
+                    var _request,
+                        _isExtended = false; // Prevent the main request from being changed
 
                     if (~xhrObject.request.url.indexOf('{{query}}')) {
+                        if (!_isExtended) {
+                            xhrObject = $.extend(true, {}, xhrObject);
+                            _isExtended = true;
+                        }
                         xhrObject.request.url = xhrObject.request.url.replace('{{query}}', scope.query);
                     }
 
@@ -651,8 +656,10 @@
                         for (var i in xhrObject.request.data) {
                             if (!xhrObject.request.data.hasOwnProperty(i)) continue;
                             if (~String(xhrObject.request.data[i]).indexOf('{{query}}')) {
-                                // Prevent the main request from being changed
-                                xhrObject = $.extend(true, {}, xhrObject);
+                                if (!_isExtended) {
+                                    xhrObject = $.extend(true, {}, xhrObject);
+                                    _isExtended = true;
+                                }
                                 xhrObject.request.data[i] = xhrObject.request.data[i].replace('{{query}}', scope.query);
                                 break;
                             }
