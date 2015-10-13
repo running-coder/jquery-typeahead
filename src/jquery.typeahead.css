@@ -178,6 +178,10 @@ input {
 .typeahead-field input {
     -webkit-appearance: none;
     background: transparent;
+    /*Bootstrap 4 override*/
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .typeahead-field input:last-child,
