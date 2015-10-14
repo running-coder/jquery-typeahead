@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.2 (2015-10-13)
+ * @version 2.1.2 (2015-10-14)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -721,11 +721,11 @@
                         }
                         // {/debug}
 
-                    }).complete(function (jqXHR, textStatus) {
+                    }).then(function (jqXHR, textStatus) {
 
                         for (var i = 0; i < xhrObject.validForGroup.length; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.extra.callback.complete instanceof Function && _request.extra.callback.complete(jqXHR, textStatus);
+                            _request.extra.callback.then instanceof Function && _request.extra.callback.then(jqXHR, textStatus);
                         }
 
                     }).always(function (data, textStatus, jqXHR) {
