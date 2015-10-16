@@ -177,14 +177,21 @@ input {
 
 .typeahead-field input {
     -webkit-appearance: none;
-    background: transparent;
     /*Bootstrap 4 override*/
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
-.typeahead-field input:last-child,
+.typeahead-container .typeahead-field input {
+    background: #fff;
+}
+
+.typeahead-container.hint .typeahead-field input {
+    background: transparent;
+}
+
+.typeahead-container.hint .typeahead-field input:last-child,
 .typeahead-hint {
     background: #fff;
 }
