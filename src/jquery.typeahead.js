@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.2 (2015-10-16)
+ * @version 2.1.2 (2015-10-20)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -901,6 +901,8 @@
             }
 
             this.isGenerated = true;
+
+            this.xhr = {};
 
             this.node.trigger('dynamic' + _namespace);
 
