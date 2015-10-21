@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.2 (2015-10-20)
+ * @version 2.1.2 (2015-10-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -1375,36 +1375,6 @@
                     }
                 });
 
-            if (this.options.callback.onLayoutBuiltBefore) {
-                var tmpResultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
-
-                if (tmpResultHtmlList instanceof jQuery) {
-                    resultHtmlList = tmpResultHtmlList;
-                }
-                // {debug}
-                else {
-                    if (this.options.debug) {
-                        _debug.log({
-                            'node': this.node.selector,
-                            'function': 'callback.onLayoutBuiltBefore()',
-                            'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
-                        });
-
-                        _debug.print();
-                    }
-                }
-                // {/debug}
-            }
-
-            this.container.addClass('result');
-
-            this.resultContainer
-                .html(resultHtmlList);
-
-            if (this.options.callback.onLayoutBuiltAfter) {
-                this.helper.executeCallback(this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
-            }
-
             if (this.options.backdrop) {
 
                 if (this.backdrop.container) {
@@ -1446,6 +1416,8 @@
             if (this.options.hint) {
 
                 var _hint = "";
+
+                this.hintIndex = null;
 
                 if (this.result.length > 0 && this.query.length > 0) {
 
@@ -1494,8 +1466,6 @@
                         _group,
                         _comparedValue;
 
-                    this.hintIndex = null;
-
                     for (var i = 0; i < this.result.length; i++) {
                         _group = this.result[i].group;
                         _displayKeys = scope.options.source[_group].display || scope.options.display;
@@ -1524,6 +1494,36 @@
                         .val(_hint.length > 0 && this.rawQuery + _hint.substring(this.query.length) || "")
                         .show();
                 }
+            }
+
+            if (this.options.callback.onLayoutBuiltBefore) {
+                var tmpResultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
+
+                if (tmpResultHtmlList instanceof jQuery) {
+                    resultHtmlList = tmpResultHtmlList;
+                }
+                // {debug}
+                else {
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'callback.onLayoutBuiltBefore()',
+                            'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
+                        });
+
+                        _debug.print();
+                    }
+                }
+                // {/debug}
+            }
+
+            this.container.addClass('result');
+
+            this.resultContainer
+                .html(resultHtmlList);
+
+            if (this.options.callback.onLayoutBuiltAfter) {
+                this.helper.executeCallback(this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
             }
         },
 
