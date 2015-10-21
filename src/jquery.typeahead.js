@@ -407,7 +407,7 @@
                         break;
                     case "keydown":
                         if (scope.isGenerated && scope.result.length) {
-                            if (e.keyCode && ~[13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                            if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                                 preventNextEvent = true;
                                 scope.navigate(e);
                             }
@@ -910,6 +910,7 @@
 
         /**
          * Key Navigation
+         * tab 9: dismiss typeahead results
          * Up 38: select previous item, skip "group" item
          * Down 40: select next item, skip "group" item
          * Right 39: change charAt, if last char fill hint (if options is true)
@@ -923,11 +924,7 @@
 
             this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
 
-            var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
-                activeItem = itemList.filter('.active'),
-                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null;
-
-            if (e.keyCode === 27) {
+            if (e.keyCode === 27 || e.keyCode === 9) {
                 // #57 ESC should not preventDefault if Typeahead is not opened
                 if (this.container.hasClass('result')) {
                     e.preventDefault();
@@ -935,6 +932,10 @@
                 }
                 return;
             }
+
+            var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
+                activeItem = itemList.filter('.active'),
+                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null;
 
             if (e.keyCode === 13) {
 
