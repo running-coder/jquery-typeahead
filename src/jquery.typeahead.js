@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.2 (2015-10-21)
+ * @version 2.1.2 (2015-10-26)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -38,7 +38,7 @@
         dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
         dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
         backdrop: false,
-        cache: false,
+        cache: false,           // -> Improved option, true OR 'localStorage' OR 'sessionStorage'
         ttl: 3600000,
         compression: false,     // -> Requires LZString library
         suggestion: false,      // -> *Coming soon* New feature, save last searches and display suggestion on matched characters
@@ -158,20 +158,40 @@
                 this.options.compression = false;
             }
 
-            // Ensure Localstorage is available
             if (this.options.cache) {
-                this.options.cache = (function () {
-                    var supported = typeof window.localStorage !== "undefined";
-                    if (supported) {
-                        try {
-                            window.localStorage.setItem("typeahead", "typeahead");
-                            window.localStorage.removeItem("typeahead");
-                        } catch (e) {
-                            supported = false;
+                this.options.cache = (function (cache) {
+
+                    var supportedCache = ['localStorage', 'sessionStorage'],
+                        supported;
+
+                    if (cache === true) {
+                        cache = 'localStorage';
+                    } else if (typeof cache === "string" && !~supportedCache.indexOf(cache)) {
+                        // {debug}
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': this.node.selector,
+                                'function': 'extendOptions()',
+                                'message': 'Invalid options.cache, possible options are "localStorage" or "sessionStorage"'
+                            });
+
+                            _debug.print();
                         }
+                        // {/debug}
+                        return false;
                     }
-                    return supported;
-                })();
+
+                    supported = typeof window[cache] !== "undefined"
+
+                    try {
+                        window[cache].setItem("typeahead", "typeahead");
+                        window[cache].removeItem("typeahead");
+                    } catch (e) {
+                        supported = false;
+                    }
+
+                    return supported && cache || false;
+                }).call(this, this.options.cache);
             }
 
             if (this.options.compression) {
@@ -490,7 +510,7 @@
             }
 
             var group,
-                dataInLocalstorage,
+                dataInStorage,
                 isValidStorage;
 
             for (group in this.options.source) {
@@ -498,19 +518,21 @@
 
                 // Get group source from Localstorage
                 if (this.options.cache) {
-                    dataInLocalstorage = window.localStorage.getItem(this.node.selector + ":" + group);
-                    if (dataInLocalstorage) {
+
+                    dataInStorage = window[this.options.cache].getItem(this.node.selector + ":" + group);
+
+                    if (dataInStorage) {
                         if (this.options.compression) {
-                            dataInLocalstorage = LZString.decompressFromUTF16(dataInLocalstorage);
+                            dataInStorage = LZString.decompressFromUTF16(dataInStorage);
                         }
 
                         // In case the storage key:value are not readable anymore
                         isValidStorage = false;
                         try {
-                            dataInLocalstorage = JSON.parse(dataInLocalstorage + "");
+                            dataInStorage = JSON.parse(dataInStorage + "");
 
-                            if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
-                                this.populateSource(dataInLocalstorage.data, group);
+                            if (dataInStorage.data && dataInStorage.ttl > new Date().getTime()) {
+                                this.populateSource(dataInStorage.data, group);
                                 isValidStorage = true;
 
                                 // {debug}
@@ -518,14 +540,14 @@
                                     _debug.log({
                                         'node': this.node.selector,
                                         'function': 'generateSource()',
-                                        'message': 'Source for group "' + group + '" found in localStorage.'
+                                        'message': 'Source for group "' + group + '" found in ' + this.options.cache
                                     });
                                     _debug.print();
                                 }
                                 // {/debug}
 
                             } else {
-                                window.localStorage.removeItem(this.node.selector + ":" + group);
+                                window[this.options.cache].removeItem(this.node.selector + ":" + group);
                             }
                         } catch (error) {
                         }
@@ -851,7 +873,7 @@
                         .replace(/<.+?>/g, '');
 
                     for (var i = 0; i < data.length; i++) {
-                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g,function (match, index) {
+                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
                                 return scope.helper.namespace(index, data[i], 'get', '');
                             }
                         ).trim();
@@ -871,7 +893,7 @@
             // @TODO: find a way to save the order from options.source so it appears correctly?
             this.source[group] = data;
 
-            if (this.options.cache && !localStorage.getItem(this.node.selector + ":" + group)) {
+            if (this.options.cache && !window[this.options.cache].getItem(this.node.selector + ":" + group)) {
 
                 var storage = JSON.stringify({
                     data: data,
@@ -882,7 +904,7 @@
                     storage = LZString.compressToUTF16(storage);
                 }
 
-                localStorage.setItem(
+                window[this.options.cache].setItem(
                     this.node.selector + ":" + group,
                     storage
                 );
@@ -1137,7 +1159,7 @@
 
                         if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
                             this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
-                            ) {
+                        ) {
                             break;
                         }
 
@@ -1785,7 +1807,7 @@
                     }
 
                     (function (filter) {
-                        filter.selector.off(_namespace).on('change' + _namespace,function () {
+                        filter.selector.off(_namespace).on('change' + _namespace, function () {
                             scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)]);
                         }).trigger('change' + _namespace);
                     }(filter));
