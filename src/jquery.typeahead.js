@@ -6,7 +6,7 @@
  * @author Tom Bertrand
  * @version 2.1.3 (2015-10-26)
  * @link http://www.runningcoder.org/jquerytypeahead/
-*/
+ */
 ;
 (function (window, document, $, undefined) {
 
@@ -34,6 +34,7 @@
         accent: false,
         highlight: true,
         group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
+        groupOrder: null,       // -> New feature, order groups "asc", "desc", Array, Function
         maxItemPerGroup: null,  // -> Renamed option
         dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
         dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
@@ -126,7 +127,7 @@
         this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
         this.groupCount = 0;            // Number of groups, this value gets counted on the initial source unification
         this.groupBy = "group";         // This option will change according to filtering or custom grouping
-        this.result = [];               // Results based on Source-query match (only contains the displayed elements)
+        this.result = {};               // Results based on Source-query match (only contains the displayed elements)
         this.resultCount = 0;           // Total results based on Source-query match
         this.options = options;         // Typeahead options (Merged default & user defined)
         this.node = node;               // jQuery object of the Typeahead <input>
@@ -561,8 +562,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                            this.options.source[group].data() ||
-                            this.options.source[group].data,
+                        this.options.source[group].data() ||
+                        this.options.source[group].data,
                         group
                     );
                     continue;
@@ -1054,7 +1055,7 @@
 
             this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
 
-            this.result = [];
+            this.result = {};
             this.resultCount = 0;
 
             var scope = this,
@@ -1088,6 +1089,8 @@
                         break;
                     }
                 }
+
+                this.result[group] = [];
 
                 filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
 
@@ -1157,19 +1160,22 @@
 
                         this.resultCount += 1;
 
-                        if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
-                            this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
+                        if ((this.options.callback.onResult && this.resultCount >= this.options.maxItem) ||
+                            this.options.maxItemPerGroup && this.result[group].length >= this.options.maxItemPerGroup
+                        //if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
+                        //    this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
                         ) {
                             break;
                         }
 
+
                         item.matchedKey = displayKeys[i];
 
-                        this.result.push(item);
+                        this.result[group].push(item);
 
-                        if (this.options.maxItemPerGroup) {
-                            itemPerGroup[item[groupBy]] += 1;
-                        }
+                        //if (this.options.maxItemPerGroup) {
+                        //    itemPerGroup[item[groupBy]] += 1;
+                        //}
 
                         break;
                     }
@@ -1196,23 +1202,56 @@
                 var displayKeys = [],
                     displayKey;
 
-                for (var i = 0; i < this.result.length; i++) {
-                    displayKey = this.options.source[this.result[i].group].display || this.options.display;
-                    if (!~displayKeys.indexOf(displayKey[0])) {
-                        displayKeys.push(displayKey[0]);
+                for (var group in this.result) {
+                    if (!this.result.hasOwnProperty(group)) continue;
+                    for (var i = 0; i < this.result[group].length; i++) {
+                        displayKey = this.options.source[this.result[group][i].group].display || this.options.display;
+                        if (!~displayKeys.indexOf(displayKey[0])) {
+                            displayKeys.push(displayKey[0]);
+                        }
                     }
+
+                    this.result[group].sort(
+                        scope.helper.sort(
+                            displayKeys,
+                            scope.options.order === "asc",
+                            function (a) {
+                                return a.toString().toUpperCase()
+                            }
+                        )
+                    );
                 }
 
-                this.result.sort(
+            }
+
+
+            // @TODO TEST THE SCENARIOS
+            var concatResults = [],
+                groupOrder;
+
+            if (typeof this.options.groupOrder === "function") {
+                this.options.groupOrder(this.node, this.query, this.result, this.resultCount);
+            } else if (this.options.groupOrder instanceof Array) {
+                groupOrder = this.options.groupOrder;
+            } else if (typeof this.options.groupOrder === "string" && ~["asc", "desc"].indexOf(this.options.groupOrder)) {
+                groupOrder = Object.keys(this.result).sort(
                     scope.helper.sort(
-                        displayKeys,
-                        scope.options.order === "asc",
+                        [],
+                        scope.options.groupOrder === "asc",
                         function (a) {
                             return a.toString().toUpperCase()
                         }
                     )
                 );
+            } else {
+                groupOrder = Object.keys(this.result);
             }
+
+            for (var i = 0; i < groupOrder.length; i++) {
+                concatResults = concatResults.concat(this.result[groupOrder[i]]);
+            }
+
+            this.result = concatResults;
 
             this.helper.executeCallback(this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
 
@@ -1348,7 +1387,7 @@
 
                                             scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
 
-                                            if (e.isDefaultPrevented()) {
+                                            if (e.defaultPrevented) {
                                                 return;
                                             }
 
@@ -1926,13 +1965,13 @@
              * @returns {Function}
              */
             sort: function (field, reverse, primer) {
-
                 var key = function (x) {
                     for (var i = 0; i < field.length; i++) {
                         if (typeof x[field[i]] !== 'undefined') {
                             return primer(x[field[i]])
                         }
                     }
+                    return x;
                 };
 
                 reverse = [-1, 1][+!!reverse];
@@ -2313,9 +2352,9 @@
 
 // IE8 Shims
     window.console = window.console || {
-        log: function () {
-        }
-    };
+            log: function () {
+            }
+        };
 
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
