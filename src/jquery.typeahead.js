@@ -4,9 +4,9 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.3 (2015-10-26)
+ * @version 2.1.3 (2015-11-03)
  * @link http://www.runningcoder.org/jquerytypeahead/
- */
+*/
 ;
 (function (window, document, $, undefined) {
 
@@ -583,10 +583,15 @@
 
         generateRequestObject: function (group) {
 
+            var scope = this;
+
             var xhrObject = {
                 request: {
                     url: null,
-                    dataType: 'json'
+                    dataType: 'json',
+                    beforeSend: function (jqXHR, options) {
+                        scope.xhr[group] = jqXHR;
+                    }
                 },
                 extra: {
                     path: null,
@@ -689,7 +694,7 @@
                         }
                     }
 
-                    scope.xhr[group] = $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
+                    $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
 
                         var tmpData;
                         for (var i = 0; i < xhrObject.validForGroup.length; i++) {
