@@ -1080,8 +1080,6 @@
                 match,
                 comparedDisplay,
                 comparedQuery = this.query.toLowerCase(),
-                itemPerGroup = {},
-                groupBy = this.filters.dropdown && this.filters.dropdown.key || this.groupBy,
                 maxItemPerGroup = this.groupBy !== "group" ? null : this.options.maxItemPerGroup,
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
