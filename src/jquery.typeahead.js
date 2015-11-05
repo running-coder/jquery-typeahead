@@ -4,11 +4,21 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.3 (2015-11-04)
+ * @version 2.1.3 (2015-11-05)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
-(function (window, document, $, undefined) {
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+    define(['jquery'], function (jQuery) {
+      factory(window, document, jQuery);
+    });
+  } else if (typeof exports === 'object') {
+    module.exports = factory(window, document, require('jquery'));
+  } else {
+    factory(window, document, window.jQuery);
+  }
+})(function (window, document, $, undefined) {
 
     window.Typeahead = {
         version: '2.1.3'
@@ -2380,4 +2390,4 @@
         };
     }
 
-}(window, document, window.jQuery));
+});
