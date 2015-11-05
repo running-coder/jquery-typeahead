@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.3 (2015-11-03)
+ * @version 2.1.3 (2015-11-04)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -1062,6 +1062,7 @@
 
             this.result = {};
             this.resultCount = 0;
+            this.resultItemCount = 0;
 
             var scope = this,
                 group,
@@ -1071,6 +1072,7 @@
                 comparedQuery = this.query.toLowerCase(),
                 itemPerGroup = {},
                 groupBy = this.filters.dropdown && this.filters.dropdown.key || this.groupBy,
+                maxItemPerGroup = this.groupBy !== "group" ? null : this.options.maxItemPerGroup,
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
                 missingDisplayKey = {},
@@ -1087,14 +1089,6 @@
                 if (!this.source.hasOwnProperty(group)) continue;
                 if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
 
-                if (this.options.maxItemPerGroup && groupBy === "group") {
-                    if (!itemPerGroup[group]) {
-                        itemPerGroup[group] = 0;
-                    } else if (itemPerGroup[group] >= this.options.maxItemPerGroup && !this.options.callback.onResult) {
-                        break;
-                    }
-                }
-
                 this.result[group] = [];
 
                 filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
@@ -1105,11 +1099,9 @@
 
                     item = this.source[group][k];
 
-                    if (this.options.maxItemPerGroup && groupBy !== "group") {
-                        if (!itemPerGroup[item[groupBy]]) {
-                            itemPerGroup[item[groupBy]] = 0;
-                        } else if (itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup && !this.options.callback.onResult) {
-                            continue;
+                    if (maxItemPerGroup) {
+                        if (this.result[group].length >= maxItemPerGroup && !this.options.callback.onResult) {
+                            break;
                         }
                     }
 
@@ -1163,27 +1155,25 @@
                             if (this.filters.dropdown.value != item[this.filters.dropdown.key]) continue;
                         }
 
-                        this.resultCount += 1;
+                        this.resultCount++;
 
-                        if ((this.options.callback.onResult && this.resultCount >= this.options.maxItem) ||
-                            this.options.maxItemPerGroup && this.result[group].length >= this.options.maxItemPerGroup
-                        //if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
-                        //    this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
-                        ) {
-                            break;
+                        if (this.resultItemCount < this.options.maxItem) {
+                            if (maxItemPerGroup && this.result[group].length >= maxItemPerGroup) {
+                                break;
+                            }
+                            item.matchedKey = displayKeys[i];
+
+                            this.result[group].push(item);
+                            this.resultItemCount++;
                         }
-
-
-                        item.matchedKey = displayKeys[i];
-
-                        this.result[group].push(item);
-
-                        //if (this.options.maxItemPerGroup) {
-                        //    itemPerGroup[item[groupBy]] += 1;
-                        //}
-
                         break;
                     }
+
+                    if (!this.options.callback.onResult && (this.resultItemCount >= this.options.maxItem ||
+                        maxItemPerGroup && this.result[group].length >= maxItemPerGroup)) {
+                        break;
+                    }
+
                 }
             }
 
@@ -1235,7 +1225,7 @@
                 groupOrder;
 
             if (typeof this.options.groupOrder === "function") {
-                this.options.groupOrder(this.node, this.query, this.result, this.resultCount);
+                groupOrder = this.options.groupOrder.apply(this, [this.node, this.query, this.result, this.resultCount]);
             } else if (this.options.groupOrder instanceof Array) {
                 groupOrder = this.options.groupOrder;
             } else if (typeof this.options.groupOrder === "string" && ~["asc", "desc"].indexOf(this.options.groupOrder)) {
@@ -1253,7 +1243,7 @@
             }
 
             for (var i = 0; i < groupOrder.length; i++) {
-                concatResults = concatResults.concat(this.result[groupOrder[i]]);
+                concatResults = concatResults.concat(this.result[groupOrder[i]] || []);
             }
 
             this.result = concatResults;

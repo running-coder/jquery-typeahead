@@ -54,7 +54,7 @@
     <script>
 
         var data = {
-            countries: ["Qatar","Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
+            countries: ["Qatar", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
                 "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh",
                 "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia",
                 "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burma",
@@ -72,7 +72,7 @@
                 "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Mongolia", "Morocco", "Monaco",
                 "Mozambique", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger",
                 "Nigeria", "Norway", "Oman", "Pakistan", "Panama", "Papua New Guinea", "Paraguay", "Peru",
-                "Philippines", "Poland", "Portugal",  "Romania", "Russia", "Rwanda", "Samoa", "San Marino",
+                "Philippines", "Poland", "Portugal", "Romania", "Russia", "Rwanda", "Samoa", "San Marino",
                 "Sao Tome", "Saudi Arabia", "Senegal", "Serbia and Montenegro", "Seychelles", "Sierra Leone",
                 "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "Spain",
                 "Sri Lanka", "Sudan", "Suriname", "Swaziland", "Sweden", "Switzerland", "Syria", "Taiwan",
@@ -99,7 +99,7 @@
                 "Oslo", "Ottawa", "Ouagadougou", "Pago Pago", "Palikir", "Panama City", "Papeete", "Paramaribo", "Paris",
                 "Philipsburg", "Phnom Penh", "Plymouth Brades Estate", "Podgorica Cetinje", "Port Louis", "Port Moresby",
                 "Port Vila", "Port-au-Prince", "Port of Spain", "Porto-Novo Cotonou", "Prague", "Praia", "Cape Town",
-                "Pristina", "Pyongyang", "Quito","aQuito", "Rabat", "Reykjavík", "Riga", "Riyadh", "Road Town", "Rome", "Roseau",
+                "Pristina", "Pyongyang", "Quito", "aQuito", "Rabat", "Reykjavík", "Riga", "Riyadh", "Road Town", "Rome", "Roseau",
                 "Saipan", "San José", "San Juan", "San Marino", "San Salvador", "Sana'a", "Santiago", "Santo Domingo",
                 "São Tomé", "Sarajevo", "Seoul", "Singapore", "Skopje", "Sofia", "Sri Jayawardenepura Kotte", "St. George's",
                 "St. Helier", "St. John's", "St. Peter Port", "St. Pierre", "Stanley", "Stepanakert", "Stockholm", "Sucre",
@@ -107,15 +107,41 @@
                 "Thimphu", "Tirana", "Tiraspol", "Tokyo", "Tórshavn", "Tripoli", "Tskhinvali", "Tunis", "Ulan Bator", "Vaduz",
                 "Valletta", "The Valley", "Vatican City", "Victoria", "Vienna", "Vientiane", "Vilnius", "Warsaw",
                 "Washington, D.C.", "Wellington", "West Island", "Willemstad", "Windhoek", "Yamoussoukro", "Yaoundé", "Yaren",
-                "Yerevan", "Zagreb"]
+                "Yerevan", "Zagreb"],
+            allo: ["coucou", "qcoucou"]
         };
 
         $('#q').typeahead({
             minLength: 1,
             order: "asc",
             group: true,
-            maxItemsPerGroup: 6,
-            groupOrder: "asc",
+            maxItemPerGroup: 3,
+            groupOrder: function () {
+
+                var scope = this,
+                    sortGroup = [];
+
+                for (var i in this.result) {
+                    sortGroup.push({
+                        group: i,
+                        length: this.result[i].length
+                    });
+                }
+
+                sortGroup.sort(
+                    scope.helper.sort(
+                        ["length"],
+                        false, // false = desc, the most results on top
+                        function (a) {
+                            return a.toString().toUpperCase()
+                        }
+                    )
+                );
+
+                return $.map(sortGroup, function (val, i) {
+                    return val.group
+                });
+            },
             hint: true,
             dropdownFilter: "All",
             href: "https://en.wikipedia.org/?title={{display}}",
@@ -126,6 +152,9 @@
                 },
                 capital: {
                     data: data.capitals
+                },
+                allo: {
+                    data: data.allo
                 }
             },
             callback: {
@@ -139,15 +168,17 @@
                     $('#result-container').text('');
 
                 },
-                onResult: function (node, query, obj, objCount) {
-
-                    var text = "";
-                    if (query !== "") {
-                        text = objCount + ' elements matching "' + query + '"';
-                    }
-                    $('#result-container').text(text);
-
-                }
+//                onResult: function (node, query, obj, objCount) {
+//
+//                    console.log(objCount)
+//
+//                    var text = "";
+//                    if (query !== "") {
+//                        text = objCount + ' elements matching "' + query + '"';
+//                    }
+//                    $('#result-container').text(text);
+//
+//                }
             },
             debug: true
         });
