@@ -80,7 +80,7 @@
             filterButton: "typeahead-filter-button",
             filterValue: "typeahead-filter-value",
             dropdown: "typeahead-dropdown",
-            dropdownCarret: "typeahead-caret",
+            dropdownCaret: "typeahead-caret",
             button: "typeahead-button",
             backdrop: "typeahead-backdrop",
             hint: "typeahead-hint"
@@ -1614,7 +1614,7 @@
                         $('<button/>', {
                             "type": "button",
                             "class": scope.options.selector.filterButton,
-                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCarret + "'></span>",
+                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCaret + "'></span>",
                             "click": function (e) {
 
                                 e.stopPropagation();
