@@ -1076,7 +1076,7 @@
 
             var scope = this,
                 group,
-                groupBy = typeof this.options.group[0] !== "boolean" ? this.options.group[0] : "group",
+                groupBy = this.options.group && typeof this.options.group[0] !== "boolean" ? this.options.group[0] : "group",
                 groupReference = null,
                 item,
                 match,
@@ -1099,7 +1099,7 @@
                 if (!this.source.hasOwnProperty(group)) continue;
                 if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
 
-                if (groupBy === "group") {
+                if (groupBy === "group" && !this.result[groupBy]) {
                     this.result[groupBy] = [];
                 }
 
