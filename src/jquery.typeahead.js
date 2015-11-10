@@ -4,24 +4,24 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.3 (2015-11-05)
+ * @version 2.2.0 (2015-11-09)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
 (function (factory) {
-  if (typeof define === 'function' && define.amd) {
-    define(['jquery'], function (jQuery) {
-      factory(window, document, jQuery);
-    });
-  } else if (typeof exports === 'object') {
-    module.exports = factory(window, document, require('jquery'));
-  } else {
-    factory(window, document, window.jQuery);
-  }
+    if (typeof define === 'function' && define.amd) {
+        define(['jquery'], function (jQuery) {
+            factory(window, document, jQuery);
+        });
+    } else if (typeof exports === 'object') {
+        module.exports = factory(window, document, require('jquery'));
+    } else {
+        factory(window, document, window.jQuery);
+    }
 })(function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.1.3'
+        version: '2.2.0'
     };
 
     "use strict";
@@ -1076,11 +1076,13 @@
 
             var scope = this,
                 group,
+                groupBy = typeof this.options.group[0] !== "boolean" ? this.options.group[0] : "group",
+                groupReference = null,
                 item,
                 match,
                 comparedDisplay,
                 comparedQuery = this.query.toLowerCase(),
-                maxItemPerGroup = this.groupBy !== "group" ? null : this.options.maxItemPerGroup,
+                maxItemPerGroup = this.options.maxItemPerGroup,
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
                 missingDisplayKey = {},
@@ -1097,7 +1099,9 @@
                 if (!this.source.hasOwnProperty(group)) continue;
                 if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
 
-                this.result[group] = [];
+                if (groupBy === "group") {
+                    this.result[groupBy] = [];
+                }
 
                 filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
 
@@ -1106,9 +1110,14 @@
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
+                    groupReference = groupBy === "group" ? groupBy : item[groupBy];
+
+                    if (groupReference !== "group" && groupReference && !this.result[groupReference]) {
+                        this.result[item[groupBy]] = [];
+                    }
 
                     if (maxItemPerGroup) {
-                        if (this.result[group].length >= maxItemPerGroup && !this.options.callback.onResult) {
+                        if (this.result[groupReference].length >= maxItemPerGroup && !this.options.callback.onResult) {
                             break;
                         }
                     }
@@ -1166,20 +1175,24 @@
                         this.resultCount++;
 
                         if (this.resultItemCount < this.options.maxItem) {
-                            if (maxItemPerGroup && this.result[group].length >= maxItemPerGroup) {
+                            if (maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup) {
                                 break;
                             }
+
                             item.matchedKey = displayKeys[i];
 
-                            this.result[group].push(item);
+                            this.result[groupReference].push(item);
                             this.resultItemCount++;
                         }
                         break;
                     }
 
                     if (!this.options.callback.onResult && (this.resultItemCount >= this.options.maxItem ||
-                        maxItemPerGroup && this.result[group].length >= maxItemPerGroup)) {
-                        break;
+                        maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup)) {
+                        // Continue looping if custom grouping
+                        if (groupReference === "group") {
+                            break;
+                        }
                     }
 
                 }
@@ -1306,7 +1319,13 @@
                                     _template;
 
                                 if (scope.options.group) {
-                                    if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
+                                    if (scope.options.group[1]) {
+                                        if (typeof scope.options.group[1] === "function") {
+                                            _group = scope.options.group[1](item);
+                                        } else if (typeof scope.options.group[1] === "string") {
+                                            _group = scope.options.group[1].replace(/(\{\{group}})/gi, item[scope.options.group[0]] || _group);
+                                        }
+                                    } else if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
                                         _group = item[scope.options.group[0]];
                                     }
                                     if (!$(ulScope).find('li[data-search-group="' + _group + '"]')[0]) {
@@ -1315,7 +1334,7 @@
                                                 "class": scope.options.selector.group,
                                                 "html": $("<a/>", {
                                                     "href": "javascript:;",
-                                                    "html": scope.options.group[1] && scope.options.group[1].replace(/(\{\{group}})/gi, item[scope.options.group[0]] || _group) || _group
+                                                    "html": _group
                                                 }),
                                                 "data-search-group": _group
                                             })
