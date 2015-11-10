@@ -4,24 +4,24 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.1.3 (2015-11-05)
+ * @version 2.2.0 (2015-11-09)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
 (function (factory) {
-  if (typeof define === 'function' && define.amd) {
-    define(['jquery'], function (jQuery) {
-      factory(window, document, jQuery);
-    });
-  } else if (typeof exports === 'object') {
-    module.exports = factory(window, document, require('jquery'));
-  } else {
-    factory(window, document, window.jQuery);
-  }
+    if (typeof define === 'function' && define.amd) {
+        define(['jquery'], function (jQuery) {
+            factory(window, document, jQuery);
+        });
+    } else if (typeof exports === 'object') {
+        module.exports = factory(window, document, require('jquery'));
+    } else {
+        factory(window, document, window.jQuery);
+    }
 })(function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.1.3'
+        version: '2.2.0'
     };
 
     "use strict";
@@ -44,6 +44,7 @@
         accent: false,
         highlight: true,
         group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
+        groupOrder: null,       // -> New feature, order groups "asc", "desc", Array, Function
         maxItemPerGroup: null,  // -> Renamed option
         dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
         dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
@@ -89,7 +90,7 @@
             filterButton: "typeahead-filter-button",
             filterValue: "typeahead-filter-value",
             dropdown: "typeahead-dropdown",
-            dropdownCarret: "typeahead-caret",
+            dropdownCaret: "typeahead-caret",
             button: "typeahead-button",
             backdrop: "typeahead-backdrop",
             hint: "typeahead-hint"
@@ -136,7 +137,7 @@
         this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
         this.groupCount = 0;            // Number of groups, this value gets counted on the initial source unification
         this.groupBy = "group";         // This option will change according to filtering or custom grouping
-        this.result = [];               // Results based on Source-query match (only contains the displayed elements)
+        this.result = {};               // Results based on Source-query match (only contains the displayed elements)
         this.resultCount = 0;           // Total results based on Source-query match
         this.options = options;         // Typeahead options (Merged default & user defined)
         this.node = node;               // jQuery object of the Typeahead <input>
@@ -571,8 +572,8 @@
 
                     this.populateSource(
                         typeof this.options.source[group].data === "function" &&
-                            this.options.source[group].data() ||
-                            this.options.source[group].data,
+                        this.options.source[group].data() ||
+                        this.options.source[group].data,
                         group
                     );
                     continue;
@@ -592,10 +593,15 @@
 
         generateRequestObject: function (group) {
 
+            var scope = this;
+
             var xhrObject = {
                 request: {
                     url: null,
-                    dataType: 'json'
+                    dataType: 'json',
+                    beforeSend: function (jqXHR, options) {
+                        scope.xhr[group] = jqXHR;
+                    }
                 },
                 extra: {
                     path: null,
@@ -698,7 +704,7 @@
                         }
                     }
 
-                    scope.xhr[group] = $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
+                    $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
 
                         var tmpData;
                         for (var i = 0; i < xhrObject.validForGroup.length; i++) {
@@ -1064,17 +1070,19 @@
 
             this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
 
-            this.result = [];
+            this.result = {};
             this.resultCount = 0;
+            this.resultItemCount = 0;
 
             var scope = this,
                 group,
+                groupBy = typeof this.options.group[0] !== "boolean" ? this.options.group[0] : "group",
+                groupReference = null,
                 item,
                 match,
                 comparedDisplay,
                 comparedQuery = this.query.toLowerCase(),
-                itemPerGroup = {},
-                groupBy = this.filters.dropdown && this.filters.dropdown.key || this.groupBy,
+                maxItemPerGroup = this.options.maxItemPerGroup,
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
                 missingDisplayKey = {},
@@ -1091,12 +1099,8 @@
                 if (!this.source.hasOwnProperty(group)) continue;
                 if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
 
-                if (this.options.maxItemPerGroup && groupBy === "group") {
-                    if (!itemPerGroup[group]) {
-                        itemPerGroup[group] = 0;
-                    } else if (itemPerGroup[group] >= this.options.maxItemPerGroup && !this.options.callback.onResult) {
-                        break;
-                    }
+                if (groupBy === "group") {
+                    this.result[groupBy] = [];
                 }
 
                 filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
@@ -1106,12 +1110,15 @@
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
+                    groupReference = groupBy === "group" ? groupBy : item[groupBy];
 
-                    if (this.options.maxItemPerGroup && groupBy !== "group") {
-                        if (!itemPerGroup[item[groupBy]]) {
-                            itemPerGroup[item[groupBy]] = 0;
-                        } else if (itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup && !this.options.callback.onResult) {
-                            continue;
+                    if (groupReference !== "group" && groupReference && !this.result[groupReference]) {
+                        this.result[item[groupBy]] = [];
+                    }
+
+                    if (maxItemPerGroup) {
+                        if (this.result[groupReference].length >= maxItemPerGroup && !this.options.callback.onResult) {
+                            break;
                         }
                     }
 
@@ -1165,24 +1172,29 @@
                             if (this.filters.dropdown.value != item[this.filters.dropdown.key]) continue;
                         }
 
-                        this.resultCount += 1;
+                        this.resultCount++;
 
-                        if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
-                            this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup
-                        ) {
-                            break;
+                        if (this.resultItemCount < this.options.maxItem) {
+                            if (maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup) {
+                                break;
+                            }
+
+                            item.matchedKey = displayKeys[i];
+
+                            this.result[groupReference].push(item);
+                            this.resultItemCount++;
                         }
-
-                        item.matchedKey = displayKeys[i];
-
-                        this.result.push(item);
-
-                        if (this.options.maxItemPerGroup) {
-                            itemPerGroup[item[groupBy]] += 1;
-                        }
-
                         break;
                     }
+
+                    if (!this.options.callback.onResult && (this.resultItemCount >= this.options.maxItem ||
+                        maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup)) {
+                        // Continue looping if custom grouping
+                        if (groupReference === "group") {
+                            break;
+                        }
+                    }
+
                 }
             }
 
@@ -1206,23 +1218,56 @@
                 var displayKeys = [],
                     displayKey;
 
-                for (var i = 0; i < this.result.length; i++) {
-                    displayKey = this.options.source[this.result[i].group].display || this.options.display;
-                    if (!~displayKeys.indexOf(displayKey[0])) {
-                        displayKeys.push(displayKey[0]);
+                for (var group in this.result) {
+                    if (!this.result.hasOwnProperty(group)) continue;
+                    for (var i = 0; i < this.result[group].length; i++) {
+                        displayKey = this.options.source[this.result[group][i].group].display || this.options.display;
+                        if (!~displayKeys.indexOf(displayKey[0])) {
+                            displayKeys.push(displayKey[0]);
+                        }
                     }
+
+                    this.result[group].sort(
+                        scope.helper.sort(
+                            displayKeys,
+                            scope.options.order === "asc",
+                            function (a) {
+                                return a.toString().toUpperCase()
+                            }
+                        )
+                    );
                 }
 
-                this.result.sort(
+            }
+
+
+            // @TODO TEST THE SCENARIOS
+            var concatResults = [],
+                groupOrder;
+
+            if (typeof this.options.groupOrder === "function") {
+                groupOrder = this.options.groupOrder.apply(this, [this.node, this.query, this.result, this.resultCount]);
+            } else if (this.options.groupOrder instanceof Array) {
+                groupOrder = this.options.groupOrder;
+            } else if (typeof this.options.groupOrder === "string" && ~["asc", "desc"].indexOf(this.options.groupOrder)) {
+                groupOrder = Object.keys(this.result).sort(
                     scope.helper.sort(
-                        displayKeys,
-                        scope.options.order === "asc",
+                        [],
+                        scope.options.groupOrder === "asc",
                         function (a) {
                             return a.toString().toUpperCase()
                         }
                     )
                 );
+            } else {
+                groupOrder = Object.keys(this.result);
             }
+
+            for (var i = 0; i < groupOrder.length; i++) {
+                concatResults = concatResults.concat(this.result[groupOrder[i]] || []);
+            }
+
+            this.result = concatResults;
 
             this.helper.executeCallback(this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
 
@@ -1274,7 +1319,13 @@
                                     _template;
 
                                 if (scope.options.group) {
-                                    if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
+                                    if (scope.options.group[1]) {
+                                        if (typeof scope.options.group[1] === "function") {
+                                            _group = scope.options.group[1](item);
+                                        } else if (typeof scope.options.group[1] === "string") {
+                                            _group = scope.options.group[1].replace(/(\{\{group}})/gi, item[scope.options.group[0]] || _group);
+                                        }
+                                    } else if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
                                         _group = item[scope.options.group[0]];
                                     }
                                     if (!$(ulScope).find('li[data-search-group="' + _group + '"]')[0]) {
@@ -1283,7 +1334,7 @@
                                                 "class": scope.options.selector.group,
                                                 "html": $("<a/>", {
                                                     "href": "javascript:;",
-                                                    "html": scope.options.group[1] && scope.options.group[1].replace(/(\{\{group}})/gi, item[scope.options.group[0]] || _group) || _group
+                                                    "html": _group
                                                 }),
                                                 "data-search-group": _group
                                             })
@@ -1358,7 +1409,7 @@
 
                                             scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
 
-                                            if (e.isDefaultPrevented()) {
+                                            if (e.defaultPrevented) {
                                                 return;
                                             }
 
@@ -1590,7 +1641,7 @@
                         $('<button/>', {
                             "type": "button",
                             "class": scope.options.selector.filterButton,
-                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCarret + "'></span>",
+                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCaret + "'></span>",
                             "click": function (e) {
 
                                 e.stopPropagation();
@@ -1936,13 +1987,13 @@
              * @returns {Function}
              */
             sort: function (field, reverse, primer) {
-
                 var key = function (x) {
                     for (var i = 0; i < field.length; i++) {
                         if (typeof x[field[i]] !== 'undefined') {
                             return primer(x[field[i]])
                         }
                     }
+                    return x;
                 };
 
                 reverse = [-1, 1][+!!reverse];
@@ -2323,9 +2374,9 @@
 
 // IE8 Shims
     window.console = window.console || {
-        log: function () {
-        }
-    };
+            log: function () {
+            }
+        };
 
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {

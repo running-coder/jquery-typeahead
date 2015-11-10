@@ -72,7 +72,7 @@
                 "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Mongolia", "Morocco", "Monaco",
                 "Mozambique", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger",
                 "Nigeria", "Norway", "Oman", "Pakistan", "Panama", "Papua New Guinea", "Paraguay", "Peru",
-                "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Samoa", "San Marino",
+                "Philippines", "Poland", "Portugal", "Romania", "Russia", "Rwanda", "Samoa", "San Marino",
                 "Sao Tome", "Saudi Arabia", "Senegal", "Serbia and Montenegro", "Seychelles", "Sierra Leone",
                 "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "Spain",
                 "Sri Lanka", "Sudan", "Suriname", "Swaziland", "Sweden", "Switzerland", "Syria", "Taiwan",
@@ -114,7 +114,33 @@
             minLength: 1,
             order: "asc",
             group: true,
-            groupMaxItem: 6,
+            maxItemPerGroup: 3,
+            groupOrder: function () {
+
+                var scope = this,
+                    sortGroup = [];
+
+                for (var i in this.result) {
+                    sortGroup.push({
+                        group: i,
+                        length: this.result[i].length
+                    });
+                }
+
+                sortGroup.sort(
+                    scope.helper.sort(
+                        ["length"],
+                        false, // false = desc, the most results on top
+                        function (a) {
+                            return a.toString().toUpperCase()
+                        }
+                    )
+                );
+
+                return $.map(sortGroup, function (val, i) {
+                    return val.group
+                });
+            },
             hint: true,
             dropdownFilter: "All",
             href: "https://en.wikipedia.org/?title={{display}}",
@@ -139,6 +165,8 @@
 
                 },
                 onResult: function (node, query, obj, objCount) {
+
+                    console.log(objCount)
 
                     var text = "";
                     if (query !== "") {
