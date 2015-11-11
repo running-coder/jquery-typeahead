@@ -521,11 +521,14 @@
             }
 
             var group,
+                groupSource,
                 dataInStorage,
                 isValidStorage;
 
             for (group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
+
+                groupSource = this.options.source[group];
 
                 // Get group source from Localstorage
                 if (this.options.cache) {
@@ -568,21 +571,21 @@
                 }
 
                 // Get group source from data
-                if (this.options.source[group].data && !this.options.source[group].url) {
+                if (groupSource.data && !groupSource.url) {
 
                     this.populateSource(
-                        typeof this.options.source[group].data === "function" &&
-                        this.options.source[group].data() ||
-                        this.options.source[group].data,
+                        typeof groupSource.data === "function" &&
+                        groupSource.data() ||
+                        groupSource.data,
                         group
                     );
                     continue;
                 }
 
                 // Get group source from Ajax / JsonP
-                if (this.options.source[group].url) {
+                if (groupSource.url) {
                     if (!this.requests[group]) {
-                        this.requests[group] = this.generateRequestObject(group);
+                        this.requests[group] = this.generateRequestObject(group, groupSource.beforeSend);
                     }
                 }
             }
@@ -591,7 +594,7 @@
 
         },
 
-        generateRequestObject: function (group) {
+        generateRequestObject: function (group, beforeSend) {
 
             var scope = this;
 
@@ -599,7 +602,10 @@
                 request: {
                     url: null,
                     dataType: 'json',
-                    beforeSend: function (jqXHR, options) {
+                    beforeSend: function (jqXHR) {
+                        if (beforeSend) {
+                            beforeSend.apply(null, arguments);
+                        }
                         scope.xhr[group] = jqXHR;
                     }
                 },
