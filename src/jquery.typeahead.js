@@ -886,7 +886,7 @@
                     // {/debug}
                 } else {
 
-                    template = this.options.correlativeField ? this.options.correlativeField.correlativeField : template
+                    template = this.options.correlativeField ? this.options.correlativeField : template
                         .replace(/<.+?>/g, '');
 
                     for (var i = 0; i < data.length; i++) {
