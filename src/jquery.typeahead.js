@@ -61,6 +61,7 @@
         display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
         correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
+        correlativeField: null,
         emptyTemplate: false,   // -> New feature, display an empty template if no result
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
         callback: {
@@ -885,7 +886,7 @@
                     // {/debug}
                 } else {
 
-                    template = template
+                    template = this.options.correlativeField ? this.options.correlativeField.correlativeField : template
                         .replace(/<.+?>/g, '');
 
                     for (var i = 0; i < data.length; i++) {
