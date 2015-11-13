@@ -302,17 +302,21 @@
                 };
             }
 
+            var groupSource;
+
             for (var group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
 
+                groupSource = this.options.source[group];
+
                 // Backward compatibility for source.url declaration
-                if (typeof this.options.source[group] === "string" || this.options.source[group] instanceof Array) {
-                    this.options.source[group] = {
-                        url: this.options.source[group]
+                if (typeof groupSource === "string" || groupSource instanceof Array) {
+                    groupSource = {
+                        url: groupSource
                     };
                 }
 
-                if (!this.options.source[group].data && !this.options.source[group].url) {
+                if (!groupSource.data && !groupSource.url) {
 
                     // {debug}
                     if (this.options.debug) {
@@ -330,19 +334,19 @@
                     return false;
                 }
 
-                if (this.options.source[group].display && !(this.options.source[group].display instanceof Array)) {
-                    this.options.source[group].display = [this.options.source[group].display];
+                if (groupSource.display && !(groupSource.display instanceof Array)) {
+                    groupSource.display = [groupSource.display];
                 }
 
-                if (this.options.source[group].ignore) {
-                    if (!(this.options.source[group].ignore instanceof RegExp)) {
+                if (groupSource.ignore) {
+                    if (!(groupSource.ignore instanceof RegExp)) {
 
                         // {debug}
                         if (this.options.debug) {
                             _debug.log({
                                 'node': this.node.selector,
                                 'function': 'unifySourceFormat()',
-                                'arguments': JSON.stringify(this.options.source[group].ignore),
+                                'arguments': JSON.stringify(groupSource.ignore),
                                 'message': 'Invalid ignore RegExp.'
                             });
 
@@ -350,7 +354,7 @@
                         }
                         // {/debug}
 
-                        delete this.options.source[group].ignore;
+                        delete groupSource.ignore;
                     }
                 }
 
@@ -521,11 +525,14 @@
             }
 
             var group,
+                groupSource,
                 dataInStorage,
                 isValidStorage;
 
             for (group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
+
+                groupSource = this.options.source[group];
 
                 // Get group source from Localstorage
                 if (this.options.cache) {
@@ -568,19 +575,19 @@
                 }
 
                 // Get group source from data
-                if (this.options.source[group].data && !this.options.source[group].url) {
+                if (groupSource.data && !groupSource.url) {
 
                     this.populateSource(
-                        typeof this.options.source[group].data === "function" &&
-                        this.options.source[group].data() ||
-                        this.options.source[group].data,
+                        typeof groupSource.data === "function" &&
+                        groupSource.data() ||
+                        groupSource.data,
                         group
                     );
                     continue;
                 }
 
                 // Get group source from Ajax / JsonP
-                if (this.options.source[group].url) {
+                if (groupSource.url) {
                     if (!this.requests[group]) {
                         this.requests[group] = this.generateRequestObject(group);
                     }
@@ -593,7 +600,8 @@
 
         generateRequestObject: function (group) {
 
-            var scope = this;
+            var scope = this,
+                groupSource = this.options.source[group];
 
             var xhrObject = {
                 request: {
@@ -601,6 +609,16 @@
                     dataType: 'json',
                     beforeSend: function (jqXHR, options) {
                         scope.xhr[group] = jqXHR;
+
+                        console.log(options)
+
+                        console.log('aaaaaaaaaa')
+
+                        jqXHR.setRequestHeader('Authorization', 'Bearer xxxxxxxxxxxx');
+
+                        //jqXHR.setRequestHeader('X-Alt-Referer', 'http://www.google.com');
+
+
                     }
                 },
                 extra: {
@@ -616,28 +634,28 @@
                 validForGroup: [group]
             };
 
-            if (!(this.options.source[group].url instanceof Array) && this.options.source[group].url instanceof Object) {
-                this.options.source[group].url = [this.options.source[group].url];
+            if (!(groupSource.url instanceof Array) && groupSource.url instanceof Object) {
+                groupSource.url = [groupSource.url];
             }
 
-            if (this.options.source[group].url instanceof Array) {
-                if (this.options.source[group].url[0] instanceof Object) {
+            if (groupSource.url instanceof Array) {
+                if (groupSource.url[0] instanceof Object) {
 
-                    if (this.options.source[group].url[0].callback) {
-                        xhrObject.extra.callback = this.options.source[group].url[0].callback;
-                        delete this.options.source[group].url[0].callback;
+                    if (groupSource.url[0].callback) {
+                        xhrObject.extra.callback = groupSource.url[0].callback;
+                        delete groupSource.url[0].callback;
                     }
 
-                    xhrObject.request = $.extend(true, xhrObject.request, this.options.source[group].url[0]);
+                    xhrObject.request = $.extend(true, xhrObject.request, groupSource.url[0]);
 
-                } else if (typeof this.options.source[group].url[0] === "string") {
-                    xhrObject.request.url = this.options.source[group].url[0];
+                } else if (typeof groupSource.url[0] === "string") {
+                    xhrObject.request.url = groupSource.url[0];
                 }
-                if (this.options.source[group].url[1] && typeof this.options.source[group].url[1] === "string") {
-                    xhrObject.extra.path = this.options.source[group].url[1];
+                if (groupSource.url[1] && typeof groupSource.url[1] === "string") {
+                    xhrObject.extra.path = groupSource.url[1];
                 }
-            } else if (typeof this.options.source[group].url === "string") {
-                xhrObject.request.url = this.options.source[group].url;
+            } else if (typeof groupSource.url === "string") {
+                xhrObject.request.url = groupSource.url;
             }
 
             if (xhrObject.request.dataType.toLowerCase() === 'jsonp') {
@@ -792,7 +810,8 @@
         populateSource: function (data, group, path) {
 
             var scope = this,
-                extraData = this.options.source[group].url && this.options.source[group].data;
+                groupSource = this.options.source[group],
+                extraData = groupSource.url && groupSource.data;
 
             data = typeof path === "string" ? this.helper.namespace(path, data) : data;
 
@@ -851,8 +870,9 @@
             }
 
             var tmpObj,
-                display = this.options.source[group].display ?
-                    (this.options.source[group].display[0] === 'compiled' ? this.options.source[group].display[1] : this.options.source[group].display[0]) :
+
+                display = groupSource.display ?
+                    (groupSource.display[0] === 'compiled' ? groupSource.display[1] : groupSource.display[0]) :
                     (this.options.display[0] === 'compiled' ? this.options.display[1] : this.options.display[0]);
 
             // @TODO: possibly optimize this?
@@ -867,7 +887,7 @@
 
             if (this.options.correlativeTemplate) {
 
-                var template = this.options.source[group].template ||
+                var template = groupSource.template ||
                     this.options.template;
 
                 if (!template) {
@@ -895,9 +915,9 @@
                         ).trim();
                     }
 
-                    if (this.options.source[group].display) {
-                        if (!~this.options.source[group].display.indexOf('compiled')) {
-                            this.options.source[group].display.unshift('compiled');
+                    if (groupSource.display) {
+                        if (!~groupSource.display.indexOf('compiled')) {
+                            groupSource.display.unshift('compiled');
                         }
                     } else if (!~this.options.display.indexOf('compiled')) {
                         this.options.display.unshift('compiled');
