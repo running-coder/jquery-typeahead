@@ -22,3 +22,13 @@ Version Notes
 ======================
 
 www.runningcoder.org/jquerytypeahead/version/
+
+Pull Requests
+======================
+
+Please consider these points before creating a new pull request
+
+- Pull request should be made on the `Develop` branch so it can be tested properly and not be directly available to download on the `Master`.
+The `Master` branch should be a copy of the latest released `Tag` without any additional new code that has not been released.
+- Add a descriptive note along with the PR and examples
+- Follow the same coding conversions
