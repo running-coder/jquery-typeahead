@@ -1149,7 +1149,7 @@
                             }
                             
                             if (this.options.callback.matcher) {
-                            	match=true;
+                            	match=this.options.callback.matcher;
                             } else {
                             	match = comparedDisplay.indexOf(comparedQuery);
                             }
