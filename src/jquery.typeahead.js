@@ -77,7 +77,8 @@
             onClickAfter: null, // -> New feature, happens after the default clicked behaviors has been executed
             onSendRequest: null,// -> New callback, gets called when the Ajax request(s) are sent
             onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
-            onSubmit: null
+            onSubmit: null,
+            matcher:null    // -> Matcher function for match algorithm
         },
         selector: {
             container: "typeahead-container",
@@ -1146,8 +1147,12 @@
                             if (this.options.accent) {
                                 comparedDisplay = this.helper.removeAccent(comparedDisplay);
                             }
-
-                            match = comparedDisplay.indexOf(comparedQuery);
+                            
+                            if (this.options.callback.matcher) {
+                            	match=true;
+                            } else {
+                            	match = comparedDisplay.indexOf(comparedQuery);
+                            }
 
                             if (this.options.correlativeTemplate && displayKeys[i] === 'compiled' && match < 0 && /\s/.test(comparedQuery)) {
                                 correlativeMatch = true;
