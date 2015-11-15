@@ -78,7 +78,7 @@
             onSendRequest: null,// -> New callback, gets called when the Ajax request(s) are sent
             onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
             onSubmit: null,
-            matcher:null    // -> Matcher function for match algorithm
+            matcher: null    // -> Matcher function for match algorithm
         },
         selector: {
             container: "typeahead-container",
