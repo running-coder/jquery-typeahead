@@ -614,7 +614,7 @@
                     beforeSend: function (jqXHR, options) {
                         scope.xhr[group] = jqXHR;
 
-                        groupSource.url[0].beforeSend && groupSource.url[0].beforeSend.apply(null, arguments);
+                        typeof groupSource.url[0].beforeSend === "function" && groupSource.url[0].beforeSend.apply(null, arguments);
                     }
                 },
                 extra: {
@@ -631,7 +631,7 @@
             };
 
             // Fixes #105 Allow user to define their beforeSend function.
-            Object.defineProperty(xhrObject.request, 'beforeSend', { writable: false });
+            Object.defineProperty(xhrObject.request, 'beforeSend', {writable: false});
 
             if (groupSource.url instanceof Array) {
                 if (groupSource.url[0] instanceof Object) {
