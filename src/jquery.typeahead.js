@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.0 (2015-11-09)
+ * @version 2.2.0 (2015-11-16)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -603,6 +603,10 @@
             var scope = this,
                 groupSource = this.options.source[group];
 
+            if (!(groupSource.url instanceof Array) && groupSource.url instanceof Object) {
+                groupSource.url = [groupSource.url];
+            }
+
             var xhrObject = {
                 request: {
                     url: null,
@@ -610,15 +614,7 @@
                     beforeSend: function (jqXHR, options) {
                         scope.xhr[group] = jqXHR;
 
-                        console.log(options)
-
-                        console.log('aaaaaaaaaa')
-
-                        jqXHR.setRequestHeader('Authorization', 'Bearer xxxxxxxxxxxx');
-
-                        //jqXHR.setRequestHeader('X-Alt-Referer', 'http://www.google.com');
-
-
+                        groupSource.url[0].beforeSend && groupSource.url[0].beforeSend.apply(null, arguments);
                     }
                 },
                 extra: {
@@ -634,9 +630,8 @@
                 validForGroup: [group]
             };
 
-            if (!(groupSource.url instanceof Array) && groupSource.url instanceof Object) {
-                groupSource.url = [groupSource.url];
-            }
+            // Fixes #105 Allow user to define their beforeSend function.
+            Object.defineProperty(xhrObject.request, 'beforeSend', { writable: false });
 
             if (groupSource.url instanceof Array) {
                 if (groupSource.url[0] instanceof Object) {
