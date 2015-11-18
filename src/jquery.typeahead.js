@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.0 (2015-11-16)
+ * @version 2.2.0 (2015-11-18)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -42,7 +42,7 @@
         offset: false,
         hint: false,            // -> Improved feature, Added support for excessive "space" characters
         accent: false,
-        highlight: true,
+        highlight: true,        // -> Added "any" to highlight any word in the template, by default true will only highlight display keys
         group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
         groupOrder: null,       // -> New feature, order groups "asc", "desc", Array, Function
         maxItemPerGroup: null,  // -> Renamed option
@@ -236,6 +236,10 @@
 
             if (this.options.group && !(this.options.group instanceof Array)) {
                 this.options.group = [this.options.group];
+            }
+
+            if (this.options.highlight && !~["any", true].indexOf(this.options.highlight)) {
+                this.options.highlight = false;
             }
 
             if (this.options.dynamicFilter && !(this.options.dynamicFilter instanceof Array)) {
@@ -1396,17 +1400,20 @@
                                                 _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
                                                     var value = scope.helper.namespace(index, item, 'get', '');
-                                                    if (option && option === "raw") {
-                                                        return value;
+                                                    if (!option || option !== "raw") {
+                                                        value = scope.helper.namespace(index, _display, 'get', '') || value;
                                                     }
-                                                    return scope.helper.namespace(index, _display, 'get', '') || value;
+                                                    if (scope.options.highlight === true) {
+                                                        value = scope.helper.highlight(value, _query.split(" "), scope.options.accent)
+                                                    }
 
+                                                    return value;
                                                 });
                                             } else {
                                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
                                             }
 
-                                            if (scope.options.highlight) {
+                                            if ((scope.options.highlight === true && !_template) || scope.options.highlight === "any") {
                                                 _aHtml = scope.helper.highlight(_aHtml, _query.split(" "), scope.options.accent)
                                             }
 
