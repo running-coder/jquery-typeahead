@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.0 (2015-11-18)
+ * @version 2.2.1 (2015-11-18)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -21,7 +21,7 @@
 })(function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.2.0'
+        version: '2.2.1'
     };
 
     "use strict";
@@ -1330,10 +1330,9 @@
                                 var _group = item.group,
                                     _liHtml,
                                     _aHtml,
-                                    _display = {},
+                                    _display = [],
                                     _displayKeys = scope.options.source[item.group].display || scope.options.display,
                                     _href = scope.options.source[item.group].href || scope.options.href,
-                                    _displayKey,
                                     _handle,
                                     _template;
 
@@ -1359,11 +1358,6 @@
                                             })
                                         );
                                     }
-                                }
-
-                                for (var i = 0; i < _displayKeys.length; i++) {
-                                    _displayKey = _displayKeys[i];
-                                    _display[_displayKey] = item[_displayKey];
                                 }
 
                                 _liHtml = $("<li/>", {
@@ -1400,17 +1394,20 @@
                                                 _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
                                                     var value = scope.helper.namespace(index, item, 'get', '');
-                                                    if (!option || option !== "raw") {
-                                                        value = scope.helper.namespace(index, _display, 'get', '') || value;
-                                                    }
-                                                    if (scope.options.highlight === true) {
-                                                        value = scope.helper.highlight(value, _query.split(" "), scope.options.accent)
-                                                    }
 
+                                                    if (!option || option !== "raw") {
+                                                        if (scope.options.highlight === true && ~_displayKeys.indexOf(index)) {
+                                                            value = scope.helper.highlight(value, _query.split(" "), scope.options.accent)
+                                                        }
+                                                    }
                                                     return value;
                                                 });
                                             } else {
-                                                _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
+                                                for (var i = 0; i < _displayKeys.length; i++) {
+                                                    _display.push(item[_displayKeys[i]]);
+                                                }
+
+                                                _aHtml = '<span class="' + scope.options.selector.display + '">' + _display.join(" ") + '</span>';
                                             }
 
                                             if ((scope.options.highlight === true && !_template) || scope.options.highlight === "any") {
@@ -1431,7 +1428,7 @@
 
                                             scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
 
-                                            if (e.originalEvent.defaultPrevented) {
+                                            if ((e.originalEvent && e.originalEvent.defaultPrevented) || e.isDefaultPrevented()) {
                                                 return;
                                             }
 
