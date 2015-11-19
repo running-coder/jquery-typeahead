@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.1 (2015-11-18)
+ * @version 2.2.1 (2015-11-20)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -373,7 +373,7 @@
 
         init: function () {
 
-            this.helper.executeCallback(this.options.callback.onInit, [this.node]);
+            this.helper.executeCallback.call(this, this.options.callback.onInit, [this.node]);
 
             this.container = this.node.closest('.' + this.options.selector.container);
 
@@ -427,7 +427,7 @@
                 scope.rawQuery = '';
                 scope.query = '';
 
-                if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, this, scope.item, e])) {
+                if (scope.helper.executeCallback.call(scope, scope.options.callback.onSubmit, [scope.node, this, scope.item, e])) {
                     return false;
                 }
             });
@@ -690,7 +690,7 @@
                 requestsCount = Object.keys(this.requests).length;
 
             if (requestsCount) {
-                this.helper.executeCallback(this.options.callback.onSendRequest, [this.node, this.query]);
+                this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]);
             }
 
             for (var group in this.requests) {
@@ -754,7 +754,7 @@
 
                             requestsCount -= 1;
                             if (requestsCount === 0) {
-                                scope.helper.executeCallback(scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
+                                scope.helper.executeCallback.call(scope, scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
                             }
 
                         }
@@ -990,7 +990,7 @@
          */
         navigate: function (e) {
 
-            this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
+            this.helper.executeCallback.call(this, this.options.callback.onNavigate, [this.node, this.query, e]);
 
             if (e.keyCode === 27 || e.keyCode === 9) {
                 // #57 ESC should not preventDefault if Typeahead is not opened
@@ -1098,7 +1098,7 @@
                 this.item = {};
             }
 
-            this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
+            this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]);
 
             this.result = {};
             this.resultCount = 0;
@@ -1300,7 +1300,7 @@
 
             this.result = concatResults;
 
-            this.helper.executeCallback(this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
+            this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
 
         },
 
@@ -1438,7 +1438,7 @@
 
                                             scope.item = item;
 
-                                            scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, this, item, e]);
 
                                             if ((e.originalEvent && e.originalEvent.defaultPrevented) || e.isDefaultPrevented()) {
                                                 return;
@@ -1453,7 +1453,7 @@
                                             scope.buildLayout();
                                             scope.hideLayout();
 
-                                            scope.helper.executeCallback(scope.options.callback.onClickAfter, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onClickAfter, [scope.node, this, item, e]);
 
                                         }),
                                         "mouseenter": function (e) {
@@ -1461,13 +1461,13 @@
                                             $(this).closest('ul').find('li.active').removeClass('active');
                                             $(this).closest('li').addClass('active');
 
-                                            scope.helper.executeCallback(scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
                                         },
                                         "mouseleave": function (e) {
 
                                             $(this).closest('li').removeClass('active');
 
-                                            scope.helper.executeCallback(scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
                                         }
                                     })
                                 });
@@ -1612,7 +1612,7 @@
             }
 
             if (this.options.callback.onLayoutBuiltBefore) {
-                var tmpResultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
+                var tmpResultHtmlList = this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
 
                 if (tmpResultHtmlList instanceof jQuery) {
                     resultHtmlList = tmpResultHtmlList;
@@ -1638,7 +1638,7 @@
                 .html(resultHtmlList);
 
             if (this.options.callback.onLayoutBuiltAfter) {
-                this.helper.executeCallback(this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
+                this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
             }
         },
 
@@ -1958,7 +1958,7 @@
             this.buildDropdownLayout();
             this.dynamicFilter.bind.apply(this);
 
-            this.helper.executeCallback(this.options.callback.onReady, [this.node]);
+            this.helper.executeCallback.call(this, this.options.callback.onReady, [this.node]);
         },
 
         helper: {
@@ -2101,25 +2101,6 @@
                 return string;
             },
 
-            joinObject: function (object, join) {
-                var string = "",
-                    iteration = 0;
-
-                for (var i in object) {
-                    if (!object.hasOwnProperty(i)) continue;
-
-                    if (iteration !== 0) {
-                        string += join;
-                    }
-
-                    string += object[i];
-
-                    iteration++;
-                }
-
-                return string;
-            },
-
             /**
              * Get carret position, mainly used for right arrow navigation
              * @param element
@@ -2174,8 +2155,7 @@
                     return false;
                 }
 
-                var _callback,
-                    _node = extraParams[0];
+                var _callback;
 
                 if (typeof callback === "function") {
 
@@ -2186,14 +2166,14 @@
                     if (typeof callback === "string") {
                         callback = [callback, []];
                     }
+
                     _callback = this.helper.namespace(callback[0], window);
 
                     if (typeof _callback !== "function") {
-
                         // {debug}
                         if (this.options.debug) {
                             _debug.log({
-                                'node': _node.selector,
+                                'node': this.selector,
                                 'function': 'executeCallback()',
                                 'arguments': JSON.stringify(callback),
                                 'message': 'WARNING - Invalid callback function"'
@@ -2202,13 +2182,12 @@
                             _debug.print();
                         }
                         // {/debug}
-
                         return false;
                     }
 
                 }
 
-                return _callback.apply(this, $.merge(callback[1] || [], (extraParams) ? extraParams : [])) || true;
+                return _callback.apply(this, (callback[1] || []).concat(extraParams ? extraParams : [])) || true;
 
             },
 
