@@ -132,6 +132,7 @@
 
         this.rawQuery = '';             // Unmodified input query
         this.query = '';                // Input query
+        this.tmpSource = {};            // Temp var to preserve the source order for the searchResult function
         this.source = {};               // The generated source kept in memory
         this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
         this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
@@ -361,6 +362,8 @@
                         delete groupSource.ignore;
                     }
                 }
+
+                this.options.source[group] = groupSource;
 
                 this.groupCount += 1;
             }
@@ -925,8 +928,8 @@
                 }
             }
 
-            // @TODO: find a way to save the order from options.source so it appears correctly?
-            this.source[group] = data;
+            // Save the data inside a tmpSource var to later have the right order once every request are completed
+            this.tmpSource[group] = data;
 
             if (this.options.cache && !window[this.options.cache].getItem(this.node.selector + ":" + group)) {
 
@@ -960,6 +963,14 @@
             this.isGenerated = true;
 
             this.xhr = {};
+
+            var sourceKeys = Object.keys(this.options.source);
+
+            for (var i = 0; i < sourceKeys.length; i++) {
+                this.source[sourceKeys[i]] = this.tmpSource[sourceKeys[i]];
+            }
+
+            this.tmpSource = {};
 
             this.node.trigger('dynamic' + _namespace);
 
@@ -1115,6 +1126,7 @@
             }
 
             for (group in this.source) {
+
                 if (!this.source.hasOwnProperty(group)) continue;
                 if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
 
@@ -1129,7 +1141,7 @@
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
-                    groupReference = groupBy === "group" ? groupBy : item[groupBy];
+                    groupReference = groupBy === "group" ? group : item[groupBy];
 
                     if (groupReference !== "group" && groupReference && !this.result[groupReference]) {
                         this.result[item[groupBy]] = [];
