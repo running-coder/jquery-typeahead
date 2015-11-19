@@ -1431,7 +1431,7 @@
 
                                             scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
 
-                                            if (e.defaultPrevented) {
+                                            if (e.originalEvent.defaultPrevented) {
                                                 return;
                                             }
 
