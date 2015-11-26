@@ -1566,7 +1566,7 @@
                                 // IE8 Fix
                                 scope.node.focus();
                             }
-                        }).addClass(_options.selector.hint)
+                        }).addClass(scope.options.selector.hint)
                             .css(this.hint.css)
                             .insertAfter(this.node)
 
