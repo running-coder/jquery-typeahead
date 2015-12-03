@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.1 (2015-11-20)
+ * @version 2.2.1 (2015-12-03)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -41,7 +41,7 @@
         order: null,            // ONLY sorts the first "display" key
         offset: false,
         hint: false,            // -> Improved feature, Added support for excessive "space" characters
-        accent: false,
+        accent: false,          // -> Improved feature, define a custom replacement object
         highlight: true,        // -> Added "any" to highlight any word in the template, by default true will only highlight display keys
         group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
         groupOrder: null,       // -> New feature, order groups "asc", "desc", Array, Function
@@ -245,6 +245,29 @@
 
             if (this.options.dynamicFilter && !(this.options.dynamicFilter instanceof Array)) {
                 this.options.dynamicFilter = [this.options.dynamicFilter]
+            }
+
+            if (this.options.accent) {
+                if (typeof this.options.accent === "object") {
+                    if (this.options.accent.from && this.options.accent.to && this.options.accent.from.length === this.options.accent.to.length) {
+
+                    }
+                    // {debug}
+                    else {
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': this.node.selector,
+                                'function': 'extendOptions()',
+                                'message': 'Invalid "options.accent", from and to must be defined and same length.'
+                            });
+
+                            _debug.print();
+                        }
+                    }
+                    // {/debug}
+                } else {
+                    this.options.accent = _accent;
+                }
             }
 
             if (this.options.resultContainer) {
@@ -1122,7 +1145,7 @@
                 correlativeDisplay;
 
             if (this.options.accent) {
-                comparedQuery = this.helper.removeAccent(comparedQuery);
+                comparedQuery = this.helper.removeAccent.call(this, comparedQuery);
             }
 
             for (group in this.source) {
@@ -1175,7 +1198,7 @@
                             comparedDisplay = comparedDisplay.toString().toLowerCase();
 
                             if (this.options.accent) {
-                                comparedDisplay = this.helper.removeAccent(comparedDisplay);
+                                comparedDisplay = this.helper.removeAccent.call(this, comparedDisplay);
                             }
 
                             match = comparedDisplay.indexOf(comparedQuery);
@@ -1317,7 +1340,7 @@
             // Reused..
             var _query = this.query.toLowerCase();
             if (this.options.accent) {
-                _query = this.helper.removeAccent(_query);
+                _query = this.helper.removeAccent.call(this, _query);
             }
 
             var scope = this,
@@ -1384,7 +1407,7 @@
                                                         if (option && option === "raw") {
                                                             return value;
                                                         }
-                                                        return scope.helper.slugify(value);
+                                                        return scope.helper.slugify.call(scope, value);
 
                                                     });
                                                 } else if (typeof _href === "function") {
@@ -1409,7 +1432,7 @@
 
                                                     if (!option || option !== "raw") {
                                                         if (scope.options.highlight === true && ~_displayKeys.indexOf(index)) {
-                                                            value = scope.helper.highlight(value, _query.split(" "), scope.options.accent)
+                                                            value = scope.helper.highlight.call(scope, value, _query.split(" "), scope.options.accent)
                                                         }
                                                     }
                                                     return value;
@@ -1423,7 +1446,7 @@
                                             }
 
                                             if ((scope.options.highlight === true && !_template) || scope.options.highlight === "any") {
-                                                _aHtml = scope.helper.highlight(_aHtml, _query.split(" "), scope.options.accent)
+                                                _aHtml = scope.helper.highlight.call(scope, _aHtml, _query.split(" "), scope.options.accent)
                                             }
 
                                             $(this).append(_aHtml);
@@ -1589,7 +1612,7 @@
 
                             _comparedValue = String(this.result[i][_displayKeys[k]]).toLowerCase();
                             if (this.options.accent) {
-                                _comparedValue = this.helper.removeAccent(_comparedValue);
+                                _comparedValue = this.helper.removeAccent.call(this, _comparedValue);
                             }
 
                             if (_comparedValue.indexOf(_query) === 0) {
@@ -1979,13 +2002,13 @@
              * @returns {*}
              */
             removeAccent: function (string) {
-
                 if (typeof string !== "string") {
                     return;
                 }
+                var scope = this;
 
-                string = string.toLowerCase().replace(new RegExp('[' + _accent.from + ']', 'g'), function (match) {
-                    return _accent.to[_accent.from.indexOf(match)];
+                string = string.toLowerCase().replace(new RegExp('[' + scope.options.accent.from + ']', 'g'), function (match) {
+                    return scope.options.accent.to[scope.options.accent.from.indexOf(match)];
                 });
 
                 return string;
@@ -2002,7 +2025,7 @@
                 string = String(string);
 
                 if (string !== "") {
-                    string = this.removeAccent(string);
+                    string = this.removeAccent.call(this, string);
                     string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
                 }
 
@@ -2059,7 +2082,7 @@
 
                 string = String(string);
 
-                var searchString = accents && this.removeAccent(string) || string,
+                var searchString = accents && this.helper.removeAccent.call(this, string) || string,
                     matches = [];
 
                 if (!(keys instanceof Array)) {
@@ -2090,7 +2113,7 @@
                 );
 
                 for (var i = matches.length - 1; i >= 0; i--) {
-                    string = this.replaceAt(
+                    string = this.helper.replaceAt(
                         string,
                         matches[i].offset,
                         matches[i].length,
