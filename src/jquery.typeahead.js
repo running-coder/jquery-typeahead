@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.1 (2015-12-03)
+ * @version 2.2.1 (2015-12-14)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -62,6 +62,8 @@
         template: null,
         correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
         emptyTemplate: false,   // -> New feature, display an empty template if no result
+        filter: true,           // -> New feature, set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
+        matcher: null,          // -> New feature, add an extra filtering function after the typeahead functions
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
         callback: {
             onInit: null,
@@ -1139,7 +1141,11 @@
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
                 missingDisplayKey = {},
-                filter,
+                groupFilter,
+                groupFilterResult,
+                groupMatcher,
+                groupMatcherResult,
+                matcher = typeof this.options.matcher === "function" && this.options.matcher,
                 correlativeMatch,
                 correlativeQuery,
                 correlativeDisplay;
@@ -1157,7 +1163,8 @@
                     this.result[groupBy] = [];
                 }
 
-                filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
+                groupFilter = typeof this.options.source[group].filter !== "undefined" ? this.options.source[group].filter : this.options.filter;
+                groupMatcher = typeof this.options.source[group].matcher === "function" && this.options.source[group].matcher || matcher;
 
                 for (var k = 0; k < this.source[group].length; k++) {
                     if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
@@ -1180,7 +1187,22 @@
 
                     for (var i = 0; i < displayKeys.length; i++) {
 
-                        if (filter) {
+                        if (typeof groupFilter === "function") {
+                            groupFilterResult = groupFilter.call(this, item, item[displayKeys[i]]);
+
+                            // return undefined to skip to next item
+                            // return false to attempt the matching function on the next displayKey
+                            // return true to add the item to the result list
+                            // return item object to modify the item and add it to the result list
+
+                            if (groupFilterResult === undefined) break;
+                            if (!groupFilterResult) continue;
+                            if (typeof groupFilterResult === "object") {
+                                item = groupFilterResult;
+                            }
+                        }
+
+                        if (~[undefined, true].indexOf(groupFilter)) {
                             comparedDisplay = item[displayKeys[i]];
 
                             if (!comparedDisplay) {
@@ -1218,8 +1240,24 @@
                             }
 
                             if (match < 0 && !correlativeMatch) continue;
+                            // @TODO Deprecate these? use matcher instead?
                             if (this.options.offset && match !== 0) continue;
                             if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
+
+                            if (groupMatcher) {
+                                groupMatcherResult = groupMatcher.call(this, item, item[displayKeys[i]]);
+
+                                // return undefined to skip to next item
+                                // return false to attempt the matching function on the next displayKey
+                                // return true to add the item to the result list
+                                // return item object to modify the item and add it to the result list
+
+                                if (groupMatcherResult === undefined) break;
+                                if (!groupMatcherResult) continue;
+                                if (typeof groupMatcherResult === "object") {
+                                    item = groupMatcherResult;
+                                }
+                            }
                         }
 
                         if (this.filters.dropdown) {
@@ -1352,7 +1390,7 @@
                             return $("<li/>", {
                                 "html": $("<a/>", {
                                     "href": "javascript:;",
-                                    "html": typeof scope.options.emptyTemplate === "function" && scope.options.emptyTemplate(scope.query) || scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query)
+                                    "html": typeof scope.options.emptyTemplate === "function" && scope.options.emptyTemplate.call(scope, scope.query) || scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query)
                                 })
                             });
                         }
