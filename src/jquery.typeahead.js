@@ -1387,12 +1387,21 @@
                     "html": function () {
 
                         if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
-                            return $("<li/>", {
-                                "html": $("<a/>", {
-                                    "href": "javascript:;",
-                                    "html": typeof scope.options.emptyTemplate === "function" && scope.options.emptyTemplate.call(scope, scope.query) || scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query)
-                                })
-                            });
+
+                            var _emptyTemplate = typeof scope.options.emptyTemplate === "function" ?
+                                scope.options.emptyTemplate.call(scope, scope.query) :
+                                scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query);
+
+                            if (_emptyTemplate instanceof jQuery && _emptyTemplate[0].nodeName === "LI") {
+                                return _emptyTemplate;
+                            } else {
+                                return $("<li/>", {
+                                    "html": $("<a/>", {
+                                        "href": "javascript:;",
+                                        "html": _emptyTemplate
+                                    })
+                                });
+                            }
                         }
 
                         for (var i in scope.result) {
