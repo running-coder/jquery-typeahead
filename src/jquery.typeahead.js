@@ -72,7 +72,8 @@
             onResult: null,
             onLayoutBuiltBefore: null,  // -> New callback, when the result HTML is build, modify it before it get showed
             onLayoutBuiltAfter: null,   // -> New callback, modify the dom right after the results gets inserted in the result container
-            onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
+            onNavigateBefore: null,   // -> New callback, when a key is pressed to navigate the results
+            onNavigateAfter: null,   // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
             onClickBefore: null,// -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
@@ -302,6 +303,12 @@
             if (this.options.callback && this.options.callback.onClick) {
                 this.options.callback.onClickBefore = this.options.callback.onClick;
                 delete this.options.callback.onClick;
+            }
+
+            // Compatibility onNavigate callback
+            if (this.options.callback && this.options.callback.onNavigate) {
+                this.options.callback.onNavigateBefore = this.options.callback.onNavigate;
+                delete this.options.callback.onNavigate;
             }
 
             this.options = $.extend(
@@ -1015,7 +1022,7 @@
          */
         navigate: function (e) {
 
-            this.helper.executeCallback.call(this, this.options.callback.onNavigate, [this.node, this.query, e]);
+            this.helper.executeCallback.call(this, this.options.callback.onNavigateBefore, [this.node, this.query, e]);
 
             if (e.keyCode === 27 || e.keyCode === 9) {
                 // #57 ESC should not preventDefault if Typeahead is not opened
@@ -1113,6 +1120,8 @@
             } else {
                 this.node.val(this.rawQuery);
             }
+
+            this.helper.executeCallback.call(this, this.options.callback.onNavigateAfter, [this.node, this.query, e]);
 
         },
 
