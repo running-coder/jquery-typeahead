@@ -1492,6 +1492,10 @@
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
 
                                             if (_template) {
+                                                if (typeof _template === "function") {
+                                                    _template = _template.call(scope, scope.query, item);
+                                                }
+
                                                 _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
                                                     var value = scope.helper.namespace(index, item, 'get', '');
@@ -2089,10 +2093,10 @@
                 if (typeof string !== "string") {
                     return;
                 }
-                var scope = this;
+                var accent = this.options.accent || _accent;
 
-                string = string.toLowerCase().replace(new RegExp('[' + scope.options.accent.from + ']', 'g'), function (match) {
-                    return scope.options.accent.to[scope.options.accent.from.indexOf(match)];
+                string = string.toLowerCase().replace(new RegExp('[' + accent.from + ']', 'g'), function (match) {
+                    return accent.to[accent.from.indexOf(match)];
                 });
 
                 return string;
@@ -2109,7 +2113,7 @@
                 string = String(string);
 
                 if (string !== "") {
-                    string = this.removeAccent.call(this, string);
+                    string = this.helper.removeAccent.call(this, string);
                     string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
                 }
 
