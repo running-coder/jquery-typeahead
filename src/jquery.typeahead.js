@@ -529,10 +529,7 @@
                             break;
                         }
                         if (scope.query.length < scope.options.minLength) {
-
-                            if (!scope.options.backdropOnFocus) {
-                                scope.hideLayout();
-                            }
+                            scope.hideLayout();
                             break;
                         }
 
@@ -1046,7 +1043,7 @@
                 return;
             }
 
-            if (!this.isGenerated || !scope.result.length) return;
+            if (!this.isGenerated || !this.result.length) return;
 
             var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
                 activeItem = itemList.filter('.active'),
@@ -2059,6 +2056,8 @@
             //if (!this.container.hasClass('result')) return;
 
             this.container.removeClass('result hint filter' + (this.options.backdropOnFocus && $(this.node).is(':focus') ? '' : ' backdrop'));
+
+            if (this.options.backdropOnFocus && this.container.hasClass('backdrop')) return;
 
             // Make sure the event gets cleared in case of "ESC"
             $('html').off(_namespace);
