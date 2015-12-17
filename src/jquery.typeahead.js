@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.1 (2015-12-15)
+ * @version 2.2.1 (2015-12-17)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -49,6 +49,7 @@
         dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
         dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
         backdrop: false,
+        backdropOnFocus: false,
         cache: false,           // -> Improved option, true OR 'localStorage' OR 'sessionStorage'
         ttl: 3600000,
         compression: false,     // -> Requires LZString library
@@ -68,6 +69,8 @@
         callback: {
             onInit: null,
             onReady: null,      // -> New callback, when the Typeahead initial preparation is completed
+            onShowLayout: null, // -> New callback, called when the layout is shown
+            onHideLayout: null, // -> New callback, called when the layout is hidden
             onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
             onLayoutBuiltBefore: null,  // -> New callback, when the result HTML is build, modify it before it get showed
@@ -470,8 +473,12 @@
             this.node.off(_namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
-                    case "generateOnLoad":
                     case "focus":
+                        if (scope.options.backdropOnFocus) {
+                            scope.buildBackdropLayout();
+                            scope.showLayout();
+                        }
+                    case "generateOnLoad":
                         if (scope.isGenerated && scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
                             scope.showLayout();
                         }
@@ -522,7 +529,10 @@
                             break;
                         }
                         if (scope.query.length < scope.options.minLength) {
-                            scope.hideLayout();
+
+                            if (!scope.options.backdropOnFocus) {
+                                scope.hideLayout();
+                            }
                             break;
                         }
 
@@ -1569,126 +1579,9 @@
                     }
                 });
 
-            if (this.options.backdrop) {
+            this.buildBackdropLayout();
 
-                if (this.backdrop.container) {
-                    this.backdrop.container.show();
-                } else {
-                    this.backdrop.css = $.extend(
-                        {
-                            "opacity": 0.6,
-                            "filter": 'alpha(opacity=60)',
-                            "position": 'fixed',
-                            "top": 0,
-                            "right": 0,
-                            "bottom": 0,
-                            "left": 0,
-                            "z-index": 1040,
-                            "background-color": "#000"
-                        },
-                        this.options.backdrop
-                    );
-
-                    this.backdrop.container = $("<div/>", {
-                        "class": this.options.selector.backdrop,
-                        "css": this.backdrop.css,
-                        "click": function () {
-                            scope.hideLayout();
-                        }
-                    }).insertAfter(this.container);
-
-                }
-                this.container
-                    .addClass('backdrop')
-                    .css({
-                        "z-index": this.backdrop.css["z-index"] + 1,
-                        "position": "relative"
-                    });
-
-            }
-
-            if (this.options.hint) {
-
-                var _hint = "";
-
-                this.hintIndex = null;
-
-                if (this.result.length > 0 && this.query.length > 0) {
-
-                    if (!this.hint.container) {
-
-                        this.hint.css = $.extend({
-                                "border-color": "transparent",
-                                "position": "absolute",
-                                "top": 0,
-                                "display": "inline",
-                                "z-index": -1,
-                                "float": "none",
-                                "color": "silver",
-                                "box-shadow": "none",
-                                "cursor": "default",
-                                "-webkit-user-select": "none",
-                                "-moz-user-select": "none",
-                                "-ms-user-select": "none",
-                                "user-select": "none"
-                            },
-                            this.options.hint
-                        );
-
-                        this.hint.container = $('<input/>', {
-                            'type': this.node.attr('type'),
-                            'class': this.node.attr('class'),
-                            'readonly': true,
-                            'unselectable': 'on',
-                            'tabindex': -1,
-                            'click': function () {
-                                // IE8 Fix
-                                scope.node.focus();
-                            }
-                        }).addClass(scope.options.selector.hint)
-                            .css(this.hint.css)
-                            .insertAfter(this.node)
-
-                        this.node.parent().css({
-                            "position": "relative"
-                        });
-                    }
-
-                    this.hint.container.css('color', this.hint.css.color)
-
-                    var _displayKeys,
-                        _group,
-                        _comparedValue;
-
-                    for (var i = 0; i < this.result.length; i++) {
-                        _group = this.result[i].group;
-                        _displayKeys = scope.options.source[_group].display || scope.options.display;
-
-                        for (var k = 0; k < _displayKeys.length; k++) {
-
-                            _comparedValue = String(this.result[i][_displayKeys[k]]).toLowerCase();
-                            if (this.options.accent) {
-                                _comparedValue = this.helper.removeAccent.call(this, _comparedValue);
-                            }
-
-                            if (_comparedValue.indexOf(_query) === 0) {
-                                _hint = String(this.result[i][_displayKeys[k]]);
-                                this.hintIndex = i;
-                                break;
-                            }
-                        }
-                        if (this.hintIndex !== null) {
-                            break;
-                        }
-                    }
-                }
-
-                if (this.hint.container) {
-                    this.hint.container
-                        .val(_hint.length > 0 && this.rawQuery + _hint.substring(this.query.length) || "")
-                        .show();
-                }
-            }
+            this.buildHintLayout(_query);
 
             if (this.options.callback.onLayoutBuiltBefore) {
                 var tmpResultHtmlList = this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
@@ -1720,6 +1613,131 @@
                 this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
             }
         },
+
+        buildBackdropLayout: function () {
+            var scope = this;
+
+            if (!this.options.backdrop) return;
+
+            if (this.backdrop.container) {
+                this.backdrop.container.show();
+            } else {
+                this.backdrop.css = $.extend(
+                    {
+                        "opacity": 0.6,
+                        "filter": 'alpha(opacity=60)',
+                        "position": 'fixed',
+                        "top": 0,
+                        "right": 0,
+                        "bottom": 0,
+                        "left": 0,
+                        "z-index": 1040,
+                        "background-color": "#000"
+                    },
+                    this.options.backdrop
+                );
+
+                this.backdrop.container = $("<div/>", {
+                    "class": this.options.selector.backdrop,
+                    "css": this.backdrop.css
+                }).insertAfter(this.container);
+
+            }
+            this.container
+                .addClass('backdrop')
+                .css({
+                    "z-index": this.backdrop.css["z-index"] + 1,
+                    "position": "relative"
+                });
+
+        },
+
+        buildHintLayout: function (_query) {
+            if (!this.options.hint) return;
+
+            var scope = this,
+                _hint = "";
+
+            this.hintIndex = null;
+
+            if (this.result.length > 0 && this.query.length > 0) {
+
+                if (!this.hint.container) {
+
+                    this.hint.css = $.extend({
+                            "border-color": "transparent",
+                            "position": "absolute",
+                            "top": 0,
+                            "display": "inline",
+                            "z-index": -1,
+                            "float": "none",
+                            "color": "silver",
+                            "box-shadow": "none",
+                            "cursor": "default",
+                            "-webkit-user-select": "none",
+                            "-moz-user-select": "none",
+                            "-ms-user-select": "none",
+                            "user-select": "none"
+                        },
+                        this.options.hint
+                    );
+
+                    this.hint.container = $('<input/>', {
+                        'type': this.node.attr('type'),
+                        'class': this.node.attr('class'),
+                        'readonly': true,
+                        'unselectable': 'on',
+                        'tabindex': -1,
+                        'click': function () {
+                            // IE8 Fix
+                            scope.node.focus();
+                        }
+                    }).addClass(scope.options.selector.hint)
+                        .css(this.hint.css)
+                        .insertAfter(this.node)
+
+                    this.node.parent().css({
+                        "position": "relative"
+                    });
+                }
+
+                this.hint.container.css('color', this.hint.css.color)
+
+                var _displayKeys,
+                    _group,
+                    _comparedValue;
+
+                for (var i = 0; i < this.result.length; i++) {
+                    _group = this.result[i].group;
+                    _displayKeys = scope.options.source[_group].display || scope.options.display;
+
+                    for (var k = 0; k < _displayKeys.length; k++) {
+
+                        _comparedValue = String(this.result[i][_displayKeys[k]]).toLowerCase();
+                        if (this.options.accent) {
+                            _comparedValue = this.helper.removeAccent.call(this, _comparedValue);
+                        }
+
+                        if (_comparedValue.indexOf(_query) === 0) {
+                            _hint = String(this.result[i][_displayKeys[k]]);
+                            this.hintIndex = i;
+                            break;
+                        }
+                    }
+                    if (this.hintIndex !== null) {
+                        break;
+                    }
+                }
+            }
+
+            if (this.hint.container) {
+                this.hint.container
+                    .val(_hint.length > 0 && this.rawQuery + _hint.substring(this.query.length) || "")
+                    .show();
+            }
+
+        },
+
 
         buildDropdownLayout: function () {
 
@@ -1761,7 +1779,6 @@
                                 if (!filterContainer.is(':visible')) {
                                     scope.container.addClass('filter');
                                     filterContainer.show();
-
                                     $('html').off(_namespace + ".dropdownFilter")
                                         .on("click" + _namespace + ".dropdownFilter" + ' touchstart' + _namespace + ".dropdownFilter", function () {
                                             scope.container.removeClass('filter');
@@ -2003,25 +2020,36 @@
 
         showLayout: function () {
 
-            var scope = this;
-
-            $('html').off(_namespace).on("click" + _namespace + " touchstart" + _namespace, function () {
-                scope.hideLayout();
-                $(this).off(_namespace);
-            });
+            // Means the container is already visible
+            if (this.container.hasClass('result')) return;
 
             // Do not add display classes if there are no results
-            if (!this.result.length && !this.options.emptyTemplate) {
+            if (!this.result.length && !this.options.emptyTemplate && !this.options.backdropOnFocus) {
                 return;
             }
 
+            var scope = this;
+
+            $('html').off(_namespace)
+                .one("click" + _namespace + " touchstart" + _namespace, function () {
+                    scope.hideLayout();
+
+                });
+
             this.container.addClass('result hint backdrop');
+
+            this.helper.executeCallback.call(this, this.options.callback.onShowLayout, [this.node, this.query]);
 
         },
 
         hideLayout: function () {
 
-            this.container.removeClass('result hint backdrop filter');
+            // Means the container is already hidden
+            if (!this.container.hasClass('result')) return;
+
+            this.container.removeClass('result hint filter' + (this.options.backdropOnFocus && $(this.node).is(':focus') ? '' : ' backdrop'));
+
+            this.helper.executeCallback.call(this, this.options.callback.onHideLayout, [this.node, this.query]);
 
         },
 
@@ -2414,7 +2442,7 @@
             var initNode;
             for (var i = 0; i < node.length; i++) {
                 initNode = node.length === 1 ? node : $(node.selector.split(',')[i].trim());
-                window.Typeahead[initNode.selector] = new Typeahead(initNode, options);
+                window.Typeahead[initNode.selector || options.input] = new Typeahead(initNode, options);
             }
         }
 
