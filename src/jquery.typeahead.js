@@ -87,9 +87,11 @@
         },
         selector: {
             container: "typeahead-container",
-            group: "typeahead-group",
             result: "typeahead-result",
             list: "typeahead-list",
+            group: "typeahead-group",
+            item: "typeahead-item",
+            empty: "typeahead-empty",
             display: "typeahead-display",
             query: "typeahead-query",
             filter: "typeahead-filter",
@@ -487,11 +489,9 @@
                         }
                         break;
                     case "keydown":
-                        if (scope.isGenerated && scope.result.length) {
-                            if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
-                                preventNextEvent = true;
-                                scope.navigate(e);
-                            }
+                        if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                            preventNextEvent = true;
+                            scope.navigate(e);
                         }
                         break;
                     case "keyup":
@@ -1034,14 +1034,19 @@
 
             this.helper.executeCallback.call(this, this.options.callback.onNavigateBefore, [this.node, this.query, e]);
 
-            if (e.keyCode === 27 || e.keyCode === 9) {
+            if (~[9,27].indexOf(e.keyCode)) {
                 // #57 ESC should not preventDefault if Typeahead is not opened
-                if (this.container.hasClass('result')) {
-                    e.preventDefault();
-                    this.hideLayout();
+                //if (this.container.hasClass('result')) {
+                //e.preventDefault();
+                if (!this.query.length && e.keyCode === 27) {
+                    this.node.blur();
                 }
+                this.hideLayout();
+                //}
                 return;
             }
+
+            if (!this.isGenerated || !scope.result.length) return;
 
             var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
                 activeItem = itemList.filter('.active'),
@@ -1415,6 +1420,7 @@
                                 return _emptyTemplate;
                             } else {
                                 return $("<li/>", {
+                                    "class": scope.options.selector.empty,
                                     "html": $("<a/>", {
                                         "href": "javascript:;",
                                         "html": _emptyTemplate
@@ -1462,6 +1468,7 @@
                                 }
 
                                 _liHtml = $("<li/>", {
+                                    "class": scope.options.selector.item,
                                     "html": $("<a/>", {
                                         "href": function () {
 
@@ -2049,9 +2056,12 @@
         hideLayout: function () {
 
             // Means the container is already hidden
-            if (!this.container.hasClass('result')) return;
+            //if (!this.container.hasClass('result')) return;
 
             this.container.removeClass('result hint filter' + (this.options.backdropOnFocus && $(this.node).is(':focus') ? '' : ' backdrop'));
+
+            // Make sure the event gets cleared in case of "ESC"
+            $('html').off(_namespace);
 
             this.helper.executeCallback.call(this, this.options.callback.onHideLayout, [this.node, this.query]);
 
