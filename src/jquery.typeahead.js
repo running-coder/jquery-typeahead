@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.1 (2015-12-17)
+ * @version 2.2.1 (2015-12-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -649,7 +649,7 @@
             var scope = this,
                 groupSource = this.options.source[group];
 
-            if (!(groupSource.url instanceof Array) && groupSource.url instanceof Object) {
+            if (!(groupSource.url instanceof Array)) {
                 groupSource.url = [groupSource.url];
             }
 
@@ -660,7 +660,15 @@
                     beforeSend: function (jqXHR, options) {
                         scope.xhr[group] = jqXHR;
 
-                        typeof groupSource.url[0].beforeSend === "function" && groupSource.url[0].beforeSend.apply(null, arguments);
+                        var beforeSend;
+
+                        if (typeof groupSource.url[0] === "function") {
+                            beforeSend = groupSource.url[0]().beforeSend;
+                        } else if (typeof groupSource.url[0] === "object") {
+                            beforeSend = groupSource.url[0].beforeSend;
+                        }
+
+                        typeof beforeSend === "function" && beforeSend.apply(null, arguments);
                     }
                 },
                 extra: {
@@ -679,24 +687,20 @@
             // Fixes #105 Allow user to define their beforeSend function.
             Object.defineProperty(xhrObject.request, 'beforeSend', {writable: false});
 
-            if (groupSource.url instanceof Array) {
-                if (groupSource.url[0] instanceof Object) {
+            if (groupSource.url[0] instanceof Object) {
 
-                    if (groupSource.url[0].callback) {
-                        xhrObject.extra.callback = groupSource.url[0].callback;
-                        delete groupSource.url[0].callback;
-                    }
-
-                    xhrObject.request = $.extend(true, xhrObject.request, groupSource.url[0]);
-
-                } else if (typeof groupSource.url[0] === "string") {
-                    xhrObject.request.url = groupSource.url[0];
+                if (groupSource.url[0].callback) {
+                    xhrObject.extra.callback = groupSource.url[0].callback;
+                    delete groupSource.url[0].callback;
                 }
-                if (groupSource.url[1] && typeof groupSource.url[1] === "string") {
-                    xhrObject.extra.path = groupSource.url[1];
-                }
-            } else if (typeof groupSource.url === "string") {
-                xhrObject.request.url = groupSource.url;
+
+                xhrObject.request = $.extend(true, xhrObject.request, groupSource.url[0]);
+
+            } else if (typeof groupSource.url[0] === "string") {
+                xhrObject.request.url = groupSource.url[0];
+            }
+            if (groupSource.url[1] && typeof groupSource.url[1] === "string") {
+                xhrObject.extra.path = groupSource.url[1];
             }
 
             if (xhrObject.request.dataType.toLowerCase() === 'jsonp') {
@@ -728,15 +732,30 @@
             var scope = this,
                 requestsCount = Object.keys(this.requests).length;
 
-            if (requestsCount) {
-                this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]);
-            }
+            this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]);
 
             for (var group in this.requests) {
                 if (!this.requests.hasOwnProperty(group)) continue;
                 if (this.requests[group].isDuplicated) continue;
 
                 (function (group, xhrObject) {
+
+                    if (typeof scope.options.source[group].url[0] === "function") {
+                        xhrObject.request = $.extend(true, xhrObject.request, scope.options.source[group].url[0].call(scope, scope.query));
+                        if (typeof xhrObject.request !== "object" || !xhrObject.request.url) {
+                            // {debug}
+                            if (scope.options.debug) {
+                                _debug.log({
+                                    'node': scope.node.selector,
+                                    'function': 'handleRequests',
+                                    'message': 'Source function must return an object containing ".url" key for group "' + group + '"'
+                                });
+                                _debug.print();
+                            }
+                            // {/debug}
+                            return;
+                        }
+                    }
 
                     var _request,
                         _isExtended = false; // Prevent the main request from being changed
