@@ -660,13 +660,7 @@
                     beforeSend: function (jqXHR, options) {
                         scope.xhr[group] = jqXHR;
 
-                        var beforeSend;
-
-                        if (typeof groupSource.url[0] === "function") {
-                            beforeSend = groupSource.url[0]().beforeSend;
-                        } else if (typeof groupSource.url[0] === "object") {
-                            beforeSend = groupSource.url[0].beforeSend;
-                        }
+                        var beforeSend = scope.requests[group].extra.beforeSend || groupSource.url[0].beforeSend;
 
                         typeof beforeSend === "function" && beforeSend.apply(null, arguments);
                     }
@@ -741,7 +735,10 @@
                 (function (group, xhrObject) {
 
                     if (typeof scope.options.source[group].url[0] === "function") {
-                        xhrObject.request = $.extend(true, xhrObject.request, scope.options.source[group].url[0].call(scope, scope.query));
+
+                        var _groupRequest = scope.options.source[group].url[0].call(scope, scope.query);
+
+                        xhrObject.request = $.extend(true, xhrObject.request, _groupRequest);
                         if (typeof xhrObject.request !== "object" || !xhrObject.request.url) {
                             // {debug}
                             if (scope.options.debug) {
@@ -754,6 +751,11 @@
                             }
                             // {/debug}
                             return;
+                        }
+
+                        // #132 Fixed beforeSend when using a function as the request object
+                        if (_groupRequest.beforeSend) {
+                            scope.requests[group].extra.beforeSend = _groupRequest.beforeSend;
                         }
                     }
 
