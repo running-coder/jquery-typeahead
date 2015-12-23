@@ -948,8 +948,8 @@
 
             if (this.options.correlativeTemplate) {
 
-                var template = groupSource.template ||
-                    this.options.template;
+                var template = groupSource.template || this.options.template,
+                    compiledTemplate = "";
 
                 if (!template) {
                     // {debug}
@@ -966,11 +966,18 @@
                     // {/debug}
                 } else {
 
-                    template = template
-                        .replace(/<.+?>/g, '');
+                    // #109 correlativeTemplate can be an array of display keys instead of the complete template
+                    if (this.options.correlativeTemplate instanceof Array) {
+                        for (var i = 0; i < this.options.correlativeTemplate.length; i++) {
+                            compiledTemplate += "{{" + this.options.correlativeTemplate[i] + "}} "
+                        }
+                    } else {
+                        compiledTemplate = template
+                            .replace(/<.+?>/g, '');
+                    }
 
                     for (var i = 0; i < data.length; i++) {
-                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
+                        data[i]['compiled'] = compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
                                 return scope.helper.namespace(index, data[i], 'get', '');
                             }
                         ).trim();
@@ -1137,7 +1144,8 @@
                 }
             }
 
-            if (~[38,40].indexOf(e.keyCode) && e.preventInputChange) {
+            // #115 Prevent the input from changing when navigating (arrow up / down) the results
+            if (e.preventInputChange && ~[38,40].indexOf(e.keyCode)) {
                 this.buildHintLayout(
                     newActiveItemIndex !== null && newActiveItemIndex  < this.result.length ?
                         [this.result[newActiveItemIndex]] :
@@ -1740,19 +1748,13 @@
 
                 this.hint.container.css('color', this.hint.css.color)
 
-                //console.log('generating hint')
-
                 // Do not display hint for empty query
                 if (query) {
                     var _displayKeys,
                         _group,
                         _comparedValue;
 
-                    //console.log('length ' + result.length)
-
                     for (var i = 0; i < result.length; i++) {
-
-                        //console.log('--- ' + i + ' ---')
 
                         _group = result[i].group;
                         _displayKeys = this.options.source[_group].display || this.options.display;
