@@ -505,8 +505,8 @@
                             break;
                         }
                     case "input":
-                        scope.rawQuery = scope.node[0].value.toString();
-                        scope.query = scope.node[0].value.replace(/^\s+/, '').toString();
+                        scope.rawQuery = scope.node[0].value.toString().sanitize();
+                        scope.query = scope.rawQuery.replace(/^\s+/, '');
 
                         if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
                             if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
@@ -1067,7 +1067,8 @@
 
             var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
                 activeItem = itemList.filter('.active'),
-                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null;
+                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null,
+                newActiveItemIndex = null;
 
             if (e.keyCode === 13) {
 
@@ -1113,9 +1114,11 @@
 
                 if (activeItem.length > 0) {
                     if (activeItemIndex - 1 >= 0) {
-                        itemList.eq(activeItemIndex - 1).addClass('active');
+                        newActiveItemIndex = activeItemIndex - 1;
+                        itemList.eq(newActiveItemIndex).addClass('active');
                     }
                 } else {
+                    newActiveItemIndex = itemList.length - 1;
                     itemList.last().addClass('active');
                 }
 
@@ -1125,34 +1128,37 @@
 
                 if (activeItem.length > 0) {
                     if (activeItemIndex + 1 < itemList.length) {
-                        itemList.eq(activeItemIndex + 1).addClass('active');
+                        newActiveItemIndex = activeItemIndex + 1;
+                        itemList.eq(newActiveItemIndex).addClass('active');
                     }
                 } else {
+                    newActiveItemIndex = 0;
                     itemList.first().addClass('active');
                 }
-
             }
 
-            activeItem = itemList.filter('.active');
+            if (~[38,40].indexOf(e.keyCode) && e.preventInputChange) {
+                this.buildHintLayout(
+                    newActiveItemIndex !== null && newActiveItemIndex  < this.result.length ?
+                        [this.result[newActiveItemIndex]] :
+                        null
+                )
+            }
 
             if (this.options.hint && this.hint.container) {
                 this.hint.container.css(
                     'color',
-                    !activeItem.length && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                    e.preventInputChange ?
+                        this.hint.css.color :
+                        newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
                 )
             }
 
-            // @TODO: finish #115 (hint needs to update as the user navigate down/up)
-
-            if (activeItem.length > 0 && !e.preventInputChange) {
-
-                var itemIndex = activeItem.find('a:first').attr('data-index');
-
-                itemIndex && this.node.val(this.result[itemIndex][this.result[itemIndex].matchedKey]);
-
-            } else {
-                this.node.val(this.rawQuery);
-            }
+            this.node.val(
+                newActiveItemIndex !== null && !e.preventInputChange ?
+                    this.result[newActiveItemIndex][this.result[newActiveItemIndex].matchedKey] :
+                    this.rawQuery
+            );
 
             this.helper.executeCallback.call(this, this.options.callback.onNavigateAfter, [this.node, this.query, e]);
 
@@ -1416,7 +1422,6 @@
                 this.container.append(this.resultContainer);
             }
 
-            // Reused..
             var _query = this.query.toLowerCase();
             if (this.options.accent) {
                 _query = this.helper.removeAccent.call(this, _query);
@@ -1563,7 +1568,7 @@
 
                                             e.preventDefault();
 
-                                            scope.query = scope.rawQuery = item[item.matchedKey].toString();
+                                            scope.query = scope.rawQuery = item[item.matchedKey].toString().sanitize();
                                             scope.node.val(scope.query).focus();
 
                                             scope.searchResult(true);
@@ -1609,7 +1614,7 @@
 
             this.buildBackdropLayout();
 
-            this.buildHintLayout(_query);
+            this.buildHintLayout();
 
             if (this.options.callback.onLayoutBuiltBefore) {
                 var tmpResultHtmlList = this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
@@ -1678,15 +1683,21 @@
 
         },
 
-        buildHintLayout: function (_query) {
+        buildHintLayout: function (result) {
             if (!this.options.hint) return;
 
             var scope = this,
-                _hint = "";
+                hint = "",
+                result = result || this.result,
+                query = this.query.toLowerCase();
+
+            if (this.options.accent) {
+                query = this.helper.removeAccent.call(this, query);
+            }
 
             this.hintIndex = null;
 
-            if (this.result.length > 0 && this.query.length > 0) {
+            if (this.query.length >= this.options.minLength) {
 
                 if (!this.hint.container) {
 
@@ -1718,7 +1729,7 @@
                             // IE8 Fix
                             scope.node.focus();
                         }
-                    }).addClass(scope.options.selector.hint)
+                    }).addClass(this.options.selector.hint)
                         .css(this.hint.css)
                         .insertAfter(this.node)
 
@@ -1729,34 +1740,44 @@
 
                 this.hint.container.css('color', this.hint.css.color)
 
-                var _displayKeys,
-                    _group,
-                    _comparedValue;
+                //console.log('generating hint')
 
-                for (var i = 0; i < this.result.length; i++) {
-                    _group = this.result[i].group;
-                    _displayKeys = scope.options.source[_group].display || scope.options.display;
+                // Do not display hint for empty query
+                if (query) {
+                    var _displayKeys,
+                        _group,
+                        _comparedValue;
 
-                    for (var k = 0; k < _displayKeys.length; k++) {
+                    //console.log('length ' + result.length)
 
-                        _comparedValue = String(this.result[i][_displayKeys[k]]).toLowerCase();
-                        if (this.options.accent) {
-                            _comparedValue = this.helper.removeAccent.call(this, _comparedValue);
+                    for (var i = 0; i < result.length; i++) {
+
+                        //console.log('--- ' + i + ' ---')
+
+                        _group = result[i].group;
+                        _displayKeys = this.options.source[_group].display || this.options.display;
+
+                        for (var k = 0; k < _displayKeys.length; k++) {
+
+                            _comparedValue = String(result[i][_displayKeys[k]]).toLowerCase();
+                            if (this.options.accent) {
+                                _comparedValue = this.helper.removeAccent.call(this, _comparedValue);
+                            }
+
+                            if (_comparedValue.indexOf(query) === 0) {
+                                hint = String(result[i][_displayKeys[k]]);
+                                this.hintIndex = i;
+                                break;
+                            }
                         }
-
-                        if (_comparedValue.indexOf(_query) === 0) {
-                            _hint = String(this.result[i][_displayKeys[k]]);
-                            this.hintIndex = i;
+                        if (this.hintIndex !== null) {
                             break;
                         }
-                    }
-                    if (this.hintIndex !== null) {
-                        break;
                     }
                 }
 
                 this.hint.container
-                    .val(_hint.length > 0 && this.rawQuery + _hint.substring(this.query.length) || "");
+                    .val(hint.length > 0 && this.rawQuery + hint.substring(this.query.length) || "");
             }
 
         },
@@ -2039,7 +2060,6 @@
                 });
 
             this.container.addClass('result hint backdrop');
-
 
             this.helper.executeCallback.call(this, this.options.callback.onShowLayout, [this.node, this.query]);
 
@@ -2496,6 +2516,22 @@
 
     _debug.print();
 // {/debug}
+
+    if (!('sanitize' in String.prototype)) {
+        String.prototype.sanitize = function () {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                '\'': '&#039;'
+            };
+
+            return this.replace(/[&<>"']/g, function (m) {
+                return map[m];
+            });
+        };
+    }
 
 // IE8 Shims
     window.console = window.console || {
