@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.1 (2015-12-22)
+ * @version 2.2.1 (2015-12-23)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -49,7 +49,7 @@
         dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
         dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
         backdrop: false,
-        backdropOnFocus: false,
+        backdropOnFocus: false, // -> New feature, display the backdrop option as the Typeahead input is :focused
         cache: false,           // -> Improved option, true OR 'localStorage' OR 'sessionStorage'
         ttl: 3600000,
         compression: false,     // -> Requires LZString library
@@ -68,20 +68,20 @@
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
         callback: {
             onInit: null,
-            onReady: null,      // -> New callback, when the Typeahead initial preparation is completed
-            onShowLayout: null, // -> New callback, called when the layout is shown
-            onHideLayout: null, // -> New callback, called when the layout is hidden
-            onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
+            onReady: null,              // -> New callback, when the Typeahead initial preparation is completed
+            onShowLayout: null,         // -> New callback, called when the layout is shown
+            onHideLayout: null,         // -> New callback, called when the layout is hidden
+            onSearch: null,             // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
             onLayoutBuiltBefore: null,  // -> New callback, when the result HTML is build, modify it before it get showed
             onLayoutBuiltAfter: null,   // -> New callback, modify the dom right after the results gets inserted in the result container
-            onNavigateBefore: null,   // -> New callback, when a key is pressed to navigate the results
-            onNavigateAfter: null,   // -> New callback, when a key is pressed to navigate the results
+            onNavigateBefore: null,     // -> New callback, when a key is pressed to navigate the results
+            onNavigateAfter: null,      // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
-            onClickBefore: null,// -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
-            onClickAfter: null, // -> New feature, happens after the default clicked behaviors has been executed
-            onSendRequest: null,// -> New callback, gets called when the Ajax request(s) are sent
+            onClickBefore: null,        // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
+            onClickAfter: null,         // -> New feature, happens after the default clicked behaviors has been executed
+            onSendRequest: null,        // -> New callback, gets called when the Ajax request(s) are sent
             onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
             onSubmit: null
         },
@@ -444,11 +444,11 @@
 
             this.container.off(_namespace).on("click" + _namespace + ' touchstart' + _namespace, function (e) {
                 e.stopPropagation();
+                if (scope.options.dropdownFilter &&
+                    scope.container.hasClass('filter') &&
+                    !$(e.target).closest('.' + scope.options.selector.dropdown.replace(" ", "."))[0]) {
 
-                if (scope.options.dropdownFilter) {
-                    scope.container
-                        .find('.' + scope.options.selector.dropdown.replace(" ", "."))
-                        .hide();
+                    scope.container.removeClass('filter');
                 }
             });
 
@@ -930,7 +930,6 @@
             }
 
             var tmpObj,
-
                 display = groupSource.display ?
                     (groupSource.display[0] === 'compiled' ? groupSource.display[1] : groupSource.display[0]) :
                     (this.options.display[0] === 'compiled' ? this.options.display[1] : this.options.display[0]);
@@ -1135,14 +1134,15 @@
             activeItem = itemList.filter('.active');
 
             if (this.options.hint && this.hint.container) {
-                if (activeItem.length > 0) {
-                    this.hint.container.css('color', this.hint.container.css('background-color') || 'fff');
-                } else {
-                    this.hint.container.css('color', this.hint.css.color)
-                }
+                this.hint.container.css(
+                    'color',
+                    !activeItem.length && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                )
             }
 
-            if (activeItem.length > 0) {
+            // @TODO: finish #115 (hint needs to update as the user navigate down/up)
+
+            if (activeItem.length > 0 && !e.preventInputChange) {
 
                 var itemIndex = activeItem.find('a:first').attr('data-index');
 
@@ -1371,7 +1371,6 @@
                 }
 
             }
-
 
             // @TODO TEST THE SCENARIOS
             var concatResults = [],
@@ -1631,7 +1630,8 @@
                 // {/debug}
             }
 
-            this.container.addClass('result');
+            // @TODO: Is this needed for backdropOnFocus?
+            //this.container.addClass('result');
 
             this.resultContainer
                 .html(resultHtmlList);
@@ -1642,13 +1642,10 @@
         },
 
         buildBackdropLayout: function () {
-            var scope = this;
 
             if (!this.options.backdrop) return;
 
-            if (this.backdrop.container) {
-                this.backdrop.container.show();
-            } else {
+            if (!this.backdrop.container) {
                 this.backdrop.css = $.extend(
                     {
                         "opacity": 0.6,
@@ -1755,12 +1752,9 @@
                         break;
                     }
                 }
-            }
 
-            if (this.hint.container) {
                 this.hint.container
-                    .val(_hint.length > 0 && this.rawQuery + _hint.substring(this.query.length) || "")
-                    .show();
+                    .val(_hint.length > 0 && this.rawQuery + _hint.substring(this.query.length) || "");
             }
 
         },
@@ -1798,28 +1792,8 @@
                             "class": scope.options.selector.filterButton,
                             "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCaret + "'></span>",
                             "click": function (e) {
-
                                 e.stopPropagation();
-
-                                var filterContainer = scope.container.find('.' + scope.options.selector.dropdown.replace(" ", "."));
-
-                                if (!filterContainer.is(':visible')) {
-                                    scope.container.addClass('filter');
-                                    filterContainer.show();
-                                    $('html').off(_namespace + ".dropdownFilter")
-                                        .on("click" + _namespace + ".dropdownFilter" + ' touchstart' + _namespace + ".dropdownFilter", function () {
-                                            scope.container.removeClass('filter');
-                                            filterContainer.hide();
-                                            $(this).off(_namespace + ".dropdownFilter");
-                                        });
-
-                                } else {
-                                    scope.container.removeClass('filter');
-                                    filterContainer.hide();
-
-                                    $('html').off(_namespace + ".dropdownFilter");
-                                }
-
+                                scope.container.toggleClass('filter');
                             }
                         })
                     );
@@ -2060,10 +2034,10 @@
             $('html').off(_namespace)
                 .one("click" + _namespace + " touchstart" + _namespace, function () {
                     scope.hideLayout();
-
                 });
 
             this.container.addClass('result hint backdrop');
+
 
             this.helper.executeCallback.call(this, this.options.callback.onShowLayout, [this.node, this.query]);
 
