@@ -1780,6 +1780,7 @@
 
                 this.hint.container
                     .val(hint.length > 0 && this.rawQuery + hint.substring(this.query.length) || "");
+
             }
 
         },
