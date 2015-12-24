@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.2.1 (2015-11-18)
+ * @version 2.3.0 (2015-12-24)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -21,7 +21,7 @@
 })(function (window, document, $, undefined) {
 
     window.Typeahead = {
-        version: '2.2.1'
+        version: '2.3.0'
     };
 
     "use strict";
@@ -41,7 +41,7 @@
         order: null,            // ONLY sorts the first "display" key
         offset: false,
         hint: false,            // -> Improved feature, Added support for excessive "space" characters
-        accent: false,
+        accent: false,          // -> Improved feature, define a custom replacement object
         highlight: true,        // -> Added "any" to highlight any word in the template, by default true will only highlight display keys
         group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
         groupOrder: null,       // -> New feature, order groups "asc", "desc", Array, Function
@@ -49,6 +49,7 @@
         dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
         dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
         backdrop: false,
+        backdropOnFocus: false, // -> New feature, display the backdrop option as the Typeahead input is :focused
         cache: false,           // -> Improved option, true OR 'localStorage' OR 'sessionStorage'
         ttl: 3600000,
         compression: false,     // -> Requires LZString library
@@ -62,28 +63,35 @@
         template: null,
         correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
         emptyTemplate: false,   // -> New feature, display an empty template if no result
+        filter: true,           // -> New feature, set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
+        matcher: null,          // -> New feature, add an extra filtering function after the typeahead functions
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
         callback: {
             onInit: null,
-            onReady: null,      // -> New callback, when the Typeahead initial preparation is completed
-            onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
+            onReady: null,              // -> New callback, when the Typeahead initial preparation is completed
+            onShowLayout: null,         // -> New callback, called when the layout is shown
+            onHideLayout: null,         // -> New callback, called when the layout is hidden
+            onSearch: null,             // -> New callback, when data is being fetched & analyzed to give search results
             onResult: null,
             onLayoutBuiltBefore: null,  // -> New callback, when the result HTML is build, modify it before it get showed
             onLayoutBuiltAfter: null,   // -> New callback, modify the dom right after the results gets inserted in the result container
-            onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
+            onNavigateBefore: null,     // -> New callback, when a key is pressed to navigate the results
+            onNavigateAfter: null,      // -> New callback, when a key is pressed to navigate the results
             onMouseEnter: null,
             onMouseLeave: null,
-            onClickBefore: null,// -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
-            onClickAfter: null, // -> New feature, happens after the default clicked behaviors has been executed
-            onSendRequest: null,// -> New callback, gets called when the Ajax request(s) are sent
+            onClickBefore: null,        // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
+            onClickAfter: null,         // -> New feature, happens after the default clicked behaviors has been executed
+            onSendRequest: null,        // -> New callback, gets called when the Ajax request(s) are sent
             onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
             onSubmit: null
         },
         selector: {
             container: "typeahead-container",
-            group: "typeahead-group",
             result: "typeahead-result",
             list: "typeahead-list",
+            group: "typeahead-group",
+            item: "typeahead-item",
+            empty: "typeahead-empty",
             display: "typeahead-display",
             query: "typeahead-query",
             filter: "typeahead-filter",
@@ -247,6 +255,29 @@
                 this.options.dynamicFilter = [this.options.dynamicFilter]
             }
 
+            if (this.options.accent) {
+                if (typeof this.options.accent === "object") {
+                    if (this.options.accent.from && this.options.accent.to && this.options.accent.from.length === this.options.accent.to.length) {
+
+                    }
+                    // {debug}
+                    else {
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': this.node.selector,
+                                'function': 'extendOptions()',
+                                'message': 'Invalid "options.accent", from and to must be defined and same length.'
+                            });
+
+                            _debug.print();
+                        }
+                    }
+                    // {/debug}
+                } else {
+                    this.options.accent = _accent;
+                }
+            }
+
             if (this.options.resultContainer) {
                 if (typeof this.options.resultContainer === "string") {
                     this.options.resultContainer = $(this.options.resultContainer);
@@ -277,6 +308,12 @@
             if (this.options.callback && this.options.callback.onClick) {
                 this.options.callback.onClickBefore = this.options.callback.onClick;
                 delete this.options.callback.onClick;
+            }
+
+            // Compatibility onNavigate callback
+            if (this.options.callback && this.options.callback.onNavigate) {
+                this.options.callback.onNavigateBefore = this.options.callback.onNavigate;
+                delete this.options.callback.onNavigate;
             }
 
             this.options = $.extend(
@@ -373,7 +410,7 @@
 
         init: function () {
 
-            this.helper.executeCallback(this.options.callback.onInit, [this.node]);
+            this.helper.executeCallback.call(this, this.options.callback.onInit, [this.node]);
 
             this.container = this.node.closest('.' + this.options.selector.container);
 
@@ -407,11 +444,11 @@
 
             this.container.off(_namespace).on("click" + _namespace + ' touchstart' + _namespace, function (e) {
                 e.stopPropagation();
+                if (scope.options.dropdownFilter &&
+                    scope.container.hasClass('filter') &&
+                    !$(e.target).closest('.' + scope.options.selector.dropdown.replace(" ", "."))[0]) {
 
-                if (scope.options.dropdownFilter) {
-                    scope.container
-                        .find('.' + scope.options.selector.dropdown.replace(" ", "."))
-                        .hide();
+                    scope.container.removeClass('filter');
                 }
             });
 
@@ -427,7 +464,7 @@
                 scope.rawQuery = '';
                 scope.query = '';
 
-                if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, this, scope.item, e])) {
+                if (scope.helper.executeCallback.call(scope, scope.options.callback.onSubmit, [scope.node, this, scope.item, e])) {
                     return false;
                 }
             });
@@ -438,8 +475,12 @@
             this.node.off(_namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
-                    case "generateOnLoad":
                     case "focus":
+                        if (scope.options.backdropOnFocus) {
+                            scope.buildBackdropLayout();
+                            scope.showLayout();
+                        }
+                    case "generateOnLoad":
                         if (scope.isGenerated && scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
                             scope.showLayout();
                         }
@@ -448,11 +489,9 @@
                         }
                         break;
                     case "keydown":
-                        if (scope.isGenerated && scope.result.length) {
-                            if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
-                                preventNextEvent = true;
-                                scope.navigate(e);
-                            }
+                        if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                            preventNextEvent = true;
+                            scope.navigate(e);
                         }
                         break;
                     case "keyup":
@@ -466,8 +505,8 @@
                             break;
                         }
                     case "input":
-                        scope.rawQuery = scope.node[0].value.toString();
-                        scope.query = scope.node[0].value.replace(/^\s+/, '').toString();
+                        scope.rawQuery = scope.node[0].value.toString().sanitize();
+                        scope.query = scope.rawQuery.replace(/^\s+/, '');
 
                         if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
                             if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
@@ -610,7 +649,7 @@
             var scope = this,
                 groupSource = this.options.source[group];
 
-            if (!(groupSource.url instanceof Array) && groupSource.url instanceof Object) {
+            if (!(groupSource.url instanceof Array)) {
                 groupSource.url = [groupSource.url];
             }
 
@@ -621,7 +660,9 @@
                     beforeSend: function (jqXHR, options) {
                         scope.xhr[group] = jqXHR;
 
-                        typeof groupSource.url[0].beforeSend === "function" && groupSource.url[0].beforeSend.apply(null, arguments);
+                        var beforeSend = scope.requests[group].extra.beforeSend || groupSource.url[0].beforeSend;
+
+                        typeof beforeSend === "function" && beforeSend.apply(null, arguments);
                     }
                 },
                 extra: {
@@ -640,24 +681,20 @@
             // Fixes #105 Allow user to define their beforeSend function.
             Object.defineProperty(xhrObject.request, 'beforeSend', {writable: false});
 
-            if (groupSource.url instanceof Array) {
-                if (groupSource.url[0] instanceof Object) {
+            if (groupSource.url[0] instanceof Object) {
 
-                    if (groupSource.url[0].callback) {
-                        xhrObject.extra.callback = groupSource.url[0].callback;
-                        delete groupSource.url[0].callback;
-                    }
-
-                    xhrObject.request = $.extend(true, xhrObject.request, groupSource.url[0]);
-
-                } else if (typeof groupSource.url[0] === "string") {
-                    xhrObject.request.url = groupSource.url[0];
+                if (groupSource.url[0].callback) {
+                    xhrObject.extra.callback = groupSource.url[0].callback;
+                    delete groupSource.url[0].callback;
                 }
-                if (groupSource.url[1] && typeof groupSource.url[1] === "string") {
-                    xhrObject.extra.path = groupSource.url[1];
-                }
-            } else if (typeof groupSource.url === "string") {
-                xhrObject.request.url = groupSource.url;
+
+                xhrObject.request = $.extend(true, xhrObject.request, groupSource.url[0]);
+
+            } else if (typeof groupSource.url[0] === "string") {
+                xhrObject.request.url = groupSource.url[0];
+            }
+            if (groupSource.url[1] && typeof groupSource.url[1] === "string") {
+                xhrObject.extra.path = groupSource.url[1];
             }
 
             if (xhrObject.request.dataType.toLowerCase() === 'jsonp') {
@@ -689,15 +726,38 @@
             var scope = this,
                 requestsCount = Object.keys(this.requests).length;
 
-            if (requestsCount) {
-                this.helper.executeCallback(this.options.callback.onSendRequest, [this.node, this.query]);
-            }
+            this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]);
 
             for (var group in this.requests) {
                 if (!this.requests.hasOwnProperty(group)) continue;
                 if (this.requests[group].isDuplicated) continue;
 
                 (function (group, xhrObject) {
+
+                    if (typeof scope.options.source[group].url[0] === "function") {
+
+                        var _groupRequest = scope.options.source[group].url[0].call(scope, scope.query);
+
+                        xhrObject.request = $.extend(true, xhrObject.request, _groupRequest);
+                        if (typeof xhrObject.request !== "object" || !xhrObject.request.url) {
+                            // {debug}
+                            if (scope.options.debug) {
+                                _debug.log({
+                                    'node': scope.node.selector,
+                                    'function': 'handleRequests',
+                                    'message': 'Source function must return an object containing ".url" key for group "' + group + '"'
+                                });
+                                _debug.print();
+                            }
+                            // {/debug}
+                            return;
+                        }
+
+                        // #132 Fixed beforeSend when using a function as the request object
+                        if (_groupRequest.beforeSend) {
+                            scope.requests[group].extra.beforeSend = _groupRequest.beforeSend;
+                        }
+                    }
 
                     var _request,
                         _isExtended = false; // Prevent the main request from being changed
@@ -754,7 +814,7 @@
 
                             requestsCount -= 1;
                             if (requestsCount === 0) {
-                                scope.helper.executeCallback(scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
+                                scope.helper.executeCallback.call(scope, scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
                             }
 
                         }
@@ -872,7 +932,6 @@
             }
 
             var tmpObj,
-
                 display = groupSource.display ?
                     (groupSource.display[0] === 'compiled' ? groupSource.display[1] : groupSource.display[0]) :
                     (this.options.display[0] === 'compiled' ? this.options.display[1] : this.options.display[0]);
@@ -889,8 +948,8 @@
 
             if (this.options.correlativeTemplate) {
 
-                var template = groupSource.template ||
-                    this.options.template;
+                var template = groupSource.template || this.options.template,
+                    compiledTemplate = "";
 
                 if (!template) {
                     // {debug}
@@ -907,11 +966,18 @@
                     // {/debug}
                 } else {
 
-                    template = template
-                        .replace(/<.+?>/g, '');
+                    // #109 correlativeTemplate can be an array of display keys instead of the complete template
+                    if (this.options.correlativeTemplate instanceof Array) {
+                        for (var i = 0; i < this.options.correlativeTemplate.length; i++) {
+                            compiledTemplate += "{{" + this.options.correlativeTemplate[i] + "}} "
+                        }
+                    } else {
+                        compiledTemplate = template
+                            .replace(/<.+?>/g, '');
+                    }
 
                     for (var i = 0; i < data.length; i++) {
-                        data[i]['compiled'] = template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
+                        data[i]['compiled'] = compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
                                 return scope.helper.namespace(index, data[i], 'get', '');
                             }
                         ).trim();
@@ -990,20 +1056,26 @@
          */
         navigate: function (e) {
 
-            this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
+            this.helper.executeCallback.call(this, this.options.callback.onNavigateBefore, [this.node, this.query, e]);
 
-            if (e.keyCode === 27 || e.keyCode === 9) {
+            if (~[9,27].indexOf(e.keyCode)) {
                 // #57 ESC should not preventDefault if Typeahead is not opened
-                if (this.container.hasClass('result')) {
-                    e.preventDefault();
-                    this.hideLayout();
+                //if (this.container.hasClass('result')) {
+                //e.preventDefault();
+                if (!this.query.length && e.keyCode === 27) {
+                    this.node.blur();
                 }
+                this.hideLayout();
+                //}
                 return;
             }
 
+            if (!this.isGenerated || !this.result.length) return;
+
             var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
                 activeItem = itemList.filter('.active'),
-                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null;
+                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null,
+                newActiveItemIndex = null;
 
             if (e.keyCode === 13) {
 
@@ -1049,9 +1121,11 @@
 
                 if (activeItem.length > 0) {
                     if (activeItemIndex - 1 >= 0) {
-                        itemList.eq(activeItemIndex - 1).addClass('active');
+                        newActiveItemIndex = activeItemIndex - 1;
+                        itemList.eq(newActiveItemIndex).addClass('active');
                     }
                 } else {
+                    newActiveItemIndex = itemList.length - 1;
                     itemList.last().addClass('active');
                 }
 
@@ -1061,33 +1135,40 @@
 
                 if (activeItem.length > 0) {
                     if (activeItemIndex + 1 < itemList.length) {
-                        itemList.eq(activeItemIndex + 1).addClass('active');
+                        newActiveItemIndex = activeItemIndex + 1;
+                        itemList.eq(newActiveItemIndex).addClass('active');
                     }
                 } else {
+                    newActiveItemIndex = 0;
                     itemList.first().addClass('active');
                 }
-
             }
 
-            activeItem = itemList.filter('.active');
+            // #115 Prevent the input from changing when navigating (arrow up / down) the results
+            if (e.preventInputChange && ~[38,40].indexOf(e.keyCode)) {
+                this.buildHintLayout(
+                    newActiveItemIndex !== null && newActiveItemIndex  < this.result.length ?
+                        [this.result[newActiveItemIndex]] :
+                        null
+                )
+            }
 
             if (this.options.hint && this.hint.container) {
-                if (activeItem.length > 0) {
-                    this.hint.container.css('color', this.hint.container.css('background-color') || 'fff');
-                } else {
-                    this.hint.container.css('color', this.hint.css.color)
-                }
+                this.hint.container.css(
+                    'color',
+                    e.preventInputChange ?
+                        this.hint.css.color :
+                        newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                )
             }
 
-            if (activeItem.length > 0) {
+            this.node.val(
+                newActiveItemIndex !== null && !e.preventInputChange ?
+                    this.result[newActiveItemIndex][this.result[newActiveItemIndex].matchedKey] :
+                    this.rawQuery
+            );
 
-                var itemIndex = activeItem.find('a:first').attr('data-index');
-
-                itemIndex && this.node.val(this.result[itemIndex][this.result[itemIndex].matchedKey]);
-
-            } else {
-                this.node.val(this.rawQuery);
-            }
+            this.helper.executeCallback.call(this, this.options.callback.onNavigateAfter, [this.node, this.query, e]);
 
         },
 
@@ -1098,7 +1179,7 @@
                 this.item = {};
             }
 
-            this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
+            this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]);
 
             this.result = {};
             this.resultCount = 0;
@@ -1116,13 +1197,17 @@
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
                 missingDisplayKey = {},
-                filter,
+                groupFilter,
+                groupFilterResult,
+                groupMatcher,
+                groupMatcherResult,
+                matcher = typeof this.options.matcher === "function" && this.options.matcher,
                 correlativeMatch,
                 correlativeQuery,
                 correlativeDisplay;
 
             if (this.options.accent) {
-                comparedQuery = this.helper.removeAccent(comparedQuery);
+                comparedQuery = this.helper.removeAccent.call(this, comparedQuery);
             }
 
             for (group in this.source) {
@@ -1134,7 +1219,8 @@
                     this.result[groupBy] = [];
                 }
 
-                filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
+                groupFilter = typeof this.options.source[group].filter !== "undefined" ? this.options.source[group].filter : this.options.filter;
+                groupMatcher = typeof this.options.source[group].matcher === "function" && this.options.source[group].matcher || matcher;
 
                 for (var k = 0; k < this.source[group].length; k++) {
                     if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
@@ -1157,7 +1243,22 @@
 
                     for (var i = 0; i < displayKeys.length; i++) {
 
-                        if (filter) {
+                        if (typeof groupFilter === "function") {
+                            groupFilterResult = groupFilter.call(this, item, item[displayKeys[i]]);
+
+                            // return undefined to skip to next item
+                            // return false to attempt the matching function on the next displayKey
+                            // return true to add the item to the result list
+                            // return item object to modify the item and add it to the result list
+
+                            if (groupFilterResult === undefined) break;
+                            if (!groupFilterResult) continue;
+                            if (typeof groupFilterResult === "object") {
+                                item = groupFilterResult;
+                            }
+                        }
+
+                        if (~[undefined, true].indexOf(groupFilter)) {
                             comparedDisplay = item[displayKeys[i]];
 
                             if (!comparedDisplay) {
@@ -1175,7 +1276,7 @@
                             comparedDisplay = comparedDisplay.toString().toLowerCase();
 
                             if (this.options.accent) {
-                                comparedDisplay = this.helper.removeAccent(comparedDisplay);
+                                comparedDisplay = this.helper.removeAccent.call(this, comparedDisplay);
                             }
 
                             match = comparedDisplay.indexOf(comparedQuery);
@@ -1195,8 +1296,24 @@
                             }
 
                             if (match < 0 && !correlativeMatch) continue;
+                            // @TODO Deprecate these? use matcher instead?
                             if (this.options.offset && match !== 0) continue;
                             if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
+
+                            if (groupMatcher) {
+                                groupMatcherResult = groupMatcher.call(this, item, item[displayKeys[i]]);
+
+                                // return undefined to skip to next item
+                                // return false to attempt the matching function on the next displayKey
+                                // return true to add the item to the result list
+                                // return item object to modify the item and add it to the result list
+
+                                if (groupMatcherResult === undefined) break;
+                                if (!groupMatcherResult) continue;
+                                if (typeof groupMatcherResult === "object") {
+                                    item = groupMatcherResult;
+                                }
+                            }
                         }
 
                         if (this.filters.dropdown) {
@@ -1271,7 +1388,6 @@
 
             }
 
-
             // @TODO TEST THE SCENARIOS
             var concatResults = [],
                 groupOrder;
@@ -1300,7 +1416,7 @@
 
             this.result = concatResults;
 
-            this.helper.executeCallback(this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
+            this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
 
         },
 
@@ -1314,10 +1430,9 @@
                 this.container.append(this.resultContainer);
             }
 
-            // Reused..
             var _query = this.query.toLowerCase();
             if (this.options.accent) {
-                _query = this.helper.removeAccent(_query);
+                _query = this.helper.removeAccent.call(this, _query);
             }
 
             var scope = this,
@@ -1326,12 +1441,22 @@
                     "html": function () {
 
                         if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
-                            return $("<li/>", {
-                                "html": $("<a/>", {
-                                    "href": "javascript:;",
-                                    "html": typeof scope.options.emptyTemplate === "function" && scope.options.emptyTemplate(scope.query) || scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query)
-                                })
-                            });
+
+                            var _emptyTemplate = typeof scope.options.emptyTemplate === "function" ?
+                                scope.options.emptyTemplate.call(scope, scope.query) :
+                                scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query);
+
+                            if (_emptyTemplate instanceof jQuery && _emptyTemplate[0].nodeName === "LI") {
+                                return _emptyTemplate;
+                            } else {
+                                return $("<li/>", {
+                                    "class": scope.options.selector.empty,
+                                    "html": $("<a/>", {
+                                        "href": "javascript:;",
+                                        "html": _emptyTemplate
+                                    })
+                                });
+                            }
                         }
 
                         for (var i in scope.result) {
@@ -1373,6 +1498,7 @@
                                 }
 
                                 _liHtml = $("<li/>", {
+                                    "class": scope.options.selector.item,
                                     "html": $("<a/>", {
                                         "href": function () {
 
@@ -1384,7 +1510,7 @@
                                                         if (option && option === "raw") {
                                                             return value;
                                                         }
-                                                        return scope.helper.slugify(value);
+                                                        return scope.helper.slugify.call(scope, value);
 
                                                     });
                                                 } else if (typeof _href === "function") {
@@ -1403,13 +1529,17 @@
                                             _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
 
                                             if (_template) {
+                                                if (typeof _template === "function") {
+                                                    _template = _template.call(scope, scope.query, item);
+                                                }
+
                                                 _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
                                                     var value = scope.helper.namespace(index, item, 'get', '');
 
                                                     if (!option || option !== "raw") {
-                                                        if (scope.options.highlight === true && ~_displayKeys.indexOf(index)) {
-                                                            value = scope.helper.highlight(value, _query.split(" "), scope.options.accent)
+                                                        if (scope.options.highlight === true && _query && ~_displayKeys.indexOf(index)) {
+                                                            value = scope.helper.highlight.call(scope, value, _query.split(" "), scope.options.accent)
                                                         }
                                                     }
                                                     return value;
@@ -1422,8 +1552,8 @@
                                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + _display.join(" ") + '</span>';
                                             }
 
-                                            if ((scope.options.highlight === true && !_template) || scope.options.highlight === "any") {
-                                                _aHtml = scope.helper.highlight(_aHtml, _query.split(" "), scope.options.accent)
+                                            if ((scope.options.highlight === true && _query && !_template) || scope.options.highlight === "any") {
+                                                _aHtml = scope.helper.highlight.call(scope, _aHtml, _query.split(" "), scope.options.accent)
                                             }
 
                                             $(this).append(_aHtml);
@@ -1438,7 +1568,7 @@
 
                                             scope.item = item;
 
-                                            scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, this, item, e]);
 
                                             if ((e.originalEvent && e.originalEvent.defaultPrevented) || e.isDefaultPrevented()) {
                                                 return;
@@ -1446,14 +1576,14 @@
 
                                             e.preventDefault();
 
-                                            scope.query = scope.rawQuery = item[item.matchedKey].toString();
+                                            scope.query = scope.rawQuery = item[item.matchedKey].toString().sanitize();
                                             scope.node.val(scope.query).focus();
 
                                             scope.searchResult(true);
                                             scope.buildLayout();
                                             scope.hideLayout();
 
-                                            scope.helper.executeCallback(scope.options.callback.onClickAfter, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onClickAfter, [scope.node, this, item, e]);
 
                                         }),
                                         "mouseenter": function (e) {
@@ -1461,13 +1591,13 @@
                                             $(this).closest('ul').find('li.active').removeClass('active');
                                             $(this).closest('li').addClass('active');
 
-                                            scope.helper.executeCallback(scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
                                         },
                                         "mouseleave": function (e) {
 
                                             $(this).closest('li').removeClass('active');
 
-                                            scope.helper.executeCallback(scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
                                         }
                                     })
                                 });
@@ -1490,129 +1620,12 @@
                     }
                 });
 
-            if (this.options.backdrop) {
+            this.buildBackdropLayout();
 
-                if (this.backdrop.container) {
-                    this.backdrop.container.show();
-                } else {
-                    this.backdrop.css = $.extend(
-                        {
-                            "opacity": 0.6,
-                            "filter": 'alpha(opacity=60)',
-                            "position": 'fixed',
-                            "top": 0,
-                            "right": 0,
-                            "bottom": 0,
-                            "left": 0,
-                            "z-index": 1040,
-                            "background-color": "#000"
-                        },
-                        this.options.backdrop
-                    );
-
-                    this.backdrop.container = $("<div/>", {
-                        "class": this.options.selector.backdrop,
-                        "css": this.backdrop.css,
-                        "click": function () {
-                            scope.hideLayout();
-                        }
-                    }).insertAfter(this.container);
-
-                }
-                this.container
-                    .addClass('backdrop')
-                    .css({
-                        "z-index": this.backdrop.css["z-index"] + 1,
-                        "position": "relative"
-                    });
-
-            }
-
-            if (this.options.hint) {
-
-                var _hint = "";
-
-                this.hintIndex = null;
-
-                if (this.result.length > 0 && this.query.length > 0) {
-
-                    if (!this.hint.container) {
-
-                        this.hint.css = $.extend({
-                                "border-color": "transparent",
-                                "position": "absolute",
-                                "top": 0,
-                                "display": "inline",
-                                "z-index": -1,
-                                "float": "none",
-                                "color": "silver",
-                                "box-shadow": "none",
-                                "cursor": "default",
-                                "-webkit-user-select": "none",
-                                "-moz-user-select": "none",
-                                "-ms-user-select": "none",
-                                "user-select": "none"
-                            },
-                            this.options.hint
-                        );
-
-                        this.hint.container = $('<input/>', {
-                            'type': this.node.attr('type'),
-                            'class': this.node.attr('class'),
-                            'readonly': true,
-                            'unselectable': 'on',
-                            'tabindex': -1,
-                            'click': function () {
-                                // IE8 Fix
-                                scope.node.focus();
-                            }
-                        }).addClass(_options.selector.hint)
-                            .css(this.hint.css)
-                            .insertAfter(this.node)
-
-                        this.node.parent().css({
-                            "position": "relative"
-                        });
-                    }
-
-                    this.hint.container.css('color', this.hint.css.color)
-
-                    var _displayKeys,
-                        _group,
-                        _comparedValue;
-
-                    for (var i = 0; i < this.result.length; i++) {
-                        _group = this.result[i].group;
-                        _displayKeys = scope.options.source[_group].display || scope.options.display;
-
-                        for (var k = 0; k < _displayKeys.length; k++) {
-
-                            _comparedValue = String(this.result[i][_displayKeys[k]]).toLowerCase();
-                            if (this.options.accent) {
-                                _comparedValue = this.helper.removeAccent(_comparedValue);
-                            }
-
-                            if (_comparedValue.indexOf(_query) === 0) {
-                                _hint = String(this.result[i][_displayKeys[k]]);
-                                this.hintIndex = i;
-                                break;
-                            }
-                        }
-                        if (this.hintIndex !== null) {
-                            break;
-                        }
-                    }
-                }
-
-                if (this.hint.container) {
-                    this.hint.container
-                        .val(_hint.length > 0 && this.rawQuery + _hint.substring(this.query.length) || "")
-                        .show();
-                }
-            }
+            this.buildHintLayout();
 
             if (this.options.callback.onLayoutBuiltBefore) {
-                var tmpResultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
+                var tmpResultHtmlList = this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
 
                 if (tmpResultHtmlList instanceof jQuery) {
                     resultHtmlList = tmpResultHtmlList;
@@ -1632,15 +1645,145 @@
                 // {/debug}
             }
 
-            this.container.addClass('result');
+            // @TODO: Is this needed for backdropOnFocus?
+            //this.container.addClass('result');
 
             this.resultContainer
                 .html(resultHtmlList);
 
             if (this.options.callback.onLayoutBuiltAfter) {
-                this.helper.executeCallback(this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
+                this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
             }
         },
+
+        buildBackdropLayout: function () {
+
+            if (!this.options.backdrop) return;
+
+            if (!this.backdrop.container) {
+                this.backdrop.css = $.extend(
+                    {
+                        "opacity": 0.6,
+                        "filter": 'alpha(opacity=60)',
+                        "position": 'fixed',
+                        "top": 0,
+                        "right": 0,
+                        "bottom": 0,
+                        "left": 0,
+                        "z-index": 1040,
+                        "background-color": "#000"
+                    },
+                    this.options.backdrop
+                );
+
+                this.backdrop.container = $("<div/>", {
+                    "class": this.options.selector.backdrop,
+                    "css": this.backdrop.css
+                }).insertAfter(this.container);
+
+            }
+            this.container
+                .addClass('backdrop')
+                .css({
+                    "z-index": this.backdrop.css["z-index"] + 1,
+                    "position": "relative"
+                });
+
+        },
+
+        buildHintLayout: function (result) {
+            if (!this.options.hint) return;
+
+            var scope = this,
+                hint = "",
+                result = result || this.result,
+                query = this.query.toLowerCase();
+
+            if (this.options.accent) {
+                query = this.helper.removeAccent.call(this, query);
+            }
+
+            this.hintIndex = null;
+
+            if (this.query.length >= this.options.minLength) {
+
+                if (!this.hint.container) {
+
+                    this.hint.css = $.extend({
+                            "border-color": "transparent",
+                            "position": "absolute",
+                            "top": 0,
+                            "display": "inline",
+                            "z-index": -1,
+                            "float": "none",
+                            "color": "silver",
+                            "box-shadow": "none",
+                            "cursor": "default",
+                            "-webkit-user-select": "none",
+                            "-moz-user-select": "none",
+                            "-ms-user-select": "none",
+                            "user-select": "none"
+                        },
+                        this.options.hint
+                    );
+
+                    this.hint.container = $('<input/>', {
+                        'type': this.node.attr('type'),
+                        'class': this.node.attr('class'),
+                        'readonly': true,
+                        'unselectable': 'on',
+                        'tabindex': -1,
+                        'click': function () {
+                            // IE8 Fix
+                            scope.node.focus();
+                        }
+                    }).addClass(this.options.selector.hint)
+                        .css(this.hint.css)
+                        .insertAfter(this.node)
+
+                    this.node.parent().css({
+                        "position": "relative"
+                    });
+                }
+
+                this.hint.container.css('color', this.hint.css.color)
+
+                // Do not display hint for empty query
+                if (query) {
+                    var _displayKeys,
+                        _group,
+                        _comparedValue;
+
+                    for (var i = 0; i < result.length; i++) {
+
+                        _group = result[i].group;
+                        _displayKeys = this.options.source[_group].display || this.options.display;
+
+                        for (var k = 0; k < _displayKeys.length; k++) {
+
+                            _comparedValue = String(result[i][_displayKeys[k]]).toLowerCase();
+                            if (this.options.accent) {
+                                _comparedValue = this.helper.removeAccent.call(this, _comparedValue);
+                            }
+
+                            if (_comparedValue.indexOf(query) === 0) {
+                                hint = String(result[i][_displayKeys[k]]);
+                                this.hintIndex = i;
+                                break;
+                            }
+                        }
+                        if (this.hintIndex !== null) {
+                            break;
+                        }
+                    }
+                }
+
+                this.hint.container
+                    .val(hint.length > 0 && this.rawQuery + hint.substring(this.query.length) || "");
+            }
+
+        },
+
 
         buildDropdownLayout: function () {
 
@@ -1674,29 +1817,8 @@
                             "class": scope.options.selector.filterButton,
                             "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCaret + "'></span>",
                             "click": function (e) {
-
                                 e.stopPropagation();
-
-                                var filterContainer = scope.container.find('.' + scope.options.selector.dropdown.replace(" ", "."));
-
-                                if (!filterContainer.is(':visible')) {
-                                    scope.container.addClass('filter');
-                                    filterContainer.show();
-
-                                    $('html').off(_namespace + ".dropdownFilter")
-                                        .on("click" + _namespace + ".dropdownFilter" + ' touchstart' + _namespace + ".dropdownFilter", function () {
-                                            scope.container.removeClass('filter');
-                                            filterContainer.hide();
-                                            $(this).off(_namespace + ".dropdownFilter");
-                                        });
-
-                                } else {
-                                    scope.container.removeClass('filter');
-                                    filterContainer.hide();
-
-                                    $('html').off(_namespace + ".dropdownFilter");
-                                }
-
+                                scope.container.toggleClass('filter');
                             }
                         })
                     );
@@ -1924,25 +2046,40 @@
 
         showLayout: function () {
 
-            var scope = this;
-
-            $('html').off(_namespace).on("click" + _namespace + " touchstart" + _namespace, function () {
-                scope.hideLayout();
-                $(this).off(_namespace);
-            });
+            // Means the container is already visible
+            if (this.container.hasClass('result')) return;
 
             // Do not add display classes if there are no results
-            if (!this.result.length && !this.options.emptyTemplate) {
+            if (!this.result.length && !this.options.emptyTemplate && !this.options.backdropOnFocus) {
                 return;
             }
 
+            var scope = this;
+
+            $('html').off(_namespace)
+                .one("click" + _namespace + " touchstart" + _namespace, function () {
+                    scope.hideLayout();
+                });
+
             this.container.addClass('result hint backdrop');
+
+            this.helper.executeCallback.call(this, this.options.callback.onShowLayout, [this.node, this.query]);
 
         },
 
         hideLayout: function () {
 
-            this.container.removeClass('result hint backdrop filter');
+            // Means the container is already hidden
+            //if (!this.container.hasClass('result')) return;
+
+            this.container.removeClass('result hint filter' + (this.options.backdropOnFocus && $(this.node).is(':focus') ? '' : ' backdrop'));
+
+            if (this.options.backdropOnFocus && this.container.hasClass('backdrop')) return;
+
+            // Make sure the event gets cleared in case of "ESC"
+            $('html').off(_namespace);
+
+            this.helper.executeCallback.call(this, this.options.callback.onHideLayout, [this.node, this.query]);
 
         },
 
@@ -1958,7 +2095,7 @@
             this.buildDropdownLayout();
             this.dynamicFilter.bind.apply(this);
 
-            this.helper.executeCallback(this.options.callback.onReady, [this.node]);
+            this.helper.executeCallback.call(this, this.options.callback.onReady, [this.node]);
         },
 
         helper: {
@@ -1979,13 +2116,13 @@
              * @returns {*}
              */
             removeAccent: function (string) {
-
                 if (typeof string !== "string") {
                     return;
                 }
+                var accent = this.options.accent || _accent;
 
-                string = string.toLowerCase().replace(new RegExp('[' + _accent.from + ']', 'g'), function (match) {
-                    return _accent.to[_accent.from.indexOf(match)];
+                string = string.toLowerCase().replace(new RegExp('[' + accent.from + ']', 'g'), function (match) {
+                    return accent.to[accent.from.indexOf(match)];
                 });
 
                 return string;
@@ -2002,7 +2139,7 @@
                 string = String(string);
 
                 if (string !== "") {
-                    string = this.removeAccent(string);
+                    string = this.helper.removeAccent.call(this, string);
                     string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
                 }
 
@@ -2059,7 +2196,7 @@
 
                 string = String(string);
 
-                var searchString = accents && this.removeAccent(string) || string,
+                var searchString = accents && this.helper.removeAccent.call(this, string) || string,
                     matches = [];
 
                 if (!(keys instanceof Array)) {
@@ -2090,31 +2227,12 @@
                 );
 
                 for (var i = matches.length - 1; i >= 0; i--) {
-                    string = this.replaceAt(
+                    string = this.helper.replaceAt(
                         string,
                         matches[i].offset,
                         matches[i].length,
                         "<strong>" + string.substr(matches[i].offset, matches[i].length) + "</strong>"
                     );
-                }
-
-                return string;
-            },
-
-            joinObject: function (object, join) {
-                var string = "",
-                    iteration = 0;
-
-                for (var i in object) {
-                    if (!object.hasOwnProperty(i)) continue;
-
-                    if (iteration !== 0) {
-                        string += join;
-                    }
-
-                    string += object[i];
-
-                    iteration++;
                 }
 
                 return string;
@@ -2174,8 +2292,7 @@
                     return false;
                 }
 
-                var _callback,
-                    _node = extraParams[0];
+                var _callback;
 
                 if (typeof callback === "function") {
 
@@ -2186,14 +2303,14 @@
                     if (typeof callback === "string") {
                         callback = [callback, []];
                     }
+
                     _callback = this.helper.namespace(callback[0], window);
 
                     if (typeof _callback !== "function") {
-
                         // {debug}
                         if (this.options.debug) {
                             _debug.log({
-                                'node': _node.selector,
+                                'node': this.selector,
                                 'function': 'executeCallback()',
                                 'arguments': JSON.stringify(callback),
                                 'message': 'WARNING - Invalid callback function"'
@@ -2202,13 +2319,12 @@
                             _debug.print();
                         }
                         // {/debug}
-
                         return false;
                     }
 
                 }
 
-                return _callback.apply(this, $.merge(callback[1] || [], (extraParams) ? extraParams : [])) || true;
+                return _callback.apply(this, (callback[1] || []).concat(extraParams ? extraParams : [])) || true;
 
             },
 
@@ -2356,7 +2472,7 @@
             var initNode;
             for (var i = 0; i < node.length; i++) {
                 initNode = node.length === 1 ? node : $(node.selector.split(',')[i].trim());
-                window.Typeahead[initNode.selector] = new Typeahead(initNode, options);
+                window.Typeahead[initNode.selector || options.input] = new Typeahead(initNode, options);
             }
         }
 
@@ -2402,6 +2518,22 @@
 
     _debug.print();
 // {/debug}
+
+    if (!('sanitize' in String.prototype)) {
+        String.prototype.sanitize = function () {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                '\'': '&#039;'
+            };
+
+            return this.replace(/[&<>"']/g, function (m) {
+                return map[m];
+            });
+        };
+    }
 
 // IE8 Shims
     window.console = window.console || {
