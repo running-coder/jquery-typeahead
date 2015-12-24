@@ -1,6 +1,6 @@
 {
   "name": "typeahead",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "title": "jQuery Typeahead",
   "description": "jQuery plugin that provides Typeahead (autocomplete) Search preview from Json object(s) via same domain Ajax request or cross domain Jsonp and offers data compression inside Local Storage. The plugin is built with a lot of options and callbacks to allow customization.",
   "keywords": [
@@ -19,7 +19,7 @@
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/running-coder/jquery-form-validation/blob/master/LICENSE"
+      "url": "https://github.com/running-coder/jquery-typeahead/blob/master/LICENSE"
     }
   ],
   "bugs": "https://github.com/running-coder/jquery-typeahead/issues",
