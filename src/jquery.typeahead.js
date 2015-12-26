@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.0 (2015-12-24)
+ * @version 2.3.0 (2015-12-25)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -529,6 +529,7 @@
                             break;
                         }
                         if (scope.query.length < scope.options.minLength) {
+                            scope.resetLayout();
                             scope.hideLayout();
                             break;
                         }
@@ -1100,12 +1101,12 @@
 
             if (e.keyCode === 39) {
                 if (activeItemIndex) {
-                    itemList.eq(activeItemIndex).find('a:first').trigger('click');
+                    itemList.eq(activeItemIndex).find('a:first')[0].click();
                 } else if (this.options.hint &&
                     this.hint.container.val() !== "" &&
                     this.helper.getCaret(this.node[0]) >= this.query.length) {
 
-                    itemList.find('a[data-index="' + this.hintIndex + '"]').trigger('click');
+                    itemList.find('a[data-index="' + this.hintIndex + '"]')[0].click();
 
                 }
                 return;
@@ -1215,10 +1216,6 @@
                 if (!this.source.hasOwnProperty(group)) continue;
                 if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
 
-                if (groupBy === "group" && !this.result[groupBy]) {
-                    this.result[groupBy] = [];
-                }
-
                 groupFilter = typeof this.options.source[group].filter !== "undefined" ? this.options.source[group].filter : this.options.filter;
                 groupMatcher = typeof this.options.source[group].matcher === "function" && this.options.source[group].matcher || matcher;
 
@@ -1229,12 +1226,12 @@
                     item = this.source[group][k];
                     groupReference = groupBy === "group" ? group : item[groupBy];
 
-                    if (groupReference !== "group" && groupReference && !this.result[groupReference]) {
-                        this.result[item[groupBy]] = [];
+                    if (groupReference && !this.result[groupReference]) {
+                        this.result[groupReference] = [];
                     }
 
                     if (maxItemPerGroup) {
-                        if (this.result[groupReference].length >= maxItemPerGroup && !this.options.callback.onResult) {
+                        if (groupBy === "group" && this.result[groupReference].length >= maxItemPerGroup && !this.options.callback.onResult) {
                             break;
                         }
                     }
@@ -1335,14 +1332,16 @@
                         break;
                     }
 
-                    if (!this.options.callback.onResult && (this.resultItemCount >= this.options.maxItem ||
-                        maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup)) {
-                        // Continue looping if custom grouping
-                        if (groupReference === "group") {
+                    if (!this.options.callback.onResult) {
+                        if (this.resultItemCount >= this.options.maxItem) {
                             break;
                         }
+                        if (maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup) {
+                            if (groupBy === "group") {
+                                break;
+                            }
+                        }
                     }
-
                 }
             }
 
@@ -1574,8 +1573,6 @@
                                                 return;
                                             }
 
-                                            e.preventDefault();
-
                                             scope.query = scope.rawQuery = item[item.matchedKey].toString();
                                             scope.node.val(scope.query).focus();
 
@@ -1644,9 +1641,6 @@
                 }
                 // {/debug}
             }
-
-            // @TODO: Is this needed for backdropOnFocus?
-            //this.container.addClass('result');
 
             this.resultContainer
                 .html(resultHtmlList);
@@ -2084,6 +2078,22 @@
 
         },
 
+        resetLayout: function () {
+
+            this.result = {};
+            this.resultCount = 0;
+            this.resultItemCount = 0;
+
+            if (this.resultContainer) {
+                this.resultContainer.html('');
+            }
+
+            if (this.options.hint && this.hint.container) {
+                this.hint.container.val('')
+            }
+
+        },
+
         __construct: function () {
             this.extendOptions();
 
@@ -2454,7 +2464,7 @@
                 node = $(options.input);
             }
 
-            if (!node.length) {
+            if (!node.length || node[0].nodeName !== "INPUT") {
 
                 // {debug}
                 _debug.log({
