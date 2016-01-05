@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.0 (2015-12-25)
+ * @version 2.3.0 (2016-01-05)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -83,6 +83,8 @@
             onClickAfter: null,         // -> New feature, happens after the default clicked behaviors has been executed
             onSendRequest: null,        // -> New callback, gets called when the Ajax request(s) are sent
             onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
+            onPopulateSource: null,     // -> New callback, Perform operation on the source data before it gets in Typeahead data
+            onCacheSave: null,          // -> New callback, Perform operation on the source data before it gets in Typeahead cache
             onSubmit: null
         },
         selector: {
@@ -484,11 +486,10 @@
                         if (scope.isGenerated && scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
                             scope.showLayout();
                         }
+                    case "keydown":
                         if (scope.isGenerated === null && !scope.options.dynamic) {
                             scope.generateSource();
                         }
-                        break;
-                    case "keydown":
                         if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                             preventNextEvent = true;
                             scope.navigate(e);
@@ -584,7 +585,7 @@
                 // Get group source from Localstorage
                 if (this.options.cache) {
 
-                    dataInStorage = window[this.options.cache].getItem(this.node.selector + ":" + group);
+                    dataInStorage = window[this.options.cache].getItem('TYPEAHEAD_' + this.node.selector + ":" + group);
 
                     if (dataInStorage) {
                         if (this.options.compression) {
@@ -952,6 +953,10 @@
                 var template = groupSource.template || this.options.template,
                     compiledTemplate = "";
 
+                if (typeof template === "function") {
+                    template = template();
+                }
+
                 if (!template) {
                     // {debug}
                     if (this.options.debug) {
@@ -995,10 +1000,42 @@
                 }
             }
 
+            if (this.options.callback.onPopulateSource) {
+                data = this.helper.executeCallback.call(this, this.options.callback.onPopulateSource, [this.node, data, group, path]);
+
+                // {debug}
+                if (!data || !(data instanceof Array)) {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'callback.populateSource()',
+                        'message': 'callback.onPopulateSource must return the "data" parameter'
+                    });
+
+                    _debug.print();
+                }
+                // {/debug}
+            }
+
             // Save the data inside a tmpSource var to later have the right order once every request are completed
             this.tmpSource[group] = data;
 
-            if (this.options.cache && !window[this.options.cache].getItem(this.node.selector + ":" + group)) {
+            if (this.options.cache && !window[this.options.cache].getItem('TYPEAHEAD_' + this.node.selector + ":" + group)) {
+
+                if (this.options.callback.onCacheSave) {
+                    data = this.helper.executeCallback.call(this, this.options.callback.onCacheSave, [this.node, data, group, path]);
+
+                    // {debug}
+                    if (!data || !(data instanceof Array)) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'callback.populateSource()',
+                            'message': 'callback.onCacheSave must return the "data" parameter'
+                        });
+
+                        _debug.print();
+                    }
+                    // {/debug}
+                }
 
                 var storage = JSON.stringify({
                     data: data,
@@ -1010,7 +1047,7 @@
                 }
 
                 window[this.options.cache].setItem(
-                    this.node.selector + ":" + group,
+                    'TYPEAHEAD_' + this.node.selector + ":" + group,
                     storage
                 );
             }
@@ -1081,11 +1118,10 @@
             if (e.keyCode === 13) {
 
                 if (activeItem.length > 0) {
+                    // Prevent form submit if an element is selected, click it instead!
                     e.preventDefault();
-                    e.stopPropagation();
 
-                    activeItem.find('a:first').trigger('click');
-
+                    activeItem.find('a:first')[0].click();
                     return;
 
                 } else {
