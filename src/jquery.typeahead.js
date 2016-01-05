@@ -1184,7 +1184,7 @@
             // #115 Prevent the input from changing when navigating (arrow up / down) the results
             if (e.preventInputChange && ~[38,40].indexOf(e.keyCode)) {
                 this.buildHintLayout(
-                    newActiveItemIndex !== null && newActiveItemIndex  < this.result.length ?
+                    newActiveItemIndex !== null && newActiveItemIndex < this.result.length ?
                         [this.result[newActiveItemIndex]] :
                         null
                 )
@@ -1205,7 +1205,14 @@
                     this.rawQuery
             );
 
-            this.helper.executeCallback.call(this, this.options.callback.onNavigateAfter, [this.node, this.query, e]);
+            this.helper.executeCallback.call(this, this.options.callback.onNavigateAfter, [
+                this.node,
+                itemList,
+                newActiveItemIndex !== null && itemList.eq(newActiveItemIndex).find('a:first') || undefined,
+                newActiveItemIndex !== null && this.result[newActiveItemIndex] || undefined,
+                this.query,
+                e
+            ]);
 
         },
 
@@ -1603,7 +1610,7 @@
 
                                             scope.item = item;
 
-                                            scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, $(this), item, e]);
 
                                             if ((e.originalEvent && e.originalEvent.defaultPrevented) || e.isDefaultPrevented()) {
                                                 return;
@@ -1616,7 +1623,7 @@
                                             scope.buildLayout();
                                             scope.hideLayout();
 
-                                            scope.helper.executeCallback.call(scope, scope.options.callback.onClickAfter, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onClickAfter, [scope.node, $(this), item, e]);
 
                                         }),
                                         "mouseenter": function (e) {
@@ -1624,13 +1631,13 @@
                                             $(this).closest('ul').find('li.active').removeClass('active');
                                             $(this).closest('li').addClass('active');
 
-                                            scope.helper.executeCallback.call(scope, scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onMouseEnter, [scope.node, $(this), item, e]);
                                         },
                                         "mouseleave": function (e) {
 
                                             $(this).closest('li').removeClass('active');
 
-                                            scope.helper.executeCallback.call(scope, scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
+                                            scope.helper.executeCallback.call(scope, scope.options.callback.onMouseLeave, [scope.node, $(this), item, e]);
                                         }
                                     })
                                 });
