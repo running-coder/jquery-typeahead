@@ -141,7 +141,7 @@
     var Typeahead = function (node, options) {
 
         this.rawQuery = '';             // Unmodified input query
-        this.query = '';                // Input query
+        this.query = node.val() || '';  // Input query
         this.tmpSource = {};            // Temp var to preserve the source order for the searchResult function
         this.source = {};               // The generated source kept in memory
         this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
@@ -483,8 +483,12 @@
                             scope.showLayout();
                         }
                     case "generateOnLoad":
-                        if (scope.isGenerated && scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
-                            scope.showLayout();
+                        if (scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
+                            if (scope.isGenerated) {
+                                scope.showLayout();
+                            } else if (scope.isGenerated === null) {
+                                scope.generateSource();
+                            }
                         }
                     case "keydown":
                         if (scope.isGenerated === null && !scope.options.dynamic) {
@@ -598,6 +602,7 @@
                             dataInStorage = JSON.parse(dataInStorage + "");
 
                             if (dataInStorage.data && dataInStorage.ttl > new Date().getTime()) {
+
                                 this.populateSource(dataInStorage.data, group);
                                 isValidStorage = true;
 
@@ -2099,7 +2104,11 @@
                     scope.hideLayout();
                 });
 
-            this.container.addClass('result hint backdrop');
+            this.container.addClass([
+                this.result.length || (this.options.emptyTemplate && this.query.length >= this.options.minLength) ? 'result ' : '',
+                this.options.hint && this.query.length >= this.options.minLength ? 'hint' : '',
+                this.options.backdrop || this.options.backdropOnFocus ? 'backdrop' : ''].join(' ')
+            );
 
             this.helper.executeCallback.call(this, this.options.callback.onShowLayout, [this.node, this.query]);
 
