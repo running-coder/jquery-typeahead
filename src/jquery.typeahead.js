@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.0 (2016-01-05)
+ * @version 2.3.0 (2016-01-06)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -613,7 +613,7 @@
                                 // {/debug}
 
                             } else {
-                                window[this.options.cache].removeItem(this.node.selector + ":" + group);
+                                window[this.options.cache].removeItem('TYPEAHEAD_' + this.node.selector + ":" + group);
                             }
                         } catch (error) {
                         }
