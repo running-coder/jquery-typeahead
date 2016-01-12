@@ -1601,7 +1601,7 @@
 
                                                 _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
-                                                    var value = scope.helper.namespace(index, item, 'get', '');
+                                                    var value = scope.helper.namespace(index, item, 'get', '').sanitize();
 
                                                     if (!option || option !== "raw") {
                                                         if (scope.options.highlight === true && _query && ~_displayKeys.indexOf(index)) {
@@ -1615,7 +1615,7 @@
                                                     _display.push(item[_displayKeys[i]]);
                                                 }
 
-                                                _aHtml = '<span class="' + scope.options.selector.display + '">' + _display.join(" ") + '</span>';
+                                                _aHtml = '<span class="' + scope.options.selector.display + '">' + _display.join(" ").sanitize() + '</span>';
                                             }
 
                                             if ((scope.options.highlight === true && _query && !_template) || scope.options.highlight === "any") {
