@@ -4,21 +4,37 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.1 (2016-01-06)
+ * @version 2.3.1 (2016-01-12)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['jquery'], function (jQuery) {
-            factory(window, document, jQuery);
-        });
-    } else if (typeof exports === 'object') {
-        module.exports = factory(window, document, require('jquery'));
+        // AMD. Register as an anonymous module.
+        define(['jquery'], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        // Node/CommonJS
+        module.exports = function (root, jQuery) {
+            if (jQuery === undefined) {
+                // require('jQuery') returns a factory that requires window to
+                // build a jQuery instance, we normalize how we use modules
+                // that require this pattern but the window provided is a noop
+                // if it's defined (how jquery works)
+                if (typeof window !== 'undefined') {
+                    jQuery = require('jquery');
+                }
+                else {
+                    jQuery = require('jquery')(root);
+                }
+            }
+            factory(jQuery);
+            return jQuery;
+        };
     } else {
-        factory(window, document, window.jQuery);
+        // Browser globals
+        factory(jQuery);
     }
-})(function (window, document, $, undefined) {
+}(function ($) {
 
     window.Typeahead = {
         version: '2.3.1'
@@ -447,8 +463,7 @@
             this.container.off(_namespace).on("click" + _namespace + ' touchstart' + _namespace, function (e) {
                 e.stopPropagation();
                 if (scope.options.dropdownFilter &&
-                    scope.container.hasClass('filter') &&
-                    !$(e.target).closest('.' + scope.options.selector.dropdown.replace(" ", "."))[0]) {
+                    scope.container.hasClass('filter') && !$(e.target).closest('.' + scope.options.selector.dropdown.replace(" ", "."))[0]) {
 
                     scope.container.removeClass('filter');
                 }
@@ -1101,7 +1116,7 @@
 
             this.helper.executeCallback.call(this, this.options.callback.onNavigateBefore, [this.node, this.query, e]);
 
-            if (~[9,27].indexOf(e.keyCode)) {
+            if (~[9, 27].indexOf(e.keyCode)) {
                 // #57 ESC should not preventDefault if Typeahead is not opened
                 //if (this.container.hasClass('result')) {
                 //e.preventDefault();
@@ -1187,7 +1202,7 @@
             }
 
             // #115 Prevent the input from changing when navigating (arrow up / down) the results
-            if (e.preventInputChange && ~[38,40].indexOf(e.keyCode)) {
+            if (e.preventInputChange && ~[38, 40].indexOf(e.keyCode)) {
                 this.buildHintLayout(
                     newActiveItemIndex !== null && newActiveItemIndex < this.result.length ?
                         [this.result[newActiveItemIndex]] :
@@ -2634,4 +2649,4 @@
         };
     }
 
-});
+}));
