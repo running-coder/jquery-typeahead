@@ -166,7 +166,7 @@
         this.groupBy = "group";         // This option will change according to filtering or custom grouping
         this.result = {};               // Results based on Source-query match (only contains the displayed elements)
         this.resultCount = 0;           // Total results based on Source-query match
-        this.resultCountPerGroup = [];  // Total results based on Source-query match per group
+        this.resultCountPerGroup = {};  // Total results based on Source-query match per group
         this.options = options;         // Typeahead options (Merged default & user defined)
         this.node = node;               // jQuery object of the Typeahead <input>
         this.container = null;          // Typeahead container, usually right after <form>
@@ -549,13 +549,14 @@
                         if (!scope.isGenerated) {
                             break;
                         }
+
+                        scope.searchResult();
+
                         if (scope.query.length < scope.options.minLength) {
-                            scope.resetLayout();
                             scope.hideLayout();
                             break;
                         }
 
-                        scope.searchResult();
                         scope.buildLayout();
 
                         if (scope.result.length > 0 || scope.options.emptyTemplate) {
@@ -1244,12 +1245,11 @@
                 this.item = {};
             }
 
+            this.resetLayout();
+
             this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]);
 
-            this.result = {};
-            this.resultCount = 0;
-            this.resultCountPerGroup = [];
-            this.resultItemCount = 0;
+            if (this.query.length < this.options.minLength) return;
 
             var scope = this,
                 group,
@@ -2153,7 +2153,7 @@
 
             this.result = {};
             this.resultCount = 0;
-            this.resultCountPerGroup = [];
+            this.resultCountPerGroup = {};
             this.resultItemCount = 0;
 
             if (this.resultContainer) {
