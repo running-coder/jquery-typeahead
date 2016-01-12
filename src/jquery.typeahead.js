@@ -166,6 +166,7 @@
         this.groupBy = "group";         // This option will change according to filtering or custom grouping
         this.result = {};               // Results based on Source-query match (only contains the displayed elements)
         this.resultCount = 0;           // Total results based on Source-query match
+        this.resultCountPerGroup = [];  // Total results based on Source-query match per group
         this.options = options;         // Typeahead options (Merged default & user defined)
         this.node = node;               // jQuery object of the Typeahead <input>
         this.container = null;          // Typeahead container, usually right after <form>
@@ -1215,7 +1216,7 @@
                     'color',
                     e.preventInputChange ?
                         this.hint.css.color :
-                        newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                    newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
                 )
             }
 
@@ -1247,6 +1248,7 @@
 
             this.result = {};
             this.resultCount = 0;
+            this.resultCountPerGroup = [];
             this.resultItemCount = 0;
 
             var scope = this,
@@ -1291,6 +1293,7 @@
 
                     if (groupReference && !this.result[groupReference]) {
                         this.result[groupReference] = [];
+                        this.resultCountPerGroup[groupReference] = 0;
                     }
 
                     if (maxItemPerGroup) {
@@ -1381,6 +1384,7 @@
                         }
 
                         this.resultCount++;
+                        this.resultCountPerGroup[groupReference]++;
 
                         if (this.resultItemCount < this.options.maxItem) {
                             if (maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup) {
@@ -1455,7 +1459,7 @@
                 groupOrder;
 
             if (typeof this.options.groupOrder === "function") {
-                groupOrder = this.options.groupOrder.apply(this, [this.node, this.query, this.result, this.resultCount]);
+                groupOrder = this.options.groupOrder.apply(this, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
             } else if (this.options.groupOrder instanceof Array) {
                 groupOrder = this.options.groupOrder;
             } else if (typeof this.options.groupOrder === "string" && ~["asc", "desc"].indexOf(this.options.groupOrder)) {
@@ -1478,7 +1482,7 @@
 
             this.result = concatResults;
 
-            this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
+            this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
 
         },
 
@@ -2149,6 +2153,7 @@
 
             this.result = {};
             this.resultCount = 0;
+            this.resultCountPerGroup = [];
             this.resultItemCount = 0;
 
             if (this.resultContainer) {
