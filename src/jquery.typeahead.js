@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.1 (2016-01-12)
+ * @version 2.3.2 (2016-01-13)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -37,7 +37,7 @@
 }(function ($) {
 
     window.Typeahead = {
-        version: '2.3.1'
+        version: '2.3.2'
     };
 
     "use strict";
@@ -1601,7 +1601,7 @@
 
                                                 _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
-                                                    var value = scope.helper.namespace(index, item, 'get', '').sanitize();
+                                                    var value = String(scope.helper.namespace(index, item, 'get', '')).sanitize();
 
                                                     if (!option || option !== "raw") {
                                                         if (scope.options.highlight === true && _query && ~_displayKeys.indexOf(index)) {
@@ -1615,7 +1615,7 @@
                                                     _display.push(item[_displayKeys[i]]);
                                                 }
 
-                                                _aHtml = '<span class="' + scope.options.selector.display + '">' + _display.join(" ").sanitize() + '</span>';
+                                                _aHtml = '<span class="' + scope.options.selector.display + '">' + String(_display.join(" ")).sanitize() + '</span>';
                                             }
 
                                             if ((scope.options.highlight === true && _query && !_template) || scope.options.highlight === "any") {
