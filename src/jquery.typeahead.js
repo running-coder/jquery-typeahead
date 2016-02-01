@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.2 (2016-01-22)
+ * @version 2.3.2 (2016-02-01)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -1754,6 +1754,10 @@
 
         buildHintLayout: function (result) {
             if (!this.options.hint) return;
+            if (this.node[0].scrollWidth > this.node.innerWidth()) {
+                this.hint.container.val("");
+                return;
+            }
 
             var scope = this,
                 hint = "",
