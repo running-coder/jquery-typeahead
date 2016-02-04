@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.3 (2016-02-02)
+ * @version 2.3.3 (2016-02-04)
  * @link http://www.runningcoder.org/jquerytypeahead/
 */
 ;
@@ -462,7 +462,8 @@
                 ];
 
             this.container.off(_namespace).on("click" + _namespace + ' touchstart' + _namespace, function (e) {
-                e.stopPropagation();
+                //#146 allow bubbling
+                //e.stopPropagation();
                 if (scope.options.dropdownFilter &&
                     scope.container.hasClass('filter') && !$(e.target).closest('.' + scope.options.selector.dropdown.replace(" ", "."))[0]) {
 
@@ -2133,7 +2134,8 @@
             var scope = this;
 
             $('html').off(_namespace)
-                .one("click" + _namespace + " touchstart" + _namespace, function () {
+                .on("click" + _namespace + " touchstart" + _namespace, function (e) {
+                    if ($(e.target).closest(scope.container)[0]) return;
                     scope.hideLayout();
                 });
 
