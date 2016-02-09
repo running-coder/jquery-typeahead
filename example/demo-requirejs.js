@@ -1,4 +1,8 @@
-define(["jquery", "jquery-typeahead"], function($, Typeahead) {
+define(["jquery-typeahead"], function (Typeahead) {
+
+    console.log('~~~ Careful, Typeahead !== window.Typeahead ~~~')
+    console.log(Typeahead)
+    console.log(window.Typeahead)
 
     var data = {
         countries: ["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
