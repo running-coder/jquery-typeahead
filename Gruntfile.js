@@ -6,7 +6,7 @@ module.exports = function (grunt) {
 
         banner: '/*!\n' +
         ' * jQuery Typeahead\n' +
-        ' * Copyright (C) 2015 RunningCoder.org\n' +
+        ' * Copyright (C) <%= grunt.template.today("yyyy") %> RunningCoder.org\n' +
         ' * Licensed under the MIT license\n' +
         ' *\n' +
         ' * @author <%= pkg.author.name %>\n' +
