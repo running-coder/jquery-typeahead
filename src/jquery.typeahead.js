@@ -1614,11 +1614,13 @@
                                                 _href = _href.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
                                                     var value = scope.helper.namespace(index, item, 'get', '');
-                                                    if (option && option === "raw") {
-                                                        return value;
-                                                    }
-                                                    return scope.helper.slugify.call(scope, value);
 
+                                                    // #151 Slugify should be an option, not enforced
+                                                    if (option && option === "slugify") {
+                                                        value = scope.helper.slugify.call(scope, value);
+                                                    }
+
+                                                    return value;
                                                 });
                                             } else if (typeof _href === "function") {
                                                 _href = _href(item);
