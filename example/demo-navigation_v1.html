@@ -178,13 +178,11 @@
 </head>
 <body>
 
-<header class="header">
-    This is the header
-</header>
+<header class="header"></header>
 
 <div class="nav-wrapper">
     <nav class="nav-container">
-        <div class="typeahead-container" nav-typeahead="">
+        <div class="typeahead-container">
             <div class="typeahead-field">
                 <span class="typeahead-query">
                     <input class="js-nav-typeahead-input" name="q" type="search" placeholder="Search"
@@ -194,12 +192,11 @@
             </div>
         </div>
 
-
         <ul class="main-nav">
             <li>
-                <a><i class="fa fa-tachometer"></i> Home</a>
+                <a><i class="fa fa-home"></i> Home</a>
             </li>
-            <li class="">
+            <li>
                 <a><i class="fa fa-tasks"></i> Master Section <i class="fa fa-chevron-left pull-right"></i></a>
                 <ul class="sub-nav">
                     <li>
@@ -210,7 +207,7 @@
                     </li>
                 </ul>
             </li>
-            <li class="">
+            <li>
                 <a><i class="fa fa-futbol-o"></i> Sports <i class="fa fa-chevron-left pull-right"></i></a>
                 <ul class="sub-nav">
                     <li>
@@ -239,6 +236,7 @@
 
 <div class="main-container">
     <h1>Navigation_v1 Demo</h1>
+    <h4>Customize this demo on <a href="https://jsfiddle.net/runningcoder/ogr7e52r/">JsFiddle</a></h4>
 </div>
 
 <script>
@@ -277,7 +275,7 @@
                 onResult: function (node, query, result, resultCount, resultCountPerGroup) {
 
                     var item,
-                            isSubItem;
+                        isSubItem;
 
                     for (var i = 0, len = result.length; i < len; ++i) {
 
