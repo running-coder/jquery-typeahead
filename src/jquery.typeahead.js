@@ -4,10 +4,9 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.3 (2016-02-10)
+ * @version 2.3.3 (2016-2-11)
  * @link http://www.runningcoder.org/jquerytypeahead/
-*/
-;
+ */;
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
