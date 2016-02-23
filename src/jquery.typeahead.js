@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-2-11)
+ * @version 2.3.4 (2016-2-23)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -2123,7 +2123,7 @@
                     value = tag.value;
                 } else if (tag.tagName === "INPUT") {
                     if (tag.type === "checkbox") {
-                        value = tag.checked || null;
+                        value = tag.checked && tag.value || tag.checked || null;
                     } else if (tag.type === "radio" && tag.checked) {
                         value = tag.value;
                     }
