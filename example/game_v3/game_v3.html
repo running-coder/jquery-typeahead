@@ -1,0 +1,405 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Typeahead Game_v3 Demo</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css">
+    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/css/tether-theme-basic.css">-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesome-bootstrap-checkbox/0.3.7/awesome-bootstrap-checkbox.css">
+    <link rel="stylesheet" href="../../src/jquery.typeahead.css">
+    <link rel="stylesheet" href="game_v3.css">
+
+    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js"></script>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/umd/tooltip.js"></script>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/umd/popover.js"></script>-->
+
+    <script src="../../src/jquery.typeahead.js"></script>
+
+</head>
+<body>
+
+<div style="width: 100%; max-width: 1000px; margin: 0 auto;">
+
+    <h1>Game_v3 Demo</h1>
+
+    <ul>
+        <li>
+            <a href="http://www.runningcoder.org/jquerytypeahead/documentation/">Documentation</a>
+        </li>
+        <li>
+            <a href="http://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
+        </li>
+    </ul>
+
+    <div class="champion-filters">
+        <ul>
+            <li>Role:</li>
+            <li>
+                <div class="checkbox checkbox-info">
+                    <input type="checkbox" id="assassin">
+                    <label for="assassin">
+                        assassin
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="checkbox checkbox-info">
+                    <input type="checkbox" id="fighter">
+                    <label for="fighter">
+                        fighter
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="checkbox checkbox-info">
+                    <input type="checkbox" id="mage">
+                    <label for="mage">
+                        mage
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="checkbox checkbox-info">
+                    <input type="checkbox" id="support">
+                    <label for="support">
+                        support
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="checkbox checkbox-info">
+                    <input type="checkbox" id="tank">
+                    <label for="tank">
+                        tank
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="checkbox checkbox-info">
+                    <input type="checkbox" id="marksman">
+                    <label for="marksman">
+                        marksman
+                    </label>
+                </div>
+            </li>
+        </ul>
+        <ul>
+            <li>
+                Classification:
+            </li>
+            <li>
+                <div class="radio radio-info radio-inline">
+                    <input type="radio" id="classification-any" value="" name="champion-classification" checked="">
+                    <label for="classification-any"> Any </label>
+                </div>
+            </li>
+            <li>
+                <div class="radio radio-info radio-inline">
+                    <input type="radio" id="classification-male" value="male" name="champion-classification">
+                    <label for="classification-male"> Male </label>
+                </div>
+            </li>
+            <li>
+                <div class="radio radio-info radio-inline">
+                    <input type="radio" id="classification-female" value="female" name="champion-classification">
+                    <label for="classification-female"> Female </label>
+                </div>
+            </li>
+            <li>
+                <div class="radio radio-info radio-inline">
+                    <input type="radio" id="classification-creature" value="creature" name="champion-classification">
+                    <label for="classification-creature"> Creature </label>
+                </div>
+
+            </li>
+            <li>
+                <select id="champion-difficulty-select" class="typeahead-select">
+                    <option value="">- Difficulty -</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </li>
+            <li>
+                <div class="ui mini button clear-filters" id="clear-champion-filters">Clear Filters
+                </div>
+            </li>
+        </ul>
+
+    </div>
+    <div class="champion-form-container">
+
+        <form id="form-game_v3" name="form-game_v3">
+            <div class="typeahead-container">
+                <div class="typeahead-field">
+
+            <span class="typeahead-query">
+                <input id="game_v3-query" name="game_v3[query]" type="search" placeholder="Search" autocomplete="off">
+            </span>
+            <span class="typeahead-button">
+                <button type="submit">
+                    <i class="typeahead-search-icon"></i>
+                </button>
+            </span>
+
+                </div>
+            </div>
+        </form>
+
+        <div id="champion-counter" class="champion-counter"></div>
+    </div>
+
+    <div id="champion-list" class="typeahead-result champion-list detached loading"></div>
+
+    <div id="champion-modal"
+         class="ui modal">
+        <i class="close icon"></i>
+
+        <div class="image content">
+            <div class="ui medium image">
+                <img data-champion-image src="league-of-legends.jpg"
+                     alt="league of legends">
+            </div>
+            <div class="description">
+                <div class="ui header" data-champion-name></div>
+                <em data-champion-title></em>
+
+                <p data-champion-blurb></p>
+            </div>
+
+        </div>
+        <div class="content">
+            <div class="ui header">Stats</div>
+            ...
+            <div class="ui header">Video</div>
+            ...
+            <div class="ui header">Skills</div>
+            ...
+        </div>
+        <div class="actions">
+            <div class="ui positive right labeled icon button">
+                Ok !
+                <i class="checkmark icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(function () {
+
+        initTypeahead();
+
+        function initTypeahead() {
+
+            $.typeahead({
+                input: "#game_v3-query",
+                minLength: 0,
+                maxItem: 0,
+                order: "asc",
+                hint: true,
+                resultContainer: '#champion-list',
+                generateOnLoad: true,
+                cache: true,
+                ttl: 3600000 * 24 * 7, // 1 week
+                compression: true,
+                dynamicFilter: [{
+                    selector: '#assassin',
+                    key: '|tags.Assassin'
+                }, {
+                    selector: '#fighter',
+                    key: '|tags.Fighter'
+                }, {
+                    selector: '#mage',
+                    key: '|tags.Mage'
+                }, {
+                    selector: '#support',
+                    key: '|tags.Support'
+                }, {
+                    selector: '#tank',
+                    key: '|tags.Tank'
+                }, {
+                    selector: '#marksman',
+                    key: '|tags.Marksman'
+                }, {
+                    selector: '#champion-difficulty-select',
+                    key: '&info.difficulty'
+                }, {
+                    selector: '[name="champion-classification"]',
+                    key: '&classification'
+                }],
+                display: ["key", "name"],
+                template: '<span class="champion-image">' +
+                    //'<img src="' + '//ddragon.leagueoflegends.com' + '/cdn/5.10.1/img/champion/{{image.full}}" alt="{{name}} {{title}}">' +
+                '<span class="champion-sprite champion-sprite-{{key|raw}}"></span>' +
+                '</span>' +
+                '<span class="champion-name">{{name}}</span>',
+                emptyTemplate: function (query) {
+                    return 'No champion found' + ((query) ? ' matching "' + query + '"' : '');
+                },
+                source: {
+                    champion: {
+                        url: [
+                            {
+                                url: "https://global.api.pvp.net/api/lol/static-data/na/v1.2/champion",
+                                dataType: "json",
+                                data: {
+                                    champData: 'info,tags,image,blurb',
+                                    api_key: '4a9e144c-33b6-4283-98a8-378e0d58b8ab'
+                                },
+                                callback: {
+                                    done: function (data) {
+                                        if (!(data instanceof Array)) {
+                                            data = $.map(data.data, function (value, index) {
+                                                for (var type in classification) {
+                                                    if (!classification.hasOwnProperty(type)) continue;
+                                                    if (~classification[type].indexOf(value.key)) {
+                                                        value.classification = type;
+                                                        break;
+                                                    }
+                                                }
+                                                var tags = {};
+                                                for (var i = 0; i < value.tags.length; i++) {
+                                                    tags[value.tags[i]] = true;
+                                                }
+                                                value.tags = tags;
+
+                                                return [value];
+                                            });
+                                        }
+                                        return data;
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                callback: {
+                    onReady: function (node) {
+                        $('#launch-game-v3-demo').addClass('hidden');
+                        $('#game-v3-demo-container').removeClass('hidden');
+                    },
+                    onResult: function (node, query, result, resultCount) {
+                        $('#champion-counter').text(resultCount + ' champions');
+                    },
+                    onClickBefore: function (node, a, item, event) {
+
+                        event.preventDefault();
+
+                        $('#champion-modal [data-champion-image]').attr({
+                            'src': '//ddragon.leagueoflegends.com/cdn/5.13.1/img/champion/' + item.image.full,
+                            'alt': 'league of legends champion ' + item.name
+                        });
+                        $('#champion-modal [data-champion-name]').text(item.name)
+                        $('#champion-modal [data-champion-title]').text(item.title)
+                        $('#champion-modal [data-champion-blurb]').text(item.blurb)
+
+                        $('#champion-modal').modal('show');
+
+                    },
+                    onLayoutBuiltBefore: function (node, query, result, resultHtmlList) {
+
+                        var roles;
+                        for (var i = 0; i < result.length; i++) {
+                            roles = [];
+
+                            for (role in result[i].tags) {
+                                if (!result[i].tags.hasOwnProperty(role)) continue;
+                                roles.push(role);
+                            }
+
+//                            resultHtmlList.find('li:eq(' + i + ')').attr({
+//                                //"data-toggle": "popover",
+//                                hoverable: true,
+//                                position: "left",
+//                                content: "<ul>" +
+//                                "<li>Role(s): " + roles.join(", ") + "</li>" +
+//                                "<li>Classification: " + result[i].classification + "</li>" +
+//                                "<li>Difficulty: " + result[i].info.difficulty + "</li>" +
+//                                "</ul>"
+//                            });
+
+                            resultHtmlList.find('li:eq(' + i + ')').popup({
+                                position: "left center",
+                                html: "<ul>" +
+                                "<li>Role(s): " + roles.join(", ") + "</li>" +
+                                "<li>Classification: " + result[i].classification + "</li>" +
+                                "<li>Difficulty: " + result[i].info.difficulty + "</li>" +
+                                "</ul>"
+                            });
+
+                        }
+                        return resultHtmlList;
+
+                    },
+                    onLayoutBuiltAfter: function (node, query, result) {
+
+//                        $('#champion-list [data-toggle="popover"]').popup();
+
+                    }
+                }
+            });
+
+        }
+
+        var classification = {
+            male: [
+                'Tryndamere', 'Gragas', 'Ryze', 'Olaf', 'Viktor', 'Garen', 'Singed', 'Zed',
+                'Darius', 'Vayne', 'Varus', 'Jayce', 'Pantheon', 'Corki', 'Azir', 'Graves', 'Malzahar', 'Kayle', 'LeeSin', 'Nunu',
+                'TwistedFate', 'Jax', 'Vladimir', 'Quinn', 'Lucian', 'Yasuo', 'Draven', 'Swain', 'Talon', 'Ekko', 'Zilean', 'Braum',
+                'XinZhao', 'MasterYi', 'Taric', 'Gangplank', 'JarvanIV', 'Ezreal', 'Udyr'
+            ],
+            female: [
+                'Cassiopeia', 'Poppy', 'Annie', 'Karma', 'Lux', 'Ahri', 'Lissandra', 'Morgana', 'Evelynn', 'Sona', 'Katarina',
+                'Lulu', 'Ashe', 'Leona', 'Syndra', 'Riven', 'Caitlyn', 'Nidalee', 'Vi', 'Irelia', 'Elise', 'Shyvana', 'Kalista',
+                'Diana', 'Sejuani', 'Akali', 'Sivir', 'Janna', 'Orianna', 'Fiora', 'Leblanc', 'Jinx', 'MissFortune', 'Zyra', 'Nami'
+            ],
+            creature: [
+                'Anivia', 'Maokai', 'Fizz', 'Heimerdinger', 'Rumble', 'Mordekaiser', 'KogMaw', 'Karthus', 'Alistar', 'Khazix',
+                'Galio', 'Kennen', 'Veigar', 'Bard', 'Gnar', 'Volibear', 'DrMundo', 'Brand', 'Zac', 'RekSai', 'Tristana', 'Hecarim',
+                'Rengar', 'Warwick', 'Skarner', 'Malphite', 'Xerath', 'Teemo', 'Nasus', 'Renekton', 'Shaco', 'Ziggs', 'FiddleSticks',
+                'Rammus', 'Chogath', 'Soraka', 'Nocturne', 'Yorick', 'Urgot', 'MonkeyKing', 'Blitzcrank', 'Shen', 'Twitch', 'Amumu',
+                'Trundle', 'Kassadin', 'Velkoz', 'Aatrox', 'Thresh', 'Sion', 'Nautilus'
+            ]
+        };
+
+        $('#clear-champion-filters').on('click', function () {
+
+            // Visually reset filters
+            $('.champion-filters select').find('option').prop("selected", false);
+            $('.champion-filters input[type="checkbox"]').prop("checked", false);
+            $('.champion-filters input[type="radio"]').prop("checked", false).first().prop("checked", true);
+
+            // Clear dynamic filters inside Typeahead "game_v3-query" instance, at this point you know what you are doing.
+            Typeahead['#game_v3-query'].filters.dynamic = {};
+
+            // Trigger a manual search
+            $('#game_v3-query').trigger('input.typeahead');
+
+        });
+
+    });
+
+
+</script>
+
+</div>
+
+</body>
+</html>
