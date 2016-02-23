@@ -2123,7 +2123,7 @@
                     value = tag.value;
                 } else if (tag.tagName === "INPUT") {
                     if (tag.type === "checkbox") {
-                        value = tag.checked && tag.value || tag.checked || null;
+                        value = tag.checked && tag.getAttribute('value') || tag.checked || null;
                     } else if (tag.type === "radio" && tag.checked) {
                         value = tag.value;
                     }
