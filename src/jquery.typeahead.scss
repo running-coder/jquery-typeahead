@@ -151,6 +151,10 @@ input {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
+.typeahead-field input[type="search"]::-webkit-search-cancel-button {
+    /*Bootstrap 3 override*/
+    -webkit-appearance: searchfield-cancel-button;
+}
 
 .typeahead-container .typeahead-field input {
     background: #fff;
