@@ -1,0 +1,191 @@
+
+.typeahead-container {
+    position: absolute !important;
+    top: -1000px;
+}
+
+.typeahead-container .typeahead-result-count,
+.typeahead-container .typeahead-close,
+.typeahead-container .typeahead-result-count,
+.typeahead-container .typeahead-backdrop-search-icon {
+    display: none;
+}
+
+.typeahead-container.backdrop {
+    width: 100%;
+    max-width: none;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.typeahead-container.backdrop input {
+    color: #2a9dcc;
+    /*background: transparent !important;*/
+    border: 0;
+    outline: none;
+    font-size: 2rem;
+    height: auto;
+    /*border-bottom: 1px solid #777;*/
+}
+
+.typeahead-container.backdrop .typeahead-header {
+    background-color: #f8f8f8;
+    border-bottom: solid 1px #e7e7e7;
+    height: 51px;
+}
+
+.typeahead-container.backdrop .typeahead-button {
+    display: none;
+}
+
+.typeahead-container.backdrop .typeahead-field {
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+
+.typeahead-container.backdrop .typeahead-field {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+@media (min-width: 768px) {
+    .typeahead-container.backdrop .typeahead-fieldntainer {
+        width: 750px;
+    }
+}
+
+@media (min-width: 992px) {
+    .typeahead-container.backdrop .typeahead-field {
+        width: 970px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .typeahead-container.backdrop .typeahead-field {
+        width: 1170px;
+    }
+}
+
+.typeahead-container.backdrop .typeahead-result {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    position: absolute;
+    width: 100% !important;
+    background-color: #fff;
+    top: 81px;
+    height: calc(100% - 81px);
+    -ms-overflow-style: none;
+    overflow: -moz-scrollbars-none;
+}
+
+.typeahead-container.backdrop .typeahead-result::-webkit-scrollbar {
+    width: 0 !important;
+}
+
+.typeahead-container.backdrop .typeahead-result-count {
+    display: block;
+    color: #999;
+    font-size: 1.15rem;
+    text-align: center;
+    text-transform: capitalize;
+    padding-top: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.typeahead-container.backdrop .typeahead-close {
+    display: block;
+    cursor: pointer;
+    font-weight: normal;
+    padding-left: 1rem;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.typeahead-container.backdrop .typeahead-esc {
+    font-size: 1rem;
+}
+
+.typeahead-container.backdrop .typeahead-backdrop-search-icon {
+    padding-right: 1rem;
+    font-size: 2rem;
+    display: table-cell;
+    vertical-align: middle;
+    color: #777;
+}
+
+.typeahead-container.backdrop .typeahead-backdrop-search-icon.active {
+    cursor: pointer;
+}
+
+.typeahead-container.backdrop .typeahead-backdrop-search-icon.active:hover {
+    color: #cccccc;
+}
+
+.typeahead-list {
+    position: relative;
+    top: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    text-align: center;
+}
+
+.typeahead-list li {
+    display: inline-block;
+}
+
+.typeahead-list li a {
+    padding: .55rem;
+    text-transform: capitalize;
+    font-size: 1.25rem;
+    color: #2a9dcc !important;
+    display: inline-block;
+}
+
+.typeahead-list li a:hover {
+    color: #217ca2;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.typeahead-list li.typeahead-group {
+    display: block;
+}
+
+.typeahead-list li.typeahead-group a {
+    text-transform: uppercase;
+    font-size: 1.75rem;
+    color: #CE2028 !important;
+    background: transparent;
+}
+
+.typeahead-list li.typeahead-group a:hover {
+    background: transparent;
+    text-decoration: none;
+}
+
+.typeahead-list li.typeahead-item a:hover {
+    text-decoration: underline;
+}
+
+.typeahead-list.empty {
+    text-align: center;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+}
+.typeahead-field input[type="search"]::-webkit-search-cancel-button {
+    /*Bootstrap 3 override*/
+    -webkit-appearance: textfield;
+}
