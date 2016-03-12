@@ -87,9 +87,9 @@
 
 <script>
     var typeaheadResultCount = $('.js-typeahead-result-count'),
-            typeaheadResultCountDefault = $('.js-typeahead-result-count').text(),
-            typeaheadToggle = $('.js-typeahead-toggle'),
-            typeaheadSubmit = $('.js-typeahead-submit');
+        typeaheadResultCountDefault = typeaheadResultCount.text(),
+        typeaheadToggle = $('.js-typeahead-toggle'),
+        typeaheadSubmit = $('.js-typeahead-submit');
 
     typeaheadToggle.on('click', function (e) {
         $('.js-typeahead-input').focus();
@@ -121,7 +121,7 @@
         },
         source: {
             game: {
-                //href: "http://www.gamer-hub.com/game/{{id}}/{{display}}",
+                href: "http://www.gamer-hub.com/game/{{id}}/{{display|slugify}}",
                 template: function (query, item) {
                     return '<div><img src="http://cdn.gamer-hub.com/images/' + this.helper.slugify.call(this, item.display) + '.jpg"></div>'
                 },
@@ -131,12 +131,14 @@
                 }, "data"]
             },
             category: {
+                href: "http://www.gamer-hub.com/category/{{id}}/{{display|slugify}}",
                 url: [{
                     url: "http://www.gamer-hub.com/category/list.json",
                     dataType: "jsonp"
                 }, "data"]
             },
             tag: {
+                href: "http://www.gamer-hub.com/tag/{{id}}/{{display|slugify}}",
                 url: [{
                     url: "http://www.gamer-hub.com/tag/list.json",
                     dataType: "jsonp"
@@ -144,11 +146,10 @@
             }
         },
         callback: {
-            //onClick: function (node, a, item, event) {
-            //    window.open(
-            //        `http://www.gamer-hub.com/${item.group}/${item.id}/${this.helper.slugify(item.display)}`
-            //    );
-            //},
+            onClick: function (node, a, item, event) {
+                event.preventDefault();
+                window.open(item.href);
+            },
             onSearch: function (node, query) {
                 if (query.length < this.options.minLength) {
                     typeaheadResultCount.text(typeaheadResultCountDefault);
@@ -158,7 +159,7 @@
             },
             onResult: function (node, query, result, resultCount, resultCountPerGroup) {
                 var group,
-                        text = '';
+                    text = '';
 
                 if (result.length) {
                     for (group in resultCountPerGroup) {
@@ -172,21 +173,19 @@
             onShowLayout: function (node, query) {
                 var scope = this;
 
-
-                node.attr('placeholder', 'Start typing ...');
                 $('html').css('overflow', 'hidden');
 
                 node.closest('form').find('.typeahead-close').on('click touchend', function (e) {
                     scope.hideLayout();
                 });
                 $(document).off('keyup.typeahead').on('keyup.typeahead', function (e) {
-                    if (e.keyCode !== 27) return;
+                    if (e.keyCode !== 27 || node.is(':focus')) return;
                     scope.hideLayout();
                 })
             },
             onHideLayout: function (node, query) {
-                node.attr('placeholder', '');
                 $('html').removeAttr('style');
+                $(document).off('keyup.typeahead');
             },
             onNavigateBefore: function (node, query, event) {
                 if (event.keyCode === 13) {

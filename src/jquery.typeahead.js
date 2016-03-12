@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-2-29)
+ * @version 2.3.4 (2016-3-12)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -478,7 +478,9 @@
                     return;
                 }
 
-                scope.hideLayout();
+                if (!scope.options.backdropOnFocus) {
+                    scope.hideLayout();
+                }
 
                 if (scope.options.callback.onSubmit) {
                     return scope.helper.executeCallback.call(scope, scope.options.callback.onSubmit, [scope.node, this, scope.item, e]);
@@ -1098,11 +1100,11 @@
 
         /**
          * Key Navigation
-         * tab 9: dismiss typeahead results
+         * tab 9: @TODO, what should tab do?
          * Up 38: select previous item, skip "group" item
          * Down 40: select next item, skip "group" item
          * Right 39: change charAt, if last char fill hint (if options is true)
-         * Esc 27: hideLayout
+         * Esc 27: clears input (is not empty) / blur (if empty)
          * Enter 13: Select item + submit search
          *
          * @param {Object} e Event object
@@ -1112,15 +1114,10 @@
 
             this.helper.executeCallback.call(this, this.options.callback.onNavigateBefore, [this.node, this.query, e]);
 
-            if (~[9, 27].indexOf(e.keyCode)) {
-                // #57 ESC should not preventDefault if Typeahead is not opened
-                //if (this.container.hasClass('result')) {
-                //e.preventDefault();
-                if (!this.query.length && e.keyCode === 27) {
+            if (e.keyCode === 27) {
+                if (!this.query.length) {
                     this.node.blur();
                 }
-                this.hideLayout();
-                //}
                 return;
             }
 
@@ -1133,22 +1130,16 @@
 
             if (e.keyCode === 13) {
 
+                // Prevent form submit
+                e.preventDefault();
+
                 if (activeItem.length > 0) {
-                    // Prevent form submit if an element is selected, click it instead!
-                    e.preventDefault();
-
                     activeItem.find('a:first')[0].click();
-                    return;
-
                 } else {
-
-                    if (this.options.mustSelectItem && this.helper.isEmpty(this.item)) {
-                        return;
-                    }
-
-                    this.hideLayout();
-                    return;
+                    // Go through Typeahead form submit
+                    this.node.closest('form').submit();
                 }
+                return;
             }
 
             if (e.keyCode === 39) {
@@ -2167,7 +2158,7 @@
         hideLayout: function () {
 
             // Means the container is already hidden
-            //if (!this.container.hasClass('result')) return;
+            if (!this.container.hasClass('result') && !this.container.hasClass('backdrop')) return;
 
             this.container.removeClass('result hint filter' + (this.options.backdropOnFocus && $(this.node).is(':focus') ? '' : ' backdrop'));
 
