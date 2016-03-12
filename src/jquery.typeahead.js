@@ -1115,7 +1115,12 @@
             this.helper.executeCallback.call(this, this.options.callback.onNavigateBefore, [this.node, this.query, e]);
 
             if (e.keyCode === 27) {
-                if (!this.query.length) {
+                // #166 Different browsers do not have the same behaviors by default, lets enforce what we want instead
+                e.preventDefault();
+                if (this.query.length) {
+                    this.node.val('')
+                    this.node.trigger('input' + _namespace);
+                } else {
                     this.node.blur();
                 }
                 return;

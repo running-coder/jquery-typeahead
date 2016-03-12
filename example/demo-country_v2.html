@@ -113,7 +113,7 @@
         };
 
         $('#q').typeahead({
-            minLength: 2,
+            minLength: 1,
             order: "asc",
             group: true,
             maxItemPerGroup: 3,
@@ -177,10 +177,6 @@
                     }
                     $('.js-result-container').text(text);
 
-                },
-                onSubmit: function () {
-                    console.log('submitting!!')
-                    return false;
                 }
             },
             debug: true

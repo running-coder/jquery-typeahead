@@ -54,6 +54,10 @@
     margin-left: auto;
 }
 
+.typeahead-container.backdrop .typeahead-field > * {
+    display: inline-block;
+}
+
 @media (min-width: 768px) {
     .typeahead-container.backdrop .typeahead-fieldntainer {
         width: 750px;
@@ -185,6 +189,13 @@ html {
 body {
     min-height: 100%;
 }
+
+.typeahead-field input[type="search"] {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 .typeahead-field input[type="search"]::-webkit-search-cancel-button {
     /*Bootstrap 3 override*/
     -webkit-appearance: textfield;
