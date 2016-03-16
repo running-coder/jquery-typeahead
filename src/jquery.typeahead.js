@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-3-12)
+ * @version 2.3.4 (2016-3-16)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -1761,8 +1761,8 @@
         buildHintLayout: function (result) {
             if (!this.options.hint) return;
             // #144 hint doesn't overlap with the input when the query is too long
-            if (this.node[0].scrollWidth > this.node.innerWidth()) {
-                this.hint.container.val("");
+            if (this.node[0].scrollWidth > Math.ceil(this.node.innerWidth())) {
+                this.hint.container && this.hint.container.val("");
                 return;
             }
 
