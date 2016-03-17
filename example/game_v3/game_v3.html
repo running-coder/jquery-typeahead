@@ -209,180 +209,179 @@
 
 <script>
 
-$(function () {
+    $(function () {
 
-    typeof $.typeahead === "function" && $.typeahead({
-        input: "#game_v3-query",
-        minLength: 0,
-        maxItem: 0,
-        order: "asc",
-        hint: true,
-        resultContainer: '#champion-list',
-        generateOnLoad: true,
-        cache: true,
-        ttl: 3600000 * 24 * 7, // 1 week
-        compression: true,
-        dynamicFilter: [{
-            selector: '#assassin',
-            key: '|tags.Assassin'
-        }, {
-            selector: '#fighter',
-            key: '|tags.Fighter'
-        }, {
-            selector: '#mage',
-            key: '|tags.Mage'
-        }, {
-            selector: '#support',
-            key: '|tags.Support'
-        }, {
-            selector: '#tank',
-            key: '|tags.Tank'
-        }, {
-            selector: '#marksman',
-            key: '|tags.Marksman'
-        }, {
-            selector: '#champion-difficulty-select',
-            key: '&info.difficulty'
-        }, {
-            selector: '[name="champion-classification"]',
-            key: '&classification'
-        }, {
-            selector: '#attack-10',
-            key: '&info.attack'
-        }],
-        display: ["key", "name"],
-        template: '<span class="champion-image">' +
-        '<img src="//ddragon.leagueoflegends.com/cdn/6.2.1/img/champion/{{image.full}}" alt="{{name}} {{title}}">' +
-        '</span>' +
-        '<span class="champion-name">{{name}}</span>',
-        emptyTemplate: function (query) {
-            return 'No champion found' + ((query) ? ' matching "' + query + '"' : '');
-        },
-        source: {
-            champion: {
-                url: [
-                    {
-                        url: "https://global.api.pvp.net/api/lol/static-data/na/v1.2/champion",
-                        dataType: "json",
-                        data: {
-                            champData: 'info,tags,image,blurb',
-                            api_key: '4a9e144c-33b6-4283-98a8-378e0d58b8ab'
-                        },
-                        callback: {
-                            done: function (data) {
-                                if (!(data instanceof Array)) {
-                                    data = $.map(data.data, function (value, index) {
-                                        for (var type in classification) {
-                                            if (!classification.hasOwnProperty(type)) continue;
-                                            if (~classification[type].indexOf(value.key)) {
-                                                value.classification = type;
-                                                break;
+        typeof $.typeahead === "function" && $.typeahead({
+            input: "#game_v3-query",
+            minLength: 0,
+            maxItem: 0,
+            order: "asc",
+            hint: true,
+            resultContainer: '#champion-list',
+            generateOnLoad: true,
+            cache: true,
+            ttl: 3600000 * 24 * 7, // 1 week
+            compression: true,
+            dynamicFilter: [{
+                selector: '#assassin',
+                key: '|tags.Assassin'
+            }, {
+                selector: '#fighter',
+                key: '|tags.Fighter'
+            }, {
+                selector: '#mage',
+                key: '|tags.Mage'
+            }, {
+                selector: '#support',
+                key: '|tags.Support'
+            }, {
+                selector: '#tank',
+                key: '|tags.Tank'
+            }, {
+                selector: '#marksman',
+                key: '|tags.Marksman'
+            }, {
+                selector: '#champion-difficulty-select',
+                key: '&info.difficulty'
+            }, {
+                selector: '[name="champion-classification"]',
+                key: '&classification'
+            }, {
+                selector: '#attack-10',
+                key: '&info.attack'
+            }],
+            display: ["key", "name"],
+            template: '<span class="champion-image">' +
+            '<img src="//ddragon.leagueoflegends.com/cdn/6.2.1/img/champion/{{image.full}}" alt="{{name}} {{title}}">' +
+            '</span>' +
+            '<span class="champion-name">{{name}}</span>',
+            emptyTemplate: function (query) {
+                return 'No champion found' + ((query) ? ' matching "' + query + '"' : '');
+            },
+            source: {
+                champion: {
+                    url: [
+                        {
+                            url: "https://global.api.pvp.net/api/lol/static-data/na/v1.2/champion",
+                            dataType: "json",
+                            data: {
+                                champData: 'info,tags,image,blurb',
+                                api_key: '4a9e144c-33b6-4283-98a8-378e0d58b8ab'
+                            },
+                            callback: {
+                                done: function (data) {
+                                    if (!(data instanceof Array)) {
+                                        data = $.map(data.data, function (value, index) {
+                                            for (var type in classification) {
+                                                if (!classification.hasOwnProperty(type)) continue;
+                                                if (~classification[type].indexOf(value.key)) {
+                                                    value.classification = type;
+                                                    break;
+                                                }
                                             }
-                                        }
-                                        var tags = {};
-                                        for (var i = 0; i < value.tags.length; i++) {
-                                            tags[value.tags[i]] = true;
-                                        }
-                                        value.tags = tags;
+                                            var tags = {};
+                                            for (var i = 0; i < value.tags.length; i++) {
+                                                tags[value.tags[i]] = true;
+                                            }
+                                            value.tags = tags;
 
-                                        return value;
-                                    });
+                                            return value;
+                                        });
+                                    }
+                                    return data;
                                 }
-                                return data;
                             }
                         }
-                    }
-                ]
-            }
-        },
-        callback: {
-            onReady: function (node) {
-                $('#launch-game-v3-demo').addClass('hidden');
-                $('#game-v3-demo-container').removeClass('hidden');
+                    ]
+                }
             },
-            onResult: function (node, query, result, resultCount) {
-                $('#champion-counter').text(resultCount + ' champions');
-            },
-            onClickBefore: function (node, a, item, event) {
+            callback: {
+                onReady: function (node) {
+                    $('#launch-game-v3-demo').addClass('hidden');
+                    $('#game-v3-demo-container').removeClass('hidden');
+                },
+                onResult: function (node, query, result, resultCount) {
+                    $('#champion-counter').text(resultCount + ' champions');
+                },
+                onClickBefore: function (node, a, item, event) {
 
-                event.preventDefault();
+                    event.preventDefault();
 
-                $('#champion-modal [data-champion-image]').attr({
-                    'src': '//ddragon.leagueoflegends.com/cdn/5.13.1/img/champion/' + item.image.full,
-                    'alt': 'league of legends champion ' + item.name
-                });
-                $('#champion-modal [data-champion-name]').text(item.name)
-                $('#champion-modal [data-champion-title]').text(item.title)
-                $('#champion-modal [data-champion-blurb]').text(item.blurb)
-
-                $('#champion-modal').modal('show');
-
-            },
-            onLayoutBuiltBefore: function (node, query, result, resultHtmlList) {
-
-                var roles;
-                for (var i = 0; i < result.length; i++) {
-                    roles = [];
-
-                    for (role in result[i].tags) {
-                        if (!result[i].tags.hasOwnProperty(role)) continue;
-                        roles.push(role);
-                    }
-
-                    resultHtmlList.find('li:eq(' + i + ')').popup({
-                        position: "left center",
-                        html: "<ul>" +
-                        "<li>Role(s): " + roles.join(", ") + "</li>" +
-                        "<li>Classification: " + result[i].classification + "</li>" +
-                        "<li>Difficulty: " + result[i].info.difficulty + "</li>" +
-                        "</ul>"
+                    $('#champion-modal [data-champion-image]').attr({
+                        'src': '//ddragon.leagueoflegends.com/cdn/5.13.1/img/champion/' + item.image.full,
+                        'alt': 'league of legends champion ' + item.name
                     });
+                    $('#champion-modal [data-champion-name]').text(item.name)
+                    $('#champion-modal [data-champion-title]').text(item.title)
+                    $('#champion-modal [data-champion-blurb]').text(item.blurb)
+
+                    $('#champion-modal').modal('show');
+
+                },
+                onLayoutBuiltBefore: function (node, query, result, resultHtmlList) {
+
+                    var roles;
+                    for (var i = 0; i < result.length; i++) {
+                        roles = [];
+
+                        for (role in result[i].tags) {
+                            if (!result[i].tags.hasOwnProperty(role)) continue;
+                            roles.push(role);
+                        }
+
+                        resultHtmlList.find('li:eq(' + i + ')').popup({
+                            position: "left center",
+                            html: "<ul>" +
+                            "<li>Role(s): " + roles.join(", ") + "</li>" +
+                            "<li>Classification: " + result[i].classification + "</li>" +
+                            "<li>Difficulty: " + result[i].info.difficulty + "</li>" +
+                            "</ul>"
+                        });
+
+                    }
+                    return resultHtmlList;
 
                 }
-                return resultHtmlList;
-
             }
-        }
+        });
+
+        var classification = {
+            male: [
+                'Tryndamere', 'Gragas', 'Ryze', 'Olaf', 'Viktor', 'Garen', 'Singed', 'Zed',
+                'Darius', 'Vayne', 'Varus', 'Jayce', 'Pantheon', 'Corki', 'Azir', 'Graves', 'Malzahar', 'Kayle', 'LeeSin', 'Nunu',
+                'TwistedFate', 'Jax', 'Vladimir', 'Quinn', 'Lucian', 'Yasuo', 'Draven', 'Swain', 'Talon', 'Ekko', 'Zilean', 'Braum',
+                'XinZhao', 'MasterYi', 'Taric', 'Gangplank', 'JarvanIV', 'Ezreal', 'Udyr'
+            ],
+            female: [
+                'Cassiopeia', 'Poppy', 'Annie', 'Karma', 'Lux', 'Ahri', 'Lissandra', 'Morgana', 'Evelynn', 'Sona', 'Katarina',
+                'Lulu', 'Ashe', 'Leona', 'Syndra', 'Riven', 'Caitlyn', 'Nidalee', 'Vi', 'Irelia', 'Elise', 'Shyvana', 'Kalista',
+                'Diana', 'Sejuani', 'Akali', 'Sivir', 'Janna', 'Orianna', 'Fiora', 'Leblanc', 'Jinx', 'MissFortune', 'Zyra', 'Nami'
+            ],
+            creature: [
+                'Anivia', 'Maokai', 'Fizz', 'Heimerdinger', 'Rumble', 'Mordekaiser', 'KogMaw', 'Karthus', 'Alistar', 'Khazix',
+                'Galio', 'Kennen', 'Veigar', 'Bard', 'Gnar', 'Volibear', 'DrMundo', 'Brand', 'Zac', 'RekSai', 'Tristana', 'Hecarim',
+                'Rengar', 'Warwick', 'Skarner', 'Malphite', 'Xerath', 'Teemo', 'Nasus', 'Renekton', 'Shaco', 'Ziggs', 'FiddleSticks',
+                'Rammus', 'Chogath', 'Soraka', 'Nocturne', 'Yorick', 'Urgot', 'MonkeyKing', 'Blitzcrank', 'Shen', 'Twitch', 'Amumu',
+                'Trundle', 'Kassadin', 'Velkoz', 'Aatrox', 'Thresh', 'Sion', 'Nautilus'
+            ]
+        };
+
+        $('#clear-champion-filters').on('click', function () {
+
+            // Visually reset filters
+            $('.champion-filters select').find('option').prop("selected", false);
+            $('.champion-filters input[type="checkbox"]').prop("checked", false);
+            $('.champion-filters input[type="radio"]').prop("checked", false).first().prop("checked", true);
+
+            // Clear dynamic filters inside Typeahead "game_v3-query" instance, at this point you know what you are doing.
+            Typeahead['#game_v3-query'].filters.dynamic = {};
+
+            // Trigger a manual search
+            $('#game_v3-query').trigger('input.typeahead');
+
+        });
+
     });
-
-
-    var classification = {
-        male: [
-            'Tryndamere', 'Gragas', 'Ryze', 'Olaf', 'Viktor', 'Garen', 'Singed', 'Zed',
-            'Darius', 'Vayne', 'Varus', 'Jayce', 'Pantheon', 'Corki', 'Azir', 'Graves', 'Malzahar', 'Kayle', 'LeeSin', 'Nunu',
-            'TwistedFate', 'Jax', 'Vladimir', 'Quinn', 'Lucian', 'Yasuo', 'Draven', 'Swain', 'Talon', 'Ekko', 'Zilean', 'Braum',
-            'XinZhao', 'MasterYi', 'Taric', 'Gangplank', 'JarvanIV', 'Ezreal', 'Udyr'
-        ],
-        female: [
-            'Cassiopeia', 'Poppy', 'Annie', 'Karma', 'Lux', 'Ahri', 'Lissandra', 'Morgana', 'Evelynn', 'Sona', 'Katarina',
-            'Lulu', 'Ashe', 'Leona', 'Syndra', 'Riven', 'Caitlyn', 'Nidalee', 'Vi', 'Irelia', 'Elise', 'Shyvana', 'Kalista',
-            'Diana', 'Sejuani', 'Akali', 'Sivir', 'Janna', 'Orianna', 'Fiora', 'Leblanc', 'Jinx', 'MissFortune', 'Zyra', 'Nami'
-        ],
-        creature: [
-            'Anivia', 'Maokai', 'Fizz', 'Heimerdinger', 'Rumble', 'Mordekaiser', 'KogMaw', 'Karthus', 'Alistar', 'Khazix',
-            'Galio', 'Kennen', 'Veigar', 'Bard', 'Gnar', 'Volibear', 'DrMundo', 'Brand', 'Zac', 'RekSai', 'Tristana', 'Hecarim',
-            'Rengar', 'Warwick', 'Skarner', 'Malphite', 'Xerath', 'Teemo', 'Nasus', 'Renekton', 'Shaco', 'Ziggs', 'FiddleSticks',
-            'Rammus', 'Chogath', 'Soraka', 'Nocturne', 'Yorick', 'Urgot', 'MonkeyKing', 'Blitzcrank', 'Shen', 'Twitch', 'Amumu',
-            'Trundle', 'Kassadin', 'Velkoz', 'Aatrox', 'Thresh', 'Sion', 'Nautilus'
-        ]
-    };
-
-    $('#clear-champion-filters').on('click', function () {
-
-        // Visually reset filters
-        $('.champion-filters select').find('option').prop("selected", false);
-        $('.champion-filters input[type="checkbox"]').prop("checked", false);
-        $('.champion-filters input[type="radio"]').prop("checked", false).first().prop("checked", true);
-
-        // Clear dynamic filters inside Typeahead "game_v3-query" instance, at this point you know what you are doing.
-        Typeahead['#game_v3-query'].filters.dynamic = {};
-
-        // Trigger a manual search
-        $('#game_v3-query').trigger('input.typeahead');
-
-    });
-
-});
 
 
 </script>

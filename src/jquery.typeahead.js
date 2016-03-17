@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-3-16)
+ * @version 2.3.4 (2016-3-17)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -507,15 +507,15 @@
                             }
                         }
                     case "keydown":
-                        if (scope.isGenerated === null && !scope.options.dynamic) {
-                            scope.generateSource();
-                        }
                         if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                             preventNextEvent = true;
                             scope.navigate(e);
                         }
                         break;
                     case "keyup":
+                        if (scope.isGenerated === null && !scope.options.dynamic) {
+                            scope.generateSource();
+                        }
                         if (_isIE9 && scope.node[0].value.replace(/^\s+/, '').toString().length < scope.query.length) {
                             scope.node.trigger('input' + _namespace);
                         }
@@ -526,6 +526,7 @@
                             break;
                         }
                     case "input":
+
                         scope.rawQuery = scope.node[0].value.toString();
                         scope.query = scope.rawQuery.replace(/^\s+/, '');
 
@@ -746,7 +747,10 @@
             var scope = this,
                 requestsCount = Object.keys(this.requests).length;
 
-            this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]);
+            if (this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]) === false) {
+                this.isGenerated = null;
+                return;
+            }
 
             for (var group in this.requests) {
                 if (!this.requests.hasOwnProperty(group)) continue;
@@ -1237,7 +1241,7 @@
 
             this.resetLayout();
 
-            this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]);
+            if (this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]) === false) return;
 
             if (this.query.length >= this.options.minLength) {
                 this.searchResultData();
@@ -1671,8 +1675,7 @@
 
                                         scope.item = item;
 
-                                        scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, $(this), item, e]);
-
+                                        if (scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, $(this), item, e]) === false) return;
                                         if ((e.originalEvent && e.originalEvent.defaultPrevented) || e.isDefaultPrevented()) {
                                             return;
                                         }
@@ -2392,12 +2395,12 @@
              *
              * @param {String|Array} callback The function to be called
              * @param {Array} [extraParams] In some cases the function can be called with Extra parameters (onError)
-             * @returns {Boolean}
+             * @returns {*}
              */
             executeCallback: function (callback, extraParams) {
 
                 if (!callback) {
-                    return false;
+                    return;
                 }
 
                 var _callback;
@@ -2427,7 +2430,7 @@
                             _debug.print();
                         }
                         // {/debug}
-                        return false;
+                        return;
                     }
 
                 }
