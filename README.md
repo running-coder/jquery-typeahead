@@ -1,5 +1,7 @@
 [![tag:?](https://img.shields.io/github/tag/running-coder/jquery-typeahead.svg?style=flat-square)](https://github.com/running-coder/jquery-typeahead/releases)
+[![npm:](https://img.shields.io/npm/v/jquery-typeahead.svg?style=flat-square)](https://www.npmjs.com/packages/jquery-typeahead)
 [![license:mit](https://img.shields.io/badge/license-mit-green.svg?style=flat-square)](#license)
+[![Built with gulp](http://img.shields.io/badge/built%20with-gulp.js-red.svg?style=flat-square)](http://gulpjs.com/)
 
 # jQuery Typeahead
 
@@ -9,6 +11,14 @@ It is a simple clientside library that will improve the user experience on your 
 The jQuery Typeahead plugin is released under the MIT License.
 
 The complete documentation, demo and further instructions can be found at www.runningcoder.org
+
+## Installation
+
+    bower install jquery-typeahead
+
+or
+
+    npm install jquery-typeahead
 
 ## Documentation
 

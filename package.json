@@ -1,5 +1,5 @@
 {
-  "name": "typeahead",
+  "name": "jquery-typeahead",
   "version": "2.3.4",
   "description": "jQuery plugin that provides Typeahead (autocomplete) Search preview from Json object(s) via same domain Ajax request or cross domain Jsonp and offers data compression inside Local Storage. The plugin is built with a lot of options and callbacks to allow customization.",
   "author": {
@@ -22,10 +22,10 @@
     "url": "git://github.com/running-coder/jquery-typeahead.git"
   },
   "dependencies": {
-    "lz-string": "^1.4.4"
+    "lz-string": "latest"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "latest",
     "mocha": "latest",
     "should": "latest"
   },
