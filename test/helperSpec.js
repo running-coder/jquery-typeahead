@@ -1,13 +1,17 @@
 var should = require('chai').should(),
-    $ = require('jquery');
+    window = require("jsdom").jsdom().defaultView,
+    $ = require("jquery")(window),
+    Typeahead = require('../src/jquery.typeahead')(window, $);
 
-//var typeahead = require('../src/jquery.typeahead.js')();
 
-describe('Array', function() {
-    describe('#indexOf()', function () {
-        it('should return -1 when the value is not present', function () {
-            should.equal(-1, [1,2,3].indexOf(5));
-            should.equal(-1, [1,2,3].indexOf(0));
-        });
-    });
+describe('Typeahead Helpers Tests', function () {
+
+    it('works', function () {
+        console.log('~~~~~~~~~')
+        console.log(window.Typeahead)
+        console.log($.typeahead)
+        console.log(Typeahead.prototype.helper)
+        console.log('~~~~~~~~~')
+    })
+
 });

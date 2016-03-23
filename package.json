@@ -22,7 +22,7 @@
     "url": "git://github.com/running-coder/jquery-typeahead.git"
   },
   "dependencies": {
-    "jquery": "^2.2.2",
+    "jquery": ">=2.2.2",
     "lz-string": "^1.4.4"
   },
   "devDependencies": {
@@ -36,7 +36,9 @@
     "gulp-replace": "^0.5.4",
     "gulp-sass": "2.1.0",
     "gulp-uglify": "1.5.1",
+    "jsdom": "^8.1.0",
     "mocha": "^2.4.5",
+    "mocha-jsdom": "^1.1.0",
     "should": "^8.2.2"
   },
   "scripts": {

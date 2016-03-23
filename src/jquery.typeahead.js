@@ -10,7 +10,7 @@
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['jquery'], factory);
+        define(['jquery-typeahead'], factory);
     } else if (typeof module === 'object' && module.exports) {
         // Node/CommonJS
         module.exports = function (root, jQuery) {
@@ -26,14 +26,15 @@
                     jQuery = require('jquery')(root);
                 }
             }
-            factory(jQuery);
-            return jQuery;
+            return factory(root, jQuery);
+            //return jQuery; // Why return jQuery??
         };
     } else {
         // Browser globals
-        factory(jQuery);
+        factory(window, jQuery);
     }
-}(function ($) {
+}(function (window, $) {
+
 
     window.Typeahead = {
         version: '2.3.4'
@@ -142,7 +143,7 @@
      * #62 IE9 doesn't trigger "input" event when text gets removed (backspace, ctrl+x, etc)
      * @private
      */
-    var _isIE9 = ~navigator.appVersion.indexOf("MSIE 9.");
+    var _isIE9 = ~window.navigator.appVersion.indexOf("MSIE 9.");
 
     // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, compiled, href
 
@@ -499,11 +500,16 @@
                             scope.showLayout();
                         }
                     case "generateOnLoad":
+                        // @TODO Test this...
+                        if (scope.isGenerated === null) {
+                            scope.generateSource();
+                        }
+
                         if (scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
                             if (scope.isGenerated) {
                                 scope.showLayout();
-                            } else if (scope.isGenerated === null) {
-                                scope.generateSource();
+                            //} else if (scope.isGenerated === null) {
+                            //    scope.generateSource();
                             }
                         }
                     case "keydown":
@@ -2682,6 +2688,7 @@
         };
     }
 
-    return $.proxy($.typeahead, Typeahead);
+    //return $.proxy($.typeahead, Typeahead);
+    return Typeahead;
 
 }));
