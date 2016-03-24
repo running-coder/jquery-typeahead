@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-3-17)
+ * @version 2.3.4 (2016-3-24)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -1449,6 +1449,10 @@
                         }
                     }
 
+                    console.log( this.result[group])
+                    console.log( displayKeys)
+                    console.log( scope.options.order === "asc")
+
                     this.result[group].sort(
                         scope.helper.sort(
                             displayKeys,
@@ -1462,7 +1466,6 @@
 
             }
 
-            // @TODO TEST THE SCENARIOS
             var concatResults = [],
                 groupOrder;
 
@@ -2257,7 +2260,7 @@
 
                 if (string !== "") {
                     string = this.helper.removeAccent.call(this, string);
-                    string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
+                    string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                 }
 
                 return string;
@@ -2586,11 +2589,14 @@
                 return;
             }
 
-            var initNode;
-            for (var i = 0; i < node.length; i++) {
-                initNode = node.length === 1 ? node : $(node.selector.split(',')[i].trim());
-                window.Typeahead[initNode.selector || options.input] = new Typeahead(initNode, options);
-            }
+            //var initNode;
+            //for (var i = 0; i < node.length; i++) {
+            //    initNode = node.length === 1 ? node : $(node.selector.split(',')[i].trim());
+            //    window.Typeahead[initNode.selector || options.input] = new Typeahead(initNode, options);
+            //}
+
+            return window.Typeahead[node.selector || options.input] = new Typeahead(node, options);
+
         }
 
     };
