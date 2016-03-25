@@ -20,30 +20,28 @@ describe('Typeahead Helpers Tests', function () {
             input: '#q',
             source: {
                 testGroup: ['item1', 'item2', 'item3']
+            },
+            callback: {
+                onInit: function () {
+                    return true;
+                }
             }
         });
 
     });
 
-    //it('works', function () {
-        //console.log('~~~~~~~~~')
-        //console.log(window.Typeahead)
-        //console.log($.typeahead)
-        //console.log(Typeahead.prototype.helper)
-        //console.log('~~~~~~~~~')
-    //});
-
     it('Typeahead.version', function () {
 
         expect(window.Typeahead.version).to.equal(pkg.version);
+        expect(myTypeahead).to.be.an.instanceof(Typeahead);
 
     });
 
     it('Typeahead.prototype.helper.isEmpty', function () {
 
         expect(Typeahead.prototype.helper.isEmpty).to.be.a('function');
-        expect(Typeahead.prototype.helper.isEmpty({})).to.equal(true);
-        expect(Typeahead.prototype.helper.isEmpty({test: 'test'})).to.equal(false);
+        expect(Typeahead.prototype.helper.isEmpty({})).to.be.true;
+        expect(Typeahead.prototype.helper.isEmpty({test: 'test'})).to.be.false;
 
     });
 
@@ -66,7 +64,11 @@ describe('Typeahead Helpers Tests', function () {
 
     it('Typeahead.prototype.helper.sort', function () {
 
-        let myArray = [{display: 'aDisplay'}, {display: 'cDisplay'}, {display: 'bDisplay'}];
+        let myArray = [
+            {display: 'aDisplay'},
+            {display: 'cDisplay'},
+            {display: 'bDisplay'}
+        ];
 
         expect(
             myArray.sort(
@@ -78,7 +80,11 @@ describe('Typeahead Helpers Tests', function () {
                     }
                 )
             )
-        ).to.eql([{display: 'aDisplay'}, {display: 'bDisplay'}, {display: 'cDisplay'}]);
+        ).to.eql([
+                {display: 'aDisplay'},
+                {display: 'bDisplay'},
+                {display: 'cDisplay'}
+            ]);
 
         expect(
             myArray.sort(
@@ -90,7 +96,100 @@ describe('Typeahead Helpers Tests', function () {
                     }
                 )
             )
-        ).to.eql([{display: 'cDisplay'}, {display: 'bDisplay'}, {display: 'aDisplay'}])
+        ).to.eql([
+                {display: 'cDisplay'},
+                {display: 'bDisplay'},
+                {display: 'aDisplay'}
+            ])
 
     });
+
+    it('Typeahead.prototype.helper.replaceAt', function () {
+
+        expect(Typeahead.prototype.helper.replaceAt).to.be.a('function');
+        expect(Typeahead.prototype.helper.replaceAt('thisisatest', 4, 2, 'was')).to.equal('thiswasatest');
+
+    });
+
+    it('Typeahead.prototype.helper.highlight', function () {
+
+        expect(Typeahead.prototype.helper.highlight).to.be.a('function');
+        expect(myTypeahead.helper.highlight.apply(myTypeahead, ['highlight test', ['test'], false])).to.equal('highlight <strong>test</strong>');
+        expect(myTypeahead.helper.highlight.apply(myTypeahead, ['highlight àççént test', ['accent'], false])).to.equal('highlight àççént test');
+        expect(myTypeahead.helper.highlight.apply(myTypeahead, ['highlight àççént test', ['accent'], true])).to.equal('highlight <strong>àççént</strong> test');
+        expect(myTypeahead.helper.highlight.apply(myTypeahead, ['test keys highlight multiple test key', ['test', 'key'], false])).to.equal('<strong>test</strong> <strong>key</strong>s highlight multiple <strong>test</strong> <strong>key</strong>');
+        expect(myTypeahead.helper.highlight.apply(myTypeahead, ['highlight number 42 test', ['number 42'], false])).to.equal('highlight <strong>number 42</strong> test');
+
+    });
+
+    it('Typeahead.prototype.helper.getCaret', function () {
+
+        expect(Typeahead.prototype.helper.getCaret).to.be.a('function');
+
+        myTypeahead.node.val('test');
+        myTypeahead.node[0].selectionStart = myTypeahead.node.val().length;
+
+        expect(myTypeahead.helper.getCaret(myTypeahead.node[0])).to.equal(4)
+
+    });
+
+    it('Typeahead.prototype.helper.executeCallback', function () {
+
+        window.definedTestFunction = function () {
+            return true;
+        };
+
+        window.testFunctions = {};
+        window.testFunctions.oneTest = {};
+        window.testFunctions.oneTest.deepTest = function (param1, param2, param3) {
+            return $.map(arguments, function (v, i) {
+                return v;
+            });
+        };
+
+        expect(Typeahead.prototype.helper.executeCallback).to.be.a('function');
+        expect(myTypeahead.helper.executeCallback.apply(myTypeahead)).to.be.undefined;
+        expect(myTypeahead.helper.executeCallback.apply(myTypeahead, ['undefinedTestFunction'])).to.be.undefined;
+        expect(myTypeahead.helper.executeCallback.apply(myTypeahead, ['definedTestFunction'])).to.be.true;
+        expect(myTypeahead.helper.executeCallback.apply(myTypeahead, ['window.testFunctions.oneTest.deepTest', [1, 2, 'test']])).to.eql([1, 2, 'test']);
+        expect(myTypeahead.helper.executeCallback.apply(myTypeahead, [myTypeahead.options.callback.onInit])).to.be.true;
+
+    });
+
+    it('Typeahead.prototype.helper.namespace', function () {
+
+        let myObject = {
+            property: true,
+            test: 'test',
+            with: {
+                deep: {
+                    property: true
+                }
+            }
+        }
+
+        // get, set, create, delete
+        expect(Typeahead.prototype.helper.namespace).to.be.a('function');
+        expect(Typeahead.prototype.helper.namespace('property', myObject)).to.be.true;
+        expect(Typeahead.prototype.helper.namespace('undefined.property', myObject)).to.be.undefined;
+        expect(Typeahead.prototype.helper.namespace('with.deep.property', myObject)).to.be.true;
+        expect(Typeahead.prototype.helper.namespace('new.property', myObject, 'create', 'newProperty')).to.equal('newProperty');
+        expect(Typeahead.prototype.helper.namespace('new.property', myObject)).to.equal('newProperty');
+        expect(Typeahead.prototype.helper.namespace('new.property', myObject, 'set', 'updatedProperty')).to.equal('updatedProperty');
+        expect(Typeahead.prototype.helper.namespace('new.property', myObject)).to.equal('updatedProperty');
+        expect(Typeahead.prototype.helper.namespace('new.property', myObject, 'delete')).to.be.true;
+        expect(Typeahead.prototype.helper.namespace('new.property', myObject)).to.be.undefined;
+
+    });
+
+    it('Typeahead.prototype.helper.typeWatch', function (done) {
+
+        expect(Typeahead.prototype.helper.typeWatch).to.be.a('function');
+
+        Typeahead.prototype.helper.typeWatch(function () {
+            done();
+        }, 100);
+
+    });
+
 });

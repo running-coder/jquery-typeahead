@@ -1,8 +1,8 @@
+[![Build Status](https://travis-ci.org/running-coder/jquery-typeahead.svg?branch=develop&style=flat-square)](https://travis-ci.org/running-coder/jquery-typeahead)
 [![tag:?](https://img.shields.io/github/tag/running-coder/jquery-typeahead.svg?style=flat-square)](https://github.com/running-coder/jquery-typeahead/releases)
-[![npm:](https://img.shields.io/npm/v/jquery-typeahead.svg?style=flat-square)](https://www.npmjs.com/packages/jquery-typeahead)
 [![license:mit](https://img.shields.io/badge/license-mit-green.svg?style=flat-square)](#license)
 [![Built with gulp](http://img.shields.io/badge/built%20with-gulp.js-red.svg?style=flat-square)](http://gulpjs.com/)
-[![Build Status](https://travis-ci.org/running-coder/jquery-typeahead.svg?branch=develop&style=flat-square)](https://travis-ci.org/running-coder/jquery-typeahead)
+
 
 # jQuery Typeahead
 
