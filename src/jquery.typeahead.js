@@ -2576,13 +2576,7 @@
                 return;
             }
 
-            //var initNode;
-            //for (var i = 0; i < node.length; i++) {
-            //    initNode = node.length === 1 ? node : $(node.selector.split(',')[i].trim());
-            //    window.Typeahead[initNode.selector || options.input] = new Typeahead(initNode, options);
-            //}
-
-            return window.Typeahead[node.selector || options.input] = new Typeahead(node, options);
+            return window.Typeahead[options.input || node.selector] = new Typeahead(node, options);
 
         }
 
@@ -2681,7 +2675,6 @@
         };
     }
 
-    //return $.proxy($.typeahead, Typeahead);
     return Typeahead;
 
 }));
