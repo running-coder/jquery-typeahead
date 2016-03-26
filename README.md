@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/running-coder/jquery-typeahead.svg?branch=develop&style=flat-square)](https://travis-ci.org/running-coder/jquery-typeahead)
+[![Build Status](https://travis-ci.org/running-coder/jquery-typeahead.svg?branch=master&style=flat-square)](https://travis-ci.org/running-coder/jquery-typeahead)
 [![npm:](https://img.shields.io/npm/v/jquery-typeahead.svg?style=flat-square)](https://www.npmjs.com/packages/jquery-typeahead)
 [![license:mit](https://img.shields.io/badge/license-mit-green.svg?style=flat-square)](#license)
 [![Built with gulp](http://img.shields.io/badge/built%20with-gulp.js-red.svg?style=flat-square)](http://gulpjs.com/)

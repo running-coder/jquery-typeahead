@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-3-26)
+ * @version 2.4.0 (2016-3-26)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -32,7 +32,7 @@
     "use strict";
 
     window.Typeahead = {
-        version: '2.3.4'
+        version: '2.4.0'
     };
 
     /**
