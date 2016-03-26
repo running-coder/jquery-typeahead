@@ -10,10 +10,10 @@ describe('Typeahead Helpers Tests', function () {
 
     before(function () {
 
-        document.write('<input id="q">');
+        document.write('<input class="js-typeahead-helper">');
 
         myTypeahead = $.typeahead({
-            input: '#q',
+            input: '.js-typeahead-helper',
             source: {
                 testGroup: ['item1', 'item2', 'item3']
             },
