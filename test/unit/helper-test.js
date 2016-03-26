@@ -1,13 +1,7 @@
 var expect = require('chai').expect;
-var pkg = require('../package.json');
-var jsdom = require('jsdom');
-var doc = jsdom.jsdom('<!doctype html><html><body><input id="q"></body></html>');
-var win = doc.defaultView;
-var jQuery = $ = require("jquery")(win);
-var Typeahead = require('../src/jquery.typeahead')(win, jQuery);
-
-global.document = doc;
-global.window = win;
+var pkg = require('../../package.json');
+var jQuery = $ = require("jquery");
+var Typeahead = require('../../src/jquery.typeahead')(window, jQuery);
 
 describe('Typeahead Helpers Tests', function () {
     'use strict';
@@ -15,6 +9,8 @@ describe('Typeahead Helpers Tests', function () {
     let myTypeahead;
 
     before(function () {
+
+        document.write('<input id="q">');
 
         myTypeahead = $.typeahead({
             input: '#q',

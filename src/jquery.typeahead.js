@@ -4,21 +4,15 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-3-24)
+ * @version 2.3.4 (2016-3-25)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define(['jquery-typeahead'], factory);
+        define('jquery-typeahead', ['jquery'], factory());
     } else if (typeof module === 'object' && module.exports) {
-        // Node/CommonJS
         module.exports = function (root, jQuery) {
             if (jQuery === undefined) {
-                // require('jQuery') returns a factory that requires window to
-                // build a jQuery instance, we normalize how we use modules
-                // that require this pattern but the window provided is a noop
-                // if it's defined (how jquery works)
                 if (typeof window !== 'undefined') {
                     jQuery = require('jquery');
                 }
@@ -27,20 +21,17 @@
                 }
             }
             return factory(root, jQuery);
-            //return jQuery; // Why return jQuery??
         };
     } else {
-        // Browser globals
         factory(window, jQuery);
     }
 }(function (window, $) {
 
+    "use strict";
 
     window.Typeahead = {
         version: '2.3.4'
     };
-
-    "use strict";
 
     /**
      * @private
