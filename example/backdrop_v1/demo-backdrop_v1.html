@@ -1,0 +1,211 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title></title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../src/jquery.typeahead.css">
+    <link rel="stylesheet" href="demo-backdrop_v1.css">
+
+    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <!--script src="../dist/jquery.typeahead.min.js"></script-->
+    <script src="../../src/jquery.typeahead.js"></script>
+
+</head>
+<body>
+
+<nav class="navbar navbar-default navbar-static-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Project name</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="">About</a></li>
+                <li><a href="">Contact</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="javascript:;" class="js-typeahead-toggle"><i class="fa fa-search"></i></a></li>
+            </ul>
+
+            <form>
+                <div class="typeahead-container">
+                    <div class="typeahead-header">
+
+                        <div class="typeahead-field">
+                            <div class="typeahead-backdrop-search-icon js-typeahead-submit">
+                                <i class="fa fa-search"></i>
+                            </div>
+                            <div class="typeahead-query">
+                                <input class="js-typeahead-input"
+                                       name="q"
+                                       type="search"
+                                       autocomplete="off">
+                            </div>
+                            <div class="typeahead-close">
+                                <i class="fa fa-times"></i>
+
+                                <div class="typeahead-esc">[ESC]</div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="typeahead-result-count js-typeahead-result-count">Search for Scenes, Models or Tags
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</nav>
+
+
+<div class="container">
+    <div class="jumbotron">
+        <h1>Backdrop_v1 Demo</h1>
+
+        <p>
+            <a class="btn btn-lg btn-primary"
+               href="http://jsfiddle.net/runningcoder/xd0q4co1/"
+               role="button">Edit this demo on JsFiddle &raquo;</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    var typeaheadResultCount = $('.js-typeahead-result-count'),
+        typeaheadResultCountDefault = typeaheadResultCount.text(),
+        typeaheadToggle = $('.js-typeahead-toggle'),
+        typeaheadSubmit = $('.js-typeahead-submit');
+
+    typeaheadToggle.on('click', function (e) {
+        $('.js-typeahead-input').focus();
+        // Prevent Typeahead hideLayout from being called on the initial request
+        e.stopPropagation();
+    });
+
+    typeaheadSubmit.on('click', function (e) {
+        var origin = $(e.currentTarget);
+
+        if (!origin.hasClass('active')) return;
+        origin.closest('form')[0].submit();
+    });
+
+    typeof $.typeahead === 'function' && $.typeahead({
+        input: ".js-typeahead-input",
+        minLength: 2,
+        maxItem: 40,
+        order: "asc",
+        hint: true,
+        backdrop: {
+            opacity: 1,
+            background: '#fff'
+        },
+        maxItemPerGroup: 30,
+        backdropOnFocus: true,
+        emptyTemplate: function (query) {
+            return 'no result for ' + query;
+        },
+        source: {
+            game: {
+                href: "http://www.gamer-hub.com/game/{{id}}/{{display|slugify}}",
+                template: function (query, item) {
+                    return '<div><img src="http://cdn.gamer-hub.com/images/' + this.helper.slugify.call(this, item.display) + '.jpg"></div>'
+                },
+                url: [{
+                    url: "http://www.gamer-hub.com/game/list.json",
+                    dataType: "jsonp"
+                }, "data"]
+            },
+            category: {
+                href: "http://www.gamer-hub.com/category/{{id}}/{{display|slugify}}",
+                url: [{
+                    url: "http://www.gamer-hub.com/category/list.json",
+                    dataType: "jsonp"
+                }, "data"]
+            },
+            tag: {
+                href: "http://www.gamer-hub.com/tag/{{id}}/{{display|slugify}}",
+                url: [{
+                    url: "http://www.gamer-hub.com/tag/list.json",
+                    dataType: "jsonp"
+                }, "data"]
+            }
+        },
+        callback: {
+            onClick: function (node, a, item, event) {
+                event.preventDefault();
+                window.open(item.href);
+            },
+            onSearch: function (node, query) {
+                if (query.length < this.options.minLength) {
+                    typeaheadResultCount.text(typeaheadResultCountDefault);
+                }
+
+                typeaheadSubmit.toggleClass('active', !!query.length)
+            },
+            onResult: function (node, query, result, resultCount, resultCountPerGroup) {
+                var group,
+                    text = '';
+
+                if (result.length) {
+                    for (group in resultCountPerGroup) {
+                        if (resultCountPerGroup[group] > 0) {
+                            text += resultCountPerGroup[group] + ' ' + group + (resultCountPerGroup[group] > 1 ? 's' : '')
+                        }
+                    }
+                }
+                typeaheadResultCount.text(text || typeaheadResultCountDefault);
+            },
+            onShowLayout: function (node, query) {
+                var scope = this;
+
+                $('html').css('overflow', 'hidden');
+
+                node.closest('form').find('.typeahead-close').on('click touchend', function (e) {
+                    scope.hideLayout();
+                });
+                $(document).off('keyup.typeahead').on('keyup.typeahead', function (e) {
+                    if (e.keyCode !== 27 || node.is(':focus')) return;
+                    scope.hideLayout();
+                })
+            },
+            onHideLayout: function (node, query) {
+                $('html').removeAttr('style');
+                $(document).off('keyup.typeahead');
+            },
+            onNavigateBefore: function (node, query, event) {
+                if (event.keyCode === 13) {
+                    var form = node.closest('form');
+
+                    if (!form.find('.typeahead-item.active')[0]) {
+                        form[0].submit();
+                    }
+                }
+            },
+            onSubmit: function (node, form, item, event) {
+                if (!this.query.length) {
+                    node.focus();
+                }
+
+                return !!this.query.length;
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

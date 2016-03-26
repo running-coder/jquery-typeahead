@@ -7,11 +7,9 @@ import rename from 'gulp-rename';
 import replace from 'gulp-replace';
 import autoprefixer from 'gulp-autoprefixer';
 import uglify from 'gulp-uglify';
-import yargs from 'yargs';
 
 let pkg = require('./package.json'),
-    argv = yargs.argv,
-    version = argv.version || pkg.version,
+    version = pkg.version,
     date = new Date(),
     yyyy = date.getFullYear().toString(),
     mm = (date.getMonth()+1).toString(),
@@ -26,8 +24,6 @@ let pkg = require('./package.json'),
  * @version ${version} (${yyyymmdd})
  * @link http://www.runningcoder.org/jquerytypeahead/
  */`;
-
-// @TODO: Use --version x.x.x to write versions across files
 
 gulp.task('scss', function () {
     return gulp.src('./src/jquery.typeahead.scss')

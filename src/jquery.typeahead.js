@@ -4,21 +4,17 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.4.0 (2016-3-26)
+ * @version 2.3.4 (2016-3-26)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define(['jquery'], factory);
+        define('jquery-typeahead', ['jquery'], function (jQuery) {
+            return factory(jQuery);
+        });
     } else if (typeof module === 'object' && module.exports) {
-        // Node/CommonJS
-        module.exports = function (root, jQuery) {
+        module.exports = function (jQuery, root) {
             if (jQuery === undefined) {
-                // require('jQuery') returns a factory that requires window to
-                // build a jQuery instance, we normalize how we use modules
-                // that require this pattern but the window provided is a noop
-                // if it's defined (how jquery works)
                 if (typeof window !== 'undefined') {
                     jQuery = require('jquery');
                 }
@@ -26,20 +22,18 @@
                     jQuery = require('jquery')(root);
                 }
             }
-            factory(jQuery);
-            return jQuery;
+            return factory(jQuery);
         };
     } else {
-        // Browser globals
         factory(jQuery);
     }
 }(function ($) {
 
-    window.Typeahead = {
-        version: '2.4.0'
-    };
-
     "use strict";
+
+    window.Typeahead = {
+        version: '2.3.4'
+    };
 
     /**
      * @private
@@ -142,7 +136,7 @@
      * #62 IE9 doesn't trigger "input" event when text gets removed (backspace, ctrl+x, etc)
      * @private
      */
-    var _isIE9 = ~navigator.appVersion.indexOf("MSIE 9.");
+    var _isIE9 = ~window.navigator.appVersion.indexOf("MSIE 9.");
 
     // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, compiled, href
 
@@ -478,13 +472,12 @@
                     return;
                 }
 
-                scope.hideLayout();
+                if (!scope.options.backdropOnFocus) {
+                    scope.hideLayout();
+                }
 
-                scope.rawQuery = '';
-                scope.query = '';
-
-                if (scope.helper.executeCallback.call(scope, scope.options.callback.onSubmit, [scope.node, this, scope.item, e])) {
-                    return false;
+                if (scope.options.callback.onSubmit) {
+                    return scope.helper.executeCallback.call(scope, scope.options.callback.onSubmit, [scope.node, this, scope.item, e]);
                 }
             });
 
@@ -494,12 +487,16 @@
             this.node.off(_namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
+                    case "generateOnLoad":
+                        if (scope.isGenerated === null) {
+                            scope.generateSource();
+                        }
+                        break;
                     case "focus":
                         if (scope.options.backdropOnFocus) {
                             scope.buildBackdropLayout();
                             scope.showLayout();
                         }
-                    case "generateOnLoad":
                         if (scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
                             if (scope.isGenerated) {
                                 scope.showLayout();
@@ -508,15 +505,15 @@
                             }
                         }
                     case "keydown":
-                        if (scope.isGenerated === null && !scope.options.dynamic) {
-                            scope.generateSource();
-                        }
                         if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                             preventNextEvent = true;
                             scope.navigate(e);
                         }
                         break;
                     case "keyup":
+                        if (scope.isGenerated === null && !scope.options.dynamic) {
+                            scope.generateSource();
+                        }
                         if (_isIE9 && scope.node[0].value.replace(/^\s+/, '').toString().length < scope.query.length) {
                             scope.node.trigger('input' + _namespace);
                         }
@@ -527,6 +524,7 @@
                             break;
                         }
                     case "input":
+
                         scope.rawQuery = scope.node[0].value.toString();
                         scope.query = scope.rawQuery.replace(/^\s+/, '');
 
@@ -552,15 +550,11 @@
                         }
 
                         scope.searchResult();
-
-                        if (scope.query.length < scope.options.minLength) {
-                            scope.hideLayout();
-                            break;
-                        }
-
                         scope.buildLayout();
 
-                        if (scope.result.length > 0 || scope.options.emptyTemplate) {
+                        if ((scope.result.length > 0 || scope.options.emptyTemplate) &&
+                            scope.query.length >= scope.options.minLength
+                        ) {
                             scope.showLayout();
                         } else {
                             scope.hideLayout();
@@ -751,7 +745,10 @@
             var scope = this,
                 requestsCount = Object.keys(this.requests).length;
 
-            this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]);
+            if (this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]) === false) {
+                this.isGenerated = null;
+                return;
+            }
 
             for (var group in this.requests) {
                 if (!this.requests.hasOwnProperty(group)) continue;
@@ -1105,11 +1102,11 @@
 
         /**
          * Key Navigation
-         * tab 9: dismiss typeahead results
+         * tab 9: @TODO, what should tab do?
          * Up 38: select previous item, skip "group" item
          * Down 40: select next item, skip "group" item
          * Right 39: change charAt, if last char fill hint (if options is true)
-         * Esc 27: hideLayout
+         * Esc 27: clears input (is not empty) / blur (if empty)
          * Enter 13: Select item + submit search
          *
          * @param {Object} e Event object
@@ -1119,15 +1116,15 @@
 
             this.helper.executeCallback.call(this, this.options.callback.onNavigateBefore, [this.node, this.query, e]);
 
-            if (~[9, 27].indexOf(e.keyCode)) {
-                // #57 ESC should not preventDefault if Typeahead is not opened
-                //if (this.container.hasClass('result')) {
-                //e.preventDefault();
-                if (!this.query.length && e.keyCode === 27) {
+            if (e.keyCode === 27) {
+                // #166 Different browsers do not have the same behaviors by default, lets enforce what we want instead
+                e.preventDefault();
+                if (this.query.length) {
+                    this.node.val('')
+                    this.node.trigger('input' + _namespace);
+                } else {
                     this.node.blur();
                 }
-                this.hideLayout();
-                //}
                 return;
             }
 
@@ -1140,22 +1137,16 @@
 
             if (e.keyCode === 13) {
 
+                // Prevent form submit
+                e.preventDefault();
+
                 if (activeItem.length > 0) {
-                    // Prevent form submit if an element is selected, click it instead!
-                    e.preventDefault();
-
                     activeItem.find('a:first')[0].click();
-                    return;
-
                 } else {
-
-                    if (this.options.mustSelectItem && this.helper.isEmpty(this.item)) {
-                        return;
-                    }
-
-                    this.hideLayout();
-                    return;
+                    // Go through Typeahead form submit
+                    this.node.closest('form').submit();
                 }
+                return;
             }
 
             if (e.keyCode === 39) {
@@ -1248,9 +1239,17 @@
 
             this.resetLayout();
 
-            this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]);
+            if (this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]) === false) return;
 
-            if (this.query.length < this.options.minLength) return;
+            if (this.query.length >= this.options.minLength) {
+                this.searchResultData();
+            }
+
+            this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
+
+        },
+
+        searchResultData: function () {
 
             var scope = this,
                 group,
@@ -1441,7 +1440,6 @@
                             displayKeys.push(displayKey[0]);
                         }
                     }
-
                     this.result[group].sort(
                         scope.helper.sort(
                             displayKeys,
@@ -1455,7 +1453,6 @@
 
             }
 
-            // @TODO TEST THE SCENARIOS
             var concatResults = [],
                 groupOrder;
 
@@ -1482,8 +1479,6 @@
             }
 
             this.result = concatResults;
-
-            this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
 
         },
 
@@ -1676,8 +1671,7 @@
 
                                         scope.item = item;
 
-                                        scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, $(this), item, e]);
-
+                                        if (scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, $(this), item, e]) === false) return;
                                         if ((e.originalEvent && e.originalEvent.defaultPrevented) || e.isDefaultPrevented()) {
                                             return;
                                         }
@@ -1766,8 +1760,8 @@
         buildHintLayout: function (result) {
             if (!this.options.hint) return;
             // #144 hint doesn't overlap with the input when the query is too long
-            if (this.node[0].scrollWidth > this.node.innerWidth()) {
-                this.hint.container.val("");
+            if (this.node[0].scrollWidth > Math.ceil(this.node.innerWidth())) {
+                this.hint.container && this.hint.container.val("");
                 return;
             }
 
@@ -1870,11 +1864,9 @@
             }
 
             var scope = this,
-                defaultText;
-
-            if (typeof this.options.dropdownFilter === "boolean") {
                 defaultText = "all";
-            } else if (typeof this.options.dropdownFilter === "string") {
+
+            if (typeof this.options.dropdownFilter === "string") {
                 defaultText = this.options.dropdownFilter
             } else if (this.options.dropdownFilter instanceof Array) {
                 for (var i = 0; i < this.options.dropdownFilter.length; i++) {
@@ -2016,6 +2008,15 @@
         },
 
         dynamicFilter: {
+            isEnabled: false,
+            init: function () {
+
+                if (!this.options.dynamicFilter) return;
+
+                this.dynamicFilter.bind.call(this);
+                this.dynamicFilter.isEnabled = true;
+
+            },
 
             validate: function (item) {
 
@@ -2072,19 +2073,17 @@
                     };
                 }
 
-                this.searchResult();
-                this.buildLayout();
+                if (this.dynamicFilter.isEnabled) {
+                    this.searchResult();
+                    this.buildLayout();
+                }
 
             },
             bind: function () {
 
-                if (!this.options.dynamicFilter) {
-                    return;
-                }
+                var scope = this,
+                    filter;
 
-                var scope = this;
-
-                var filter;
                 for (var i = 0; i < this.options.dynamicFilter.length; i++) {
 
                     filter = this.options.dynamicFilter[i];
@@ -2123,7 +2122,7 @@
                     value = tag.value;
                 } else if (tag.tagName === "INPUT") {
                     if (tag.type === "checkbox") {
-                        value = tag.checked || null;
+                        value = tag.checked && tag.getAttribute('value') || tag.checked || null;
                     } else if (tag.type === "radio" && tag.checked) {
                         value = tag.value;
                     }
@@ -2163,7 +2162,7 @@
         hideLayout: function () {
 
             // Means the container is already hidden
-            //if (!this.container.hasClass('result')) return;
+            if (!this.container.hasClass('result') && !this.container.hasClass('backdrop')) return;
 
             this.container.removeClass('result hint filter' + (this.options.backdropOnFocus && $(this.node).is(':focus') ? '' : ' backdrop'));
 
@@ -2184,10 +2183,6 @@
             this.resultItemCount = 0;
             this.resultHtml = null;
 
-            if (this.resultContainer) {
-                this.resultContainer.html('');
-            }
-
             if (this.options.hint && this.hint.container) {
                 this.hint.container.val('')
             }
@@ -2201,10 +2196,11 @@
                 return;
             }
 
+            this.dynamicFilter.init.apply(this);
+
             this.init();
             this.delegateEvents();
             this.buildDropdownLayout();
-            this.dynamicFilter.bind.apply(this);
 
             this.helper.executeCallback.call(this, this.options.callback.onReady, [this.node]);
         },
@@ -2251,7 +2247,7 @@
 
                 if (string !== "") {
                     string = this.helper.removeAccent.call(this, string);
-                    string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
+                    string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                 }
 
                 return string;
@@ -2395,12 +2391,12 @@
              *
              * @param {String|Array} callback The function to be called
              * @param {Array} [extraParams] In some cases the function can be called with Extra parameters (onError)
-             * @returns {Boolean}
+             * @returns {*}
              */
             executeCallback: function (callback, extraParams) {
 
                 if (!callback) {
-                    return false;
+                    return;
                 }
 
                 var _callback;
@@ -2430,12 +2426,12 @@
                             _debug.print();
                         }
                         // {/debug}
-                        return false;
+                        return;
                     }
 
                 }
 
-                return _callback.apply(this, (callback[1] || []).concat(extraParams ? extraParams : [])) || true;
+                return _callback.apply(this, (callback[1] || []).concat(extraParams ? extraParams : []));
 
             },
 
@@ -2580,11 +2576,8 @@
                 return;
             }
 
-            var initNode;
-            for (var i = 0; i < node.length; i++) {
-                initNode = node.length === 1 ? node : $(node.selector.split(',')[i].trim());
-                window.Typeahead[initNode.selector || options.input] = new Typeahead(initNode, options);
-            }
+            return window.Typeahead[options.input || node.selector] = new Typeahead(node, options);
+
         }
 
     };
@@ -2682,6 +2675,6 @@
         };
     }
 
-    return $.proxy($.typeahead, Typeahead);
+    return Typeahead;
 
 }));

@@ -30,6 +30,8 @@
         </li>
     </ul>
 
+    <div class="js-result-container"></div>
+
     <form>
         <div class="typeahead-container">
             <div class="typeahead-field">
@@ -155,13 +157,14 @@
             },
             callback: {
                 onClickAfter: function (node, a, item, event) {
+                    event.preventDefault();
 
                     var r = confirm("You will be redirected to:\n" + item.href + "\n\nContinue?");
                     if (r == true) {
                         window.open(item.href);
                     }
 
-                    $('#result-container').text('');
+                    $('.js-result-container').text('');
 
                 },
                 onResult: function (node, query, obj, objCount) {
@@ -172,7 +175,7 @@
                     if (query !== "") {
                         text = objCount + ' elements matching "' + query + '"';
                     }
-                    $('#result-container').text(text);
+                    $('.js-result-container').text(text);
 
                 }
             },

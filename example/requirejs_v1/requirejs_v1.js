@@ -3,6 +3,7 @@ define(["jquery-typeahead"], function (Typeahead) {
     console.log('~~~ Careful, Typeahead !== window.Typeahead ~~~')
     console.log(Typeahead)
     console.log(window.Typeahead)
+    console.log($.typeahead) // Use this method for Typeahead init
 
     var data = {
         countries: ["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
@@ -61,7 +62,7 @@ define(["jquery-typeahead"], function (Typeahead) {
             "Yerevan", "Zagreb"]
     };
 
-    Typeahead({
+    $.typeahead({
         minLength: 1,
         input: '#country-query',
         order: "asc",

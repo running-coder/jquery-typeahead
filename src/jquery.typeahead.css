@@ -83,6 +83,7 @@ input {
 
 .typeahead-container {
   position: relative;
+  font-family: helvetica, arial, sans-serif;
 }
 
 .typeahead-container * {
@@ -146,6 +147,11 @@ input {
   -webkit-appearance: none;
   /*Bootstrap 4 override*/
   box-sizing: border-box;
+}
+
+.typeahead-field input[type="search"]::-webkit-search-cancel-button {
+  /*Bootstrap 3 override*/
+  -webkit-appearance: searchfield-cancel-button;
 }
 
 .typeahead-container .typeahead-field input {
