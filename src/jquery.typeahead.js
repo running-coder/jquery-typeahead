@@ -4,14 +4,16 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-3-25)
+ * @version 2.3.4 (2016-3-26)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
-        define('jquery-typeahead', ['jquery'], factory());
+        define('jquery-typeahead', ['jquery'], function (jQuery) {
+            return factory(jQuery);
+        });
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = function (root, jQuery) {
+        module.exports = function (jQuery, root) {
             if (jQuery === undefined) {
                 if (typeof window !== 'undefined') {
                     jQuery = require('jquery');
@@ -20,12 +22,12 @@
                     jQuery = require('jquery')(root);
                 }
             }
-            return factory(root, jQuery);
+            return factory(jQuery);
         };
     } else {
-        factory(window, jQuery);
+        factory(jQuery);
     }
-}(function (window, $) {
+}(function ($) {
 
     "use strict";
 
@@ -485,22 +487,21 @@
             this.node.off(_namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
+                    case "generateOnLoad":
+                        if (scope.isGenerated === null) {
+                            scope.generateSource();
+                        }
+                        break;
                     case "focus":
                         if (scope.options.backdropOnFocus) {
                             scope.buildBackdropLayout();
                             scope.showLayout();
                         }
-                    case "generateOnLoad":
-                        // @TODO Test this...
-                        if (scope.isGenerated === null) {
-                            scope.generateSource();
-                        }
-
                         if (scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
                             if (scope.isGenerated) {
                                 scope.showLayout();
-                            //} else if (scope.isGenerated === null) {
-                            //    scope.generateSource();
+                            } else if (scope.isGenerated === null) {
+                                scope.generateSource();
                             }
                         }
                     case "keydown":
@@ -1439,11 +1440,6 @@
                             displayKeys.push(displayKey[0]);
                         }
                     }
-
-                    console.log( this.result[group])
-                    console.log( displayKeys)
-                    console.log( scope.options.order === "asc")
-
                     this.result[group].sort(
                         scope.helper.sort(
                             displayKeys,

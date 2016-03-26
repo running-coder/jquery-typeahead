@@ -61,7 +61,7 @@ define(["jquery-typeahead"], function (Typeahead) {
             "Yerevan", "Zagreb"]
     };
 
-    Typeahead({
+    $.typeahead({
         minLength: 1,
         input: '#country-query',
         order: "asc",
