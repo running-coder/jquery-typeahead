@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.3.4 (2016-3-26)
+ * @version 2.4.0 (2016-3-29)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -32,7 +32,7 @@
     "use strict";
 
     window.Typeahead = {
-        version: '2.3.4'
+        version: '2.4.0'
     };
 
     /**
@@ -296,7 +296,7 @@
                     this.options.resultContainer = $(this.options.resultContainer);
                 }
 
-                if (!(this.options.resultContainer instanceof jQuery) || !this.options.resultContainer[0]) {
+                if (!(this.options.resultContainer instanceof $) || !this.options.resultContainer[0]) {
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
@@ -554,7 +554,7 @@
 
                         if ((scope.result.length > 0 || scope.options.emptyTemplate) &&
                             scope.query.length >= scope.options.minLength
-                        ) {
+                            ) {
                             scope.showLayout();
                         } else {
                             scope.hideLayout();
@@ -644,8 +644,8 @@
 
                     this.populateSource(
                         typeof groupSource.data === "function" &&
-                        groupSource.data() ||
-                        groupSource.data,
+                            groupSource.data() ||
+                            groupSource.data,
                         group
                     );
                     continue;
@@ -1209,7 +1209,7 @@
                     'color',
                     e.preventInputChange ?
                         this.hint.css.color :
-                    newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                        newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
                 )
             }
 
@@ -1305,6 +1305,8 @@
                     displayKeys = this.options.source[group].display || this.options.display;
 
                     for (var i = 0; i < displayKeys.length; i++) {
+
+                        item[displayKeys[i]] = this.helper.cleanStringFromScript(item[displayKeys[i]]);
 
                         if (typeof groupFilter === "function") {
                             groupFilterResult = groupFilter.call(this, item, item[displayKeys[i]]);
@@ -1493,7 +1495,7 @@
             if (this.options.callback.onLayoutBuiltBefore) {
                 var tmpResultHtml = this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, this.resultHtml]);
 
-                if (tmpResultHtml instanceof jQuery) {
+                if (tmpResultHtml instanceof $) {
                     this.resultHtml = tmpResultHtml;
                 }
                 // {debug}
@@ -1547,7 +1549,7 @@
                             scope.options.emptyTemplate.call(scope, scope.query) :
                             scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query.sanitize());
 
-                        if (_emptyTemplate instanceof jQuery && _emptyTemplate[0].nodeName === "LI") {
+                        if (_emptyTemplate instanceof $ && _emptyTemplate[0].nodeName === "LI") {
                             return _emptyTemplate;
                         } else {
                             return $("<li/>", {
@@ -1638,7 +1640,7 @@
 
                                             _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
 
-                                                var value = String(scope.helper.namespace(index, item, 'get', '')).sanitize();
+                                                var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace(index, item, 'get', '')));
 
                                                 if (!option || option !== "raw") {
                                                     if (scope.options.highlight === true && _query && ~_displayKeys.indexOf(index)) {
@@ -1652,7 +1654,7 @@
                                                 _display.push(item[_displayKeys[i]]);
                                             }
 
-                                            _aHtml = '<span class="' + scope.options.selector.display + '">' + String(_display.join(" ")).sanitize() + '</span>';
+                                            _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.cleanStringFromScript(String(_display.join(" "))) + '</span>';
                                         }
 
                                         if ((scope.options.highlight === true && _query && !_template) || scope.options.highlight === "any") {
@@ -2092,7 +2094,7 @@
                         filter.selector = $(filter.selector);
                     }
 
-                    if (!(filter.selector instanceof jQuery) || !filter.selector[0] || !filter.key) {
+                    if (!(filter.selector instanceof $) || !filter.selector[0] || !filter.key) {
                         // {debug}
                         if (this.options.debug) {
                             _debug.log({
@@ -2372,6 +2374,15 @@
             },
 
             /**
+             * Clean strings from possible XSS (script and iframe tags)
+             * @param string
+             * @returns {string}
+             */
+            cleanStringFromScript: function (string) {
+                return string.replace(/<\/?(?:script|iframe)\b[^>]*>/gm, '');
+            },
+
+            /**
              * Executes an anonymous function or a string reached from the window scope.
              *
              * @example
@@ -2642,9 +2653,9 @@
 
 // IE8 Shims
     window.console = window.console || {
-            log: function () {
-            }
-        };
+        log: function () {
+        }
+    };
 
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
