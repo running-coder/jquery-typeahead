@@ -281,25 +281,37 @@
             hint: true,
             //cache: true,
             searchOnFocus: true,
-            group: ["division", "{{group}} division"],
+            //group: ["division", "{{group}} division"],
+            group: "division",
+//            group: {
+//                key: 'division',
+//                template: '{{division}} division'
+//            },
             display: ["name", "city", "division"],
             correlativeTemplate: true,
-            dropdownFilter: [
-                {
-                    key: 'conference',
-                    value: 'Western',
-                    display: '<strong>Western</strong> Conference'
-                },
-                {
-                    key: 'conference',
-                    value: 'Eastern',
-                    display: '<strong>Eastern</strong> Conference'
-                },
-                {
-                    value: '*',
-                    display: 'All Teams'
-                }
-            ],
+//            dropdownFilter: true,
+//            dropdownFilter: 'division',
+            dropdownFilter: {
+                key: 'division',
+                template: '<strong>{{division}}</strong> division',
+                all: 'All Teams'
+            },
+//            dropdownFilter: [
+//                {
+//                    key: 'conference',
+//                    value: 'Western',
+//                    display: '<strong>Western</strong> Conference'
+//                },
+//                {
+//                    key: 'conference',
+//                    value: 'Eastern',
+//                    display: '<strong>Eastern</strong> Conference'
+//                },
+//                {
+//                    value: '*',
+//                    display: 'All Teams'
+//                }
+//            ],
             template: '<span>' +
             '<span class="name">{{name}}</span>' +
             '<span class="division">({{city}}, {{division}} division, {{conference}} conference)</span>' +

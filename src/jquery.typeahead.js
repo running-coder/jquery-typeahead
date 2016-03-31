@@ -6,7 +6,8 @@
  * @author Tom Bertrand
  * @version 2.4.0 (2016-3-29)
  * @link http://www.runningcoder.org/jquerytypeahead/
- */;
+ */
+;
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
         define('jquery-typeahead', ['jquery'], function (jQuery) {
@@ -172,6 +173,7 @@
             dropdown: {},               // Dropdown menu if options.dropdownFilter is set
             dynamic: {}                 // Checkbox / Radio / Select to filter the source data
         };
+        this.dropdownFilter = {};       // Array of item values to filter on
         this.requests = {};             // Store the group:request instead of generating them every time
 
         this.backdrop = {};             // The backdrop object
@@ -554,7 +556,7 @@
 
                         if ((scope.result.length > 0 || scope.options.emptyTemplate) &&
                             scope.query.length >= scope.options.minLength
-                            ) {
+                        ) {
                             scope.showLayout();
                         } else {
                             scope.hideLayout();
@@ -644,8 +646,8 @@
 
                     this.populateSource(
                         typeof groupSource.data === "function" &&
-                            groupSource.data() ||
-                            groupSource.data,
+                        groupSource.data() ||
+                        groupSource.data,
                         group
                     );
                     continue;
@@ -809,7 +811,7 @@
                     $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
 
                         var tmpData;
-                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                        for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
 
                             _request = scope.requests[xhrObject.validForGroup[i]];
 
@@ -844,7 +846,7 @@
                     }).fail(function (jqXHR, textStatus, errorThrown) {
 
 
-                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                        for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
                             _request.extra.callback.fail instanceof Function && _request.extra.callback.fail(jqXHR, textStatus, errorThrown);
                         }
@@ -863,14 +865,14 @@
 
                     }).then(function (jqXHR, textStatus) {
 
-                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                        for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
                             _request.extra.callback.then instanceof Function && _request.extra.callback.then(jqXHR, textStatus);
                         }
 
                     }).always(function (data, textStatus, jqXHR) {
 
-                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                        for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
                             _request.extra.callback.always instanceof Function && _request.extra.callback.always(data, textStatus, jqXHR);
                         }
@@ -959,13 +961,38 @@
                     (this.options.display[0] === 'compiled' ? this.options.display[1] : this.options.display[0]);
 
             // @TODO: possibly optimize this?
-            for (var i = 0; i < data.length; i++) {
+            for (var i = 0, ii = data.length; i < ii; i++) {
                 if (typeof data[i] === "string") {
                     tmpObj = {};
                     tmpObj[display] = data[i];
                     data[i] = tmpObj;
                 }
                 data[i].group = group;
+            }
+
+            if (this.options.dropdownFilter && !(this.options.dropdownFilter instanceof Array)) {
+                if (typeof this.options.dropdownFilter === "boolean") {
+                    this.dropdownFilter[group] = [];
+                } else {
+                    var key = typeof this.options.dropdownFilter === "string" && this.options.dropdownFilter || this.options.dropdownFilter.key,
+                        value,
+                        tmpDropdownFilter = {};
+
+                    if (!this.dropdownFilter[key]) {
+                        this.dropdownFilter[key] = [];
+                        tmpDropdownFilter[key] = [];
+                    }
+
+                    for (var i = 0, ii = data.length; i < ii; i++) {
+                        value = data[i][key];
+                        if (!value) continue;
+                        // Avoid any possible case sensitive issues...
+                        if (!~tmpDropdownFilter[key].indexOf(value.toLowerCase())) {
+                            tmpDropdownFilter[key].push(value.toLowerCase());
+                            this.dropdownFilter[key].push(value);
+                        }
+                    }
+                }
             }
 
             if (this.options.correlativeTemplate) {
@@ -994,7 +1021,7 @@
 
                     // #109 correlativeTemplate can be an array of display keys instead of the complete template
                     if (this.options.correlativeTemplate instanceof Array) {
-                        for (var i = 0; i < this.options.correlativeTemplate.length; i++) {
+                        for (var i = 0, ii = this.options.correlativeTemplate.length; i < ii; i++) {
                             compiledTemplate += "{{" + this.options.correlativeTemplate[i] + "}} "
                         }
                     } else {
@@ -1002,7 +1029,7 @@
                             .replace(/<.+?>/g, '');
                     }
 
-                    for (var i = 0; i < data.length; i++) {
+                    for (var i = 0, ii = data.length; i < ii; i++) {
                         data[i]['compiled'] = compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
                                 return scope.helper.namespace(index, data[i], 'get', '');
                             }
@@ -1090,11 +1117,13 @@
 
             var sourceKeys = Object.keys(this.options.source);
 
-            for (var i = 0; i < sourceKeys.length; i++) {
+            for (var i = 0, ii = sourceKeys.length; i < ii; i++) {
                 this.source[sourceKeys[i]] = this.tmpSource[sourceKeys[i]];
             }
 
             this.tmpSource = {};
+
+            this.buildDropdownLayout();
 
             this.node.trigger('dynamic' + _namespace);
 
@@ -1209,7 +1238,7 @@
                     'color',
                     e.preventInputChange ?
                         this.hint.css.color :
-                        newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                    newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
                 )
             }
 
@@ -1279,16 +1308,21 @@
             for (group in this.source) {
 
                 if (!this.source.hasOwnProperty(group)) continue;
-                if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
+                // dropdownFilter by source groups
+                if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue;
 
                 groupFilter = typeof this.options.source[group].filter !== "undefined" ? this.options.source[group].filter : this.options.filter;
                 groupMatcher = typeof this.options.source[group].matcher === "function" && this.options.source[group].matcher || matcher;
 
-                for (var k = 0; k < this.source[group].length; k++) {
+                for (var k = 0, kk = this.source[group].length; k < kk; k++) {
                     if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
+
+                    // dropdownFilter by custom groups
+                    if (this.filters.dropdown && (item[this.filters.dropdown.key] || "").toLowerCase() !== (this.filters.dropdown.value || "").toLowerCase()) continue;
+
                     groupReference = groupBy === "group" ? group : item[groupBy];
 
                     if (groupReference && !this.result[groupReference]) {
@@ -1304,7 +1338,7 @@
 
                     displayKeys = this.options.source[group].display || this.options.display;
 
-                    for (var i = 0; i < displayKeys.length; i++) {
+                    for (var i = 0, ii = displayKeys.length; i < ii; i++) {
 
                         item[displayKeys[i]] = this.helper.cleanStringFromScript(item[displayKeys[i]]);
 
@@ -1350,7 +1384,7 @@
                                 correlativeMatch = true;
                                 correlativeQuery = comparedQuery.split(' ');
                                 correlativeDisplay = comparedDisplay;
-                                for (var x = 0; x < correlativeQuery.length; x++) {
+                                for (var x = 0, xx = correlativeQuery.length; x < xx; x++) {
                                     if (correlativeQuery[x] === "") continue;
                                     if (!~correlativeDisplay.indexOf(correlativeQuery[x])) {
                                         correlativeMatch = false;
@@ -1379,10 +1413,6 @@
                                     item = groupMatcherResult;
                                 }
                             }
-                        }
-
-                        if (this.filters.dropdown) {
-                            if (this.filters.dropdown.value != item[this.filters.dropdown.key]) continue;
                         }
 
                         this.resultCount++;
@@ -1436,7 +1466,7 @@
 
                 for (var group in this.result) {
                     if (!this.result.hasOwnProperty(group)) continue;
-                    for (var i = 0; i < this.result[group].length; i++) {
+                    for (var i = 0, ii = this.result[group].length; i < ii; i++) {
                         displayKey = this.options.source[this.result[group][i].group].display || this.options.display;
                         if (!~displayKeys.indexOf(displayKey[0])) {
                             displayKeys.push(displayKey[0]);
@@ -1476,7 +1506,7 @@
                 groupOrder = Object.keys(this.result);
             }
 
-            for (var i = 0; i < groupOrder.length; i++) {
+            for (var i = 0, ii = groupOrder.length; i < ii; i++) {
                 concatResults = concatResults.concat(this.result[groupOrder[i]] || []);
             }
 
@@ -1650,7 +1680,7 @@
                                                 return value;
                                             });
                                         } else {
-                                            for (var i = 0; i < _displayKeys.length; i++) {
+                                            for (var i = 0, ii = _displayKeys.length; i < ii; i++) {
                                                 _display.push(item[_displayKeys[i]]);
                                             }
 
@@ -1827,12 +1857,12 @@
                         _group,
                         _comparedValue;
 
-                    for (var i = 0; i < result.length; i++) {
+                    for (var i = 0, ii = result.length; i < ii; i++) {
 
                         _group = result[i].group;
                         _displayKeys = this.options.source[_group].display || this.options.display;
 
-                        for (var k = 0; k < _displayKeys.length; k++) {
+                        for (var k = 0, kk = _displayKeys.length; k < kk; k++) {
 
                             _comparedValue = String(result[i][_displayKeys[k]]).toLowerCase();
                             if (this.options.accent) {
@@ -1858,7 +1888,6 @@
 
         },
 
-
         buildDropdownLayout: function () {
 
             if (!this.options.dropdownFilter) {
@@ -1866,17 +1895,14 @@
             }
 
             var scope = this,
-                defaultText = "all";
+                all = 'all',
+                template = '';
 
             if (typeof this.options.dropdownFilter === "string") {
-                defaultText = this.options.dropdownFilter
-            } else if (this.options.dropdownFilter instanceof Array) {
-                for (var i = 0; i < this.options.dropdownFilter.length; i++) {
-                    if (this.options.dropdownFilter[i].value === "*" && this.options.dropdownFilter[i].display) {
-                        defaultText = this.options.dropdownFilter[i].display;
-                        break;
-                    }
-                }
+                all = this.options.dropdownFilter;
+            } else if (this.options.dropdownFilter) {
+                all = this.options.dropdownFilter.all || all;
+                template = this.options.dropdownFilter.template || template;
             }
 
             $('<span/>', {
@@ -1887,7 +1913,7 @@
                         $('<button/>', {
                             "type": "button",
                             "class": scope.options.selector.filterButton,
-                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCaret + "'></span>",
+                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + all + "</span> <span class='" + scope.options.selector.dropdownCaret + "'></span>",
                             "click": function (e) {
                                 e.stopPropagation();
                                 scope.container.toggleClass('filter');
@@ -1910,72 +1936,107 @@
                             "class": scope.options.selector.dropdown,
                             "html": function () {
 
-                                var items = scope.options.dropdownFilter;
 
-                                if (~['string', 'boolean'].indexOf(typeof scope.options.dropdownFilter)) {
+                                console.log(scope.dropdownFilter)
+                                for (var group in scope.dropdownFilter) {
+                                    for (var i = 0, ii = scope.dropdownFilter[group].length; i < ii; i++) {
 
-                                    items = [];
-                                    for (var group in scope.options.source) {
-                                        if (!scope.options.source.hasOwnProperty(group)) continue;
-                                        items.push({
-                                            key: 'group',
-                                            value: group
-                                        });
-                                    }
+                                        (function (i, group, ulScope) {
 
-                                    items.push({
-                                        key: 'group',
-                                        value: '*',
-                                        display: typeof scope.options.dropdownFilter === "string" && scope.options.dropdownFilter || 'All'
-                                    });
-                                }
+                                            var itemTemplate = template.replace(new RegExp('\{\{' + group +'}}', 'gi'), scope.dropdownFilter[group][i]);
 
-                                for (var i = 0; i < items.length; i++) {
-
-                                    (function (i, item, ulScope) {
-
-                                        if ((!item.key && item.value !== "*") || !item.value) {
-
-                                            // {debug}
-                                            if (scope.options.debug) {
-                                                _debug.log({
-                                                    'node': scope.node.selector,
-                                                    'function': 'buildDropdownLayout()',
-                                                    'arguments': JSON.stringify(item),
-                                                    'message': 'WARNING - Missing key or value, skipping dropdown filter."'
-                                                });
-
-                                                _debug.print();
-                                            }
-                                            // {/debug}
-
-                                            return;
-                                        }
-
-                                        if (item.value === '*') {
                                             $(ulScope).append(
                                                 $("<li/>", {
-                                                    "class": "divider"
-                                                })
-                                            );
-                                        }
-
-                                        $(ulScope).append(
-                                            $("<li/>", {
-                                                "html": $("<a/>", {
-                                                    "href": "javascript:;",
-                                                    "html": item.display || item.value,
-                                                    "click": ({"item": item}, function (e) {
-                                                        e.preventDefault();
-                                                        _selectFilter.apply(scope, [item]);
+                                                    "class": scope.helper.slugify.call(scope, 'typeahead-filter-' + group + '-' + scope.dropdownFilter[group][i]),
+                                                    "html": $("<a/>", {
+                                                        "href": "javascript:;",
+                                                        "html": itemTemplate,
+                                                        "click": function (e) {
+                                                            e.preventDefault();
+                                                            _selectFilter.call(scope, {
+                                                                key: group,
+                                                                value: scope.dropdownFilter[group][i]
+                                                            });
+                                                        }
                                                     })
                                                 })
-                                            })
-                                        );
+                                            );
 
-                                    }(i, items[i], this));
+                                        }(i, group, this));
 
+                                    }
                                 }
+
+                                //for (var i = 0, ii = )
+
+
+                                //var items = scope.options.dropdownFilter;
+                                //
+                                //if (~['string', 'boolean'].indexOf(typeof scope.options.dropdownFilter)) {
+                                //
+                                //    items = [];
+                                //    for (var group in scope.options.source) {
+                                //        if (!scope.options.source.hasOwnProperty(group)) continue;
+                                //        items.push({
+                                //            key: 'group',
+                                //            value: group
+                                //        });
+                                //    }
+                                //
+                                //    items.push({
+                                //        key: 'group',
+                                //        value: '*',
+                                //        display: typeof scope.options.dropdownFilter === "string" && scope.options.dropdownFilter || 'all'
+                                //    });
+                                //}
+
+                                //for (var i = 0, ii = items.length; i < ii; i++) {
+                                //
+                                //    (function (i, item, ulScope) {
+                                //
+                                //        if ((!item.key && item.value !== "*") || !item.value) {
+                                //
+                                //            // {debug}
+                                //            if (scope.options.debug) {
+                                //                _debug.log({
+                                //                    'node': scope.node.selector,
+                                //                    'function': 'buildDropdownLayout()',
+                                //                    'arguments': JSON.stringify(item),
+                                //                    'message': 'WARNING - Missing key or value, skipping dropdown filter."'
+                                //                });
+                                //
+                                //                _debug.print();
+                                //            }
+                                //            // {/debug}
+                                //
+                                //            return;
+                                //        }
+                                //
+                                //        if (item.value === '*') {
+                                //            $(ulScope).append(
+                                //                $("<li/>", {
+                                //                    "class": "divider"
+                                //                })
+                                //            );
+                                //        }
+                                //
+                                //        $(ulScope).append(
+                                //            $("<li/>", {
+                                //                "class": "",
+                                //                "html": $("<a/>", {
+                                //                    "href": "javascript:;",
+                                //                    "html": item.display || item.value,
+                                //                    "click": ({"item": item}, function (e) {
+                                //                        e.preventDefault();
+                                //                        _selectFilter.apply(scope, [item]);
+                                //                    })
+                                //                })
+                                //            })
+                                //        );
+                                //
+                                //    }(i, items[i], this));
+                                //
+                                //}
                             }
                         })
                     );
@@ -1989,6 +2050,8 @@
              * @param {string} item
              */
             function _selectFilter(item) {
+
+                console.log(item)
 
                 if (item.value === "*") {
                     delete this.filters.dropdown;
@@ -2086,7 +2149,7 @@
                 var scope = this,
                     filter;
 
-                for (var i = 0; i < this.options.dynamicFilter.length; i++) {
+                for (var i = 0, ii = this.options.dynamicFilter.length; i < ii; i++) {
 
                     filter = this.options.dynamicFilter[i];
 
@@ -2202,7 +2265,7 @@
 
             this.init();
             this.delegateEvents();
-            this.buildDropdownLayout();
+            //this.buildDropdownLayout();
 
             this.helper.executeCallback.call(this, this.options.callback.onReady, [this.node]);
         },
@@ -2265,7 +2328,7 @@
              */
             sort: function (field, reverse, primer) {
                 var key = function (x) {
-                    for (var i = 0; i < field.length; i++) {
+                    for (var i = 0, ii = field.length; i < ii; i++) {
                         if (typeof x[field[i]] !== 'undefined') {
                             return primer(x[field[i]])
                         }
@@ -2653,9 +2716,9 @@
 
 // IE8 Shims
     window.console = window.console || {
-        log: function () {
-        }
-    };
+            log: function () {
+            }
+        };
 
     if (!('trim' in String.prototype)) {
         String.prototype.trim = function () {
