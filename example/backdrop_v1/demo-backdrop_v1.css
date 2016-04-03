@@ -1,17 +1,16 @@
-
-.typeahead-container {
+.typeahead__container {
     position: absolute !important;
     top: -1000px;
 }
 
-.typeahead-container .typeahead-result-count,
-.typeahead-container .typeahead-close,
-.typeahead-container .typeahead-result-count,
-.typeahead-container .typeahead-backdrop-search-icon {
+.typeahead__container .typeahead__result-count,
+.typeahead__container .typeahead__close,
+.typeahead__container .typeahead__result-count,
+.typeahead__container .typeahead__backdrop-search-icon {
     display: none;
 }
 
-.typeahead-container.backdrop {
+.typeahead__container.backdrop {
     width: 100%;
     max-width: none;
     position: fixed !important;
@@ -21,7 +20,7 @@
     bottom: 0;
 }
 
-.typeahead-container.backdrop input {
+.typeahead__container.backdrop input {
     color: #2a9dcc;
     /*background: transparent !important;*/
     border: 0;
@@ -31,52 +30,52 @@
     /*border-bottom: 1px solid #777;*/
 }
 
-.typeahead-container.backdrop .typeahead-header {
+.typeahead__container.backdrop .typeahead__header {
     background-color: #f8f8f8;
     border-bottom: solid 1px #e7e7e7;
     height: 51px;
 }
 
-.typeahead-container.backdrop .typeahead-button {
+.typeahead__container.backdrop .typeahead__button {
     display: none;
 }
 
-.typeahead-container.backdrop .typeahead-field {
+.typeahead__container.backdrop .typeahead__field {
     display: flex;
     height: 100%;
     align-items: center;
 }
 
-.typeahead-container.backdrop .typeahead-field {
+.typeahead__container.backdrop .typeahead__field {
     padding-right: 15px;
     padding-left: 15px;
     margin-right: auto;
     margin-left: auto;
 }
 
-.typeahead-container.backdrop .typeahead-field > * {
+.typeahead__container.backdrop .typeahead__field > * {
     display: inline-block;
 }
 
 @media (min-width: 768px) {
-    .typeahead-container.backdrop .typeahead-fieldntainer {
+    .typeahead__container.backdrop .typeahead__fieldntainer {
         width: 750px;
     }
 }
 
 @media (min-width: 992px) {
-    .typeahead-container.backdrop .typeahead-field {
+    .typeahead__container.backdrop .typeahead__field {
         width: 970px;
     }
 }
 
 @media (min-width: 1200px) {
-    .typeahead-container.backdrop .typeahead-field {
+    .typeahead__container.backdrop .typeahead__field {
         width: 1170px;
     }
 }
 
-.typeahead-container.backdrop .typeahead-result {
+.typeahead__container.backdrop .typeahead__result {
     overflow-y: scroll;
     overflow-x: hidden;
     position: absolute;
@@ -88,11 +87,11 @@
     overflow: -moz-scrollbars-none;
 }
 
-.typeahead-container.backdrop .typeahead-result::-webkit-scrollbar {
+.typeahead__container.backdrop .typeahead__result::-webkit-scrollbar {
     width: 0 !important;
 }
 
-.typeahead-container.backdrop .typeahead-result-count {
+.typeahead__container.backdrop .typeahead__result-count {
     display: block;
     color: #999;
     font-size: 1.15rem;
@@ -103,7 +102,7 @@
     z-index: 1;
 }
 
-.typeahead-container.backdrop .typeahead-close {
+.typeahead__container.backdrop .typeahead__close {
     display: block;
     cursor: pointer;
     font-weight: normal;
@@ -112,11 +111,11 @@
     text-align: center;
 }
 
-.typeahead-container.backdrop .typeahead-esc {
+.typeahead__container.backdrop .typeahead__esc {
     font-size: 1rem;
 }
 
-.typeahead-container.backdrop .typeahead-backdrop-search-icon {
+.typeahead__container.backdrop .typeahead__backdrop-search-icon {
     padding-right: 1rem;
     font-size: 2rem;
     display: table-cell;
@@ -124,15 +123,15 @@
     color: #777;
 }
 
-.typeahead-container.backdrop .typeahead-backdrop-search-icon.active {
+.typeahead__container.backdrop .typeahead__backdrop-search-icon.active {
     cursor: pointer;
 }
 
-.typeahead-container.backdrop .typeahead-backdrop-search-icon.active:hover {
+.typeahead__container.backdrop .typeahead__backdrop-search-icon.active:hover {
     color: #cccccc;
 }
 
-.typeahead-list {
+.typeahead__list {
     position: relative;
     top: 0;
     background: transparent;
@@ -141,11 +140,11 @@
     text-align: center;
 }
 
-.typeahead-list li {
+.typeahead__list li {
     display: inline-block;
 }
 
-.typeahead-list li a {
+.typeahead__list li a {
     padding: .55rem;
     text-transform: capitalize;
     font-size: 1.25rem;
@@ -153,32 +152,32 @@
     display: inline-block;
 }
 
-.typeahead-list li a:hover {
+.typeahead__list li a:hover {
     color: #217ca2;
     background: rgba(0, 0, 0, 0.25);
 }
 
-.typeahead-list li.typeahead-group {
+.typeahead__list li.typeahead__group {
     display: block;
 }
 
-.typeahead-list li.typeahead-group a {
+.typeahead__list li.typeahead__group a {
     text-transform: uppercase;
     font-size: 1.75rem;
     color: #CE2028 !important;
     background: transparent;
 }
 
-.typeahead-list li.typeahead-group a:hover {
+.typeahead__list li.typeahead__group a:hover {
     background: transparent;
     text-decoration: none;
 }
 
-.typeahead-list li.typeahead-item a:hover {
+.typeahead__list li.typeahead__item a:hover {
     text-decoration: underline;
 }
 
-.typeahead-list.empty {
+.typeahead__list.empty {
     text-align: center;
 }
 
@@ -190,13 +189,13 @@ body {
     min-height: 100%;
 }
 
-.typeahead-field input[type="search"] {
+.typeahead__field input[type="search"] {
     -webkit-appearance: textfield;
     -moz-appearance: textfield;
     appearance: textfield;
 }
 
-.typeahead-field input[type="search"]::-webkit-search-cancel-button {
+.typeahead__field input[type="search"]::-webkit-search-cancel-button {
     /*Bootstrap 3 override*/
     -webkit-appearance: textfield;
 }

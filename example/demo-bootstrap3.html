@@ -13,7 +13,7 @@
 
     <style>
         /* Extra styles to adjust Typeahead */
-        .typeahead-container {
+        .typeahead__container {
             max-width: 500px;
         }
     </style>
@@ -61,19 +61,19 @@
                 </li>
             </ul>
             <form class="navbar-form navbar-left">
-                <div class="typeahead-container">
-                    <div class="typeahead-field">
+                <div class="typeahead__container">
+                    <div class="typeahead__field">
 
-                        <span class="typeahead-query">
-                            <input id="q"
+                        <span class="typeahead__query">
+                            <input class="js-typeahead-input"
                                    name="q"
                                    type="search"
                                    autofocus
                                    autocomplete="off">
                         </span>
-                        <span class="typeahead-button">
+                        <span class="typeahead__button">
                             <button class="btn btn-default" type="submit">
-                                <span class="typeahead-search-icon"></span>
+                                <span class="typeahead__search-icon"></span>
                             </button>
                         </span>
 
@@ -199,7 +199,8 @@
             ]
         };
 
-        $('#q').typeahead({
+        typeof $.typeahead === 'function' && $.typeahead({
+            input: ".js-typeahead-input",
             minLength: 1,
             maxItem: 15,
             order: "asc",

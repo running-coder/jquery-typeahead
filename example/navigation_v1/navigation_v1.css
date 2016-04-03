@@ -19,11 +19,11 @@
     overflow: hidden;
 }
 
-.nav-wrapper .typeahead-container {
+.nav-wrapper .typeahead__container {
     padding: 10px
 }
 
-.nav-wrapper .typeahead-container .typeahead-field input {
+.nav-wrapper .typeahead__container .typeahead__field input {
     border-width: 0 0 1px 0;
     border-color: #555;
     background: transparent;
@@ -31,22 +31,22 @@
     outline: none;
 }
 
-.typeahead-container .fa-search {
+.typeahead__container .fa-search {
     color: #999;
     position: absolute;
     right: 10px;
     top: 10px;
 }
 
-.typeahead-container.hasText .fa-search {
+.typeahead__container.hasText .fa-search {
     cursor: pointer;
 }
 
-.typeahead-container.hasText .fa-search:before {
+.typeahead__container.hasText .fa-search:before {
     content: "\f00d";
 }
 
-.typeahead-container.hasText .fa-search:hover {
+.typeahead__container.hasText .fa-search:hover {
     color: #fff;
 }
 

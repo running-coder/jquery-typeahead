@@ -37,7 +37,7 @@
             <div class="typeahead-field">
 
             <span class="typeahead-query">
-                <input id="q"
+                <input class="js-typeahead-input"
                        name="q"
                        type="search"
                        autofocus
@@ -112,7 +112,8 @@
                 "Yerevan", "Zagreb"]
         };
 
-        $('#q').typeahead({
+        typeof $.typeahead === 'function' && $.typeahead({
+            input: ".js-typeahead-input",
             minLength: 1,
             order: "asc",
             group: true,

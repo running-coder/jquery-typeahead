@@ -31,19 +31,19 @@
     </ul>
 
     <form>
-        <div class="typeahead-container">
-            <div class="typeahead-field">
+        <div class="typeahead__container">
+            <div class="typeahead__field">
 
-            <span class="typeahead-query">
-                <input id="q"
+            <span class="typeahead__query">
+                <input class="js-typeahead-input"
                        name="q"
                        type="search"
                        autofocus
                        autocomplete="off">
             </span>
-            <span class="typeahead-button">
+            <span class="typeahead__button">
                 <button type="submit">
-                    <span class="typeahead-search-icon"></span>
+                    <span class="typeahead__search-icon"></span>
                 </button>
             </span>
 
@@ -272,9 +272,9 @@
             "division": "Southeast"
         }]
 
-        $.typeahead({
-            input: "#q",
-            minLength: false,
+        typeof $.typeahead === 'function' && $.typeahead({
+            input: ".js-typeahead-input",
+            minLength: 0,
             maxItem: 8,
             maxItemPerGroup: 6,
             order: "asc",
@@ -293,8 +293,8 @@
 //            dropdownFilter: 'division',
             dropdownFilter: {
                 key: 'division',
-                template: '<strong>{{division}}</strong> division',
-                all: 'All Teams'
+//                template: '<strong>{{division}}</strong> division',
+//                all: 'All Teams'
             },
 //            dropdownFilter: [
 //                {

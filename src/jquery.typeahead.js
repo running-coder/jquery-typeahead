@@ -4,10 +4,9 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.4.0 (2016-3-29)
+ * @version 2.4.0 (2016-4-3)
  * @link http://www.runningcoder.org/jquerytypeahead/
- */
-;
+ */;
 (function (factory) {
     if (typeof define === 'function' && define.amd) {
         define('jquery-typeahead', ['jquery'], function (jQuery) {
@@ -73,6 +72,7 @@
         template: null,
         correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
         emptyTemplate: false,   // -> New feature, display an empty template if no result
+        cancelButton: true,     // -> New feature, if text is detected in the input, a clear button will be available to reset the input (pressing ESC also clears)
         filter: true,           // -> New feature, set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
         matcher: null,          // -> New feature, add an extra filtering function after the typeahead functions
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
@@ -98,22 +98,24 @@
             onSubmit: null
         },
         selector: {
-            container: "typeahead-container",
-            result: "typeahead-result",
-            list: "typeahead-list",
-            group: "typeahead-group",
-            item: "typeahead-item",
-            empty: "typeahead-empty",
-            display: "typeahead-display",
-            query: "typeahead-query",
-            filter: "typeahead-filter",
-            filterButton: "typeahead-filter-button",
-            filterValue: "typeahead-filter-value",
-            dropdown: "typeahead-dropdown",
-            dropdownCaret: "typeahead-caret",
-            button: "typeahead-button",
-            backdrop: "typeahead-backdrop",
-            hint: "typeahead-hint"
+            container: "typeahead__container",
+            result: "typeahead__result",
+            list: "typeahead__list",
+            group: "typeahead__group",
+            item: "typeahead__item",
+            empty: "typeahead__empty",
+            display: "typeahead__display",
+            query: "typeahead__query",
+            filter: "typeahead__filter",
+            filterButton: "typeahead__filter-button",
+            filterValue: "typeahead__filter-value",
+            dropdown: "typeahead__dropdown",
+            dropdownItem: "typeahead__dropdown-item",
+            dropdownCaret: "typeahead__caret",
+            button: "typeahead__button",
+            backdrop: "typeahead__backdrop",
+            hint: "typeahead__hint",
+            cancelButton: "typeahead__cancel-button"
         },
         debug: false
     };
@@ -173,7 +175,7 @@
             dropdown: {},               // Dropdown menu if options.dropdownFilter is set
             dynamic: {}                 // Checkbox / Radio / Select to filter the source data
         };
-        this.dropdownFilter = {};       // Array of item values to filter on
+        this.dropdownFilter = false;    // #70 If dynamic is false and dropdownFilter is set to object
         this.requests = {};             // Store the group:request instead of generating them every time
 
         this.backdrop = {};             // The backdrop object
@@ -264,6 +266,25 @@
 
             if (this.options.highlight && !~["any", true].indexOf(this.options.highlight)) {
                 this.options.highlight = false;
+            }
+
+            if (this.options.dropdownFilter && this.options.dropdownFilter.key) {
+                if (!this.options.dynamic) {
+                    this.dropdownFilter = {};
+                }
+                // {debug}
+                else {
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'extendOptions()',
+                            'message': 'Invalid "options.dropdownFilter", you can\'t set self discovering group on dynamic typeahead.'
+                        });
+
+                        _debug.print();
+                    }
+                }
+                // {/debug}
             }
 
             if (this.options.dynamicFilter && !(this.options.dynamicFilter instanceof Array)) {
@@ -529,6 +550,8 @@
 
                         scope.rawQuery = scope.node[0].value.toString();
                         scope.query = scope.rawQuery.replace(/^\s+/, '');
+
+                        scope.options.cancelButton && scope.toggleCancelButton();
 
                         if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
                             if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
@@ -970,7 +993,7 @@
                 data[i].group = group;
             }
 
-            if (this.options.dropdownFilter && !(this.options.dropdownFilter instanceof Array)) {
+            if (!this.options.dynamic && this.options.dropdownFilter && !(this.options.dropdownFilter instanceof Array)) {
                 if (typeof this.options.dropdownFilter === "boolean") {
                     this.dropdownFilter[group] = [];
                 } else {
@@ -1123,7 +1146,9 @@
 
             this.tmpSource = {};
 
-            this.buildDropdownLayout();
+            if (this.dropdownFilter) {
+                this.buildDropdownLayout();
+            }
 
             this.node.trigger('dynamic' + _namespace);
 
@@ -1622,7 +1647,8 @@
                                             "class": scope.options.selector.group,
                                             "html": $("<a/>", {
                                                 "href": "javascript:;",
-                                                "html": _group
+                                                "html": _group,
+                                                "tabindex": -1
                                             }),
                                             "data-search-group": _group
                                         })
@@ -1895,14 +1921,11 @@
             }
 
             var scope = this,
-                all = 'all',
-                template = '';
+                all = this.options.dropdownFilter.all || 'All',
+                template = this.options.dropdownFilter.template || '';
 
             if (typeof this.options.dropdownFilter === "string") {
                 all = this.options.dropdownFilter;
-            } else if (this.options.dropdownFilter) {
-                all = this.options.dropdownFilter.all || all;
-                template = this.options.dropdownFilter.template || template;
             }
 
             $('<span/>', {
@@ -1936,18 +1959,24 @@
                             "class": scope.options.selector.dropdown,
                             "html": function () {
 
-
                                 console.log(scope.dropdownFilter)
                                 for (var group in scope.dropdownFilter) {
-                                    for (var i = 0, ii = scope.dropdownFilter[group].length; i < ii; i++) {
+                                    for (var i = 0, ii = scope.dropdownFilter[group].length; i <= ii; i++) {
 
                                         (function (i, group, ulScope) {
 
-                                            var itemTemplate = template.replace(new RegExp('\{\{' + group +'}}', 'gi'), scope.dropdownFilter[group][i]);
+                                            var itemTemplate = all;
+                                            if (scope.dropdownFilter[group][i]) {
+                                                if (template) {
+                                                    itemTemplate = template.replace(new RegExp('\{\{' + group + '}}', 'gi'), scope.dropdownFilter[group][i])
+                                                } else {
+                                                    itemTemplate = scope.dropdownFilter[group][i];
+                                                }
+                                            }
 
                                             $(ulScope).append(
                                                 $("<li/>", {
-                                                    "class": scope.helper.slugify.call(scope, 'typeahead-filter-' + group + '-' + scope.dropdownFilter[group][i]),
+                                                    "class": scope.options.selector.dropdownItem + '__' + scope.helper.slugify.call(scope, group + '-' + (scope.dropdownFilter[group][i] || all)),
                                                     "html": $("<a/>", {
                                                         "href": "javascript:;",
                                                         "html": itemTemplate,
@@ -1955,7 +1984,8 @@
                                                             e.preventDefault();
                                                             _selectFilter.call(scope, {
                                                                 key: group,
-                                                                value: scope.dropdownFilter[group][i]
+                                                                value: scope.dropdownFilter[group][i] || '*',
+                                                                template: itemTemplate
                                                             });
                                                         }
                                                     })
@@ -2047,7 +2077,7 @@
              * @private
              * Select the filter and rebuild the result group
              *
-             * @param {string} item
+             * @param {object} item
              */
             function _selectFilter(item) {
 
@@ -2062,7 +2092,7 @@
                 this.container
                     .removeClass('filter')
                     .find('.' + this.options.selector.filterValue)
-                    .html(item.display || item.value);
+                    .html(item.template);
 
                 this.node.trigger('dynamic' + _namespace);
 
@@ -2254,6 +2284,29 @@
 
         },
 
+        buildCancelButtonLayout: function () {
+            if (!this.options.cancelButton) return;
+            var scope = this;
+            console.log(this.node)
+
+            $('<span/>', {
+                "class": this.options.selector.cancelButton,
+                "mousedown": function (e) {
+                    // Don't blur the input
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+
+                    scope.node.val('');
+                    scope.node.trigger('input' + _namespace);
+                }
+            }).insertBefore(this.node);
+
+        },
+
+        toggleCancelButton: function () {
+            this.container.toggleClass('clear', !!this.query.length);
+        },
+
         __construct: function () {
             this.extendOptions();
 
@@ -2265,7 +2318,10 @@
 
             this.init();
             this.delegateEvents();
-            //this.buildDropdownLayout();
+            this.buildCancelButtonLayout();
+            if (!this.dropdownFilter) {
+                this.buildDropdownLayout();
+            }
 
             this.helper.executeCallback.call(this, this.options.callback.onReady, [this.node]);
         },

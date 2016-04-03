@@ -152,17 +152,21 @@
     <div class="champion-form-container">
 
         <form id="form-game_v3" name="form-game_v3">
-            <div class="typeahead-container">
-                <div class="typeahead-field">
+            <div class="typeahead__container">
+                <div class="typeahead__field">
 
-            <span class="typeahead-query">
-                <input id="game_v3-query" name="game_v3[query]" type="search" placeholder="Search" autocomplete="off">
-            </span>
-            <span class="typeahead-button">
-                <button type="submit">
-                    <i class="typeahead-search-icon"></i>
-                </button>
-            </span>
+                    <span class="typeahead__query">
+                        <input class="js-typeahead-input"
+                               name="game_v3[query]"
+                               type="search"
+                               placeholder="Search"
+                               autocomplete="off">
+                    </span>
+                    <span class="typeahead__button">
+                        <button type="submit">
+                            <i class="typeahead__search-icon"></i>
+                        </button>
+                    </span>
 
                 </div>
             </div>
@@ -171,7 +175,7 @@
         <div id="champion-counter" class="champion-counter"></div>
     </div>
 
-    <div id="champion-list" class="typeahead-result champion-list detached loading"></div>
+    <div id="champion-list" class="typeahead__result champion-list detached loading"></div>
 
     <div id="champion-modal"
          class="ui modal">
@@ -211,8 +215,8 @@
 
     $(function () {
 
-        typeof $.typeahead === "function" && $.typeahead({
-            input: "#game_v3-query",
+        typeof $.typeahead === 'function' && $.typeahead({
+            input: ".js-typeahead-input",
             minLength: 0,
             maxItem: 0,
             order: "asc",

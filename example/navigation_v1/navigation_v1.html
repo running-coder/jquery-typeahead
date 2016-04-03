@@ -23,9 +23,9 @@
 
 <div class="nav-wrapper">
     <nav class="nav-container">
-        <div class="typeahead-container">
-            <div class="typeahead-field">
-                <span class="typeahead-query">
+        <div class="typeahead__container">
+            <div class="typeahead__field">
+                <span class="typeahead__query">
                     <input class="js-nav-typeahead-input" name="q" type="search" placeholder="Search"
                            autocomplete="off">
                     <i class="fa fa-search"></i>
@@ -83,7 +83,7 @@
 <script>
     $(function () {
 
-        var element = $('.typeahead-container'),
+        var element = $('.typeahead__container'),
             listItems = element.closest('.nav-wrapper').find('nav li'),
             data = $.map(listItems, function (v, i) {
                 return {
@@ -134,7 +134,7 @@
             debug: true
         });
 
-        $(document).on('click', '.typeahead-container.hasText .fa-search', function () {
+        $(document).on('click', '.typeahead__container.hasText .fa-search', function () {
             $('.js-nav-typeahead-input').val('').trigger('input.typeahead');
         });
 
