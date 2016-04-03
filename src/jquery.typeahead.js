@@ -604,6 +604,7 @@
 
             this.generatedGroupCount = 0;
             this.isGenerated = false;
+            this.container.addClass('loading');
 
             if (!this.helper.isEmpty(this.xhr)) {
                 for (var i in this.xhr) {
@@ -1149,6 +1150,8 @@
             if (this.dropdownFilter) {
                 this.buildDropdownLayout();
             }
+
+            this.container.removeClass('loading');
 
             this.node.trigger('dynamic' + _namespace);
 
