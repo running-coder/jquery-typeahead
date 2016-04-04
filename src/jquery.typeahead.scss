@@ -88,7 +88,8 @@ input {
 
 // VARIABLES -----------------------------------------------------------------------------------------------------------
 
-$typeahead-font: 14px/21px Lato, 'Helvetica Neue', Arial, Helvetica, sans-serif;
+$typeahead-font-size: 14px;
+$typeahead-font-family: Lato, 'Helvetica Neue', Arial, Helvetica, sans-serif;
 $typeahead-primary-color: #66afe9;
 $typeahead-radius: 2px;
 $typeahead-shadow: false; // true / false
@@ -114,7 +115,7 @@ $typeahead-item-hover-background: #f5f5f5;
 .typeahead__ {
     &container {
         position: relative;
-        font: $typeahead-font;
+        font: $typeahead-font-size $typeahead-font-family;
     }
 
     &container * {
@@ -163,7 +164,7 @@ $typeahead-item-hover-background: #f5f5f5;
     &query,
     &filter,
     &button {
-        font: $typeahead-font;
+        font-size: $typeahead-font-size;
     }
 
     &button {
