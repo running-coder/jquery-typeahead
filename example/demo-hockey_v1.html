@@ -270,7 +270,7 @@
             "id": "WPG",
             "conference": "Eastern",
             "division": "Southeast"
-        }]
+        }];
 
         typeof $.typeahead === 'function' && $.typeahead({
             input: ".js-typeahead-input",
@@ -284,32 +284,36 @@
             //group: ["division", "{{group}} division"],
             group: "division",
 //            group: {
-//                key: 'division',
-//                template: '{{division}} division'
+//                group: 'division',
+//                template: '{{group}} division'
 //            },
             display: ["name", "city", "division"],
             correlativeTemplate: true,
 //            dropdownFilter: true,
-//            dropdownFilter: 'division',
-            dropdownFilter: {
-                key: 'division',
-//                template: '<strong>{{division}}</strong> division',
-//                all: 'All Teams'
-            },
+//            dropdownFilter: 'All Teams',
+//            dropdownFilter: [{
+//                key: 'conference',
+//                template: '<strong>{{conference}}</strong> Conference',
+//                all: 'yay'
+//            }, {
+//                key: 'division',
+//                value: 'Northeast',
+//                template: '<strong>{{division}}</strong> Division',
+//                all: 'All :o'
+//            }],
 //            dropdownFilter: [
 //                {
 //                    key: 'conference',
 //                    value: 'Western',
-//                    display: '<strong>Western</strong> Conference'
+//                    template: '<strong>Western</strong> Conference',
+//
 //                },
 //                {
 //                    key: 'conference',
 //                    value: 'Eastern',
-//                    display: '<strong>Eastern</strong> Conference'
-//                },
-//                {
-//                    value: '*',
-//                    display: 'All Teams'
+//                    template: '<strong>Eastern</strong> Conference',
+//                    all: 'All Teams'
+//
 //                }
 //            ],
             template: '<span>' +

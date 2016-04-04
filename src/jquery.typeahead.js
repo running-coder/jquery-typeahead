@@ -108,10 +108,8 @@
             query: "typeahead__query",
             filter: "typeahead__filter",
             filterButton: "typeahead__filter-button",
-            filterValue: "typeahead__filter-value",
             dropdown: "typeahead__dropdown",
             dropdownItem: "typeahead__dropdown-item",
-            dropdownCaret: "typeahead__caret",
             button: "typeahead__button",
             backdrop: "typeahead__backdrop",
             hint: "typeahead__hint",
@@ -175,7 +173,12 @@
             dropdown: {},               // Dropdown menu if options.dropdownFilter is set
             dynamic: {}                 // Checkbox / Radio / Select to filter the source data
         };
-        this.dropdownFilter = false;    // #70 If dynamic is false and dropdownFilter is set to object
+        this.dropdownFilter = {
+            static: [],                 // Objects that has a value
+            dynamic: []
+        };
+        this.dropdownFilterAll = null;  // The last "all" definition
+
         this.requests = {};             // Store the group:request instead of generating them every time
 
         this.backdrop = {};             // The backdrop object
@@ -268,23 +271,13 @@
                 this.options.highlight = false;
             }
 
-            if (this.options.dropdownFilter && this.options.dropdownFilter.key) {
-                if (!this.options.dynamic) {
-                    this.dropdownFilter = {};
+            if (this.options.dropdownFilter && this.options.dropdownFilter instanceof Object) {
+                if (!(this.options.dropdownFilter instanceof Array)) {
+                    this.options.dropdownFilter = [this.options.dropdownFilter];
                 }
-                // {debug}
-                else {
-                    if (this.options.debug) {
-                        _debug.log({
-                            'node': this.node.selector,
-                            'function': 'extendOptions()',
-                            'message': 'Invalid "options.dropdownFilter", you can\'t set self discovering group on dynamic typeahead.'
-                        });
-
-                        _debug.print();
-                    }
+                for (var i = 0, ii = this.options.dropdownFilter.length; i < ii; ++i) {
+                    this.dropdownFilter[this.options.dropdownFilter[i].value ? 'static' : 'dynamic'].push(this.options.dropdownFilter[i]);
                 }
-                // {/debug}
             }
 
             if (this.options.dynamicFilter && !(this.options.dynamicFilter instanceof Array)) {
@@ -984,7 +977,6 @@
                     (groupSource.display[0] === 'compiled' ? groupSource.display[1] : groupSource.display[0]) :
                     (this.options.display[0] === 'compiled' ? this.options.display[1] : this.options.display[0]);
 
-            // @TODO: possibly optimize this?
             for (var i = 0, ii = data.length; i < ii; i++) {
                 if (typeof data[i] === "string") {
                     tmpObj = {};
@@ -994,26 +986,27 @@
                 data[i].group = group;
             }
 
-            if (!this.options.dynamic && this.options.dropdownFilter && !(this.options.dropdownFilter instanceof Array)) {
-                if (typeof this.options.dropdownFilter === "boolean") {
-                    this.dropdownFilter[group] = [];
-                } else {
-                    var key = typeof this.options.dropdownFilter === "string" && this.options.dropdownFilter || this.options.dropdownFilter.key,
-                        value,
-                        tmpDropdownFilter = {};
+            if (!this.options.dynamic && this.dropdownFilter.dynamic.length) {
 
-                    if (!this.dropdownFilter[key]) {
-                        this.dropdownFilter[key] = [];
-                        tmpDropdownFilter[key] = [];
-                    }
+                var key,
+                    value,
+                    tmpValues = {};
 
-                    for (var i = 0, ii = data.length; i < ii; i++) {
+                for (var i = 0, ii = data.length; i < ii; i++) {
+                    for (var k = 0, kk = this.dropdownFilter.dynamic.length; k < kk; k++) {
+                        key = this.dropdownFilter.dynamic[k].key;
+
                         value = data[i][key];
                         if (!value) continue;
-                        // Avoid any possible case sensitive issues...
-                        if (!~tmpDropdownFilter[key].indexOf(value.toLowerCase())) {
-                            tmpDropdownFilter[key].push(value.toLowerCase());
-                            this.dropdownFilter[key].push(value);
+                        if (!this.dropdownFilter.dynamic[k].value) {
+                            this.dropdownFilter.dynamic[k].value = [];
+                        }
+                        if (!tmpValues[key]) {
+                            tmpValues[key] = [];
+                        }
+                        if (!~tmpValues[key].indexOf(value.toLowerCase())) {
+                            tmpValues[key].push(value.toLowerCase());
+                            this.dropdownFilter.dynamic[k].value.push(value);
                         }
                     }
                 }
@@ -1147,8 +1140,8 @@
 
             this.tmpSource = {};
 
-            if (this.dropdownFilter) {
-                this.buildDropdownLayout();
+            if (!this.options.dynamic) {
+                this.buildDropdownItemLayout('dynamic');
             }
 
             this.container.removeClass('loading');
@@ -1923,13 +1916,7 @@
                 return;
             }
 
-            var scope = this,
-                all = this.options.dropdownFilter.all || 'All',
-                template = this.options.dropdownFilter.template || '';
-
-            if (typeof this.options.dropdownFilter === "string") {
-                all = this.options.dropdownFilter;
-            }
+            var scope = this;
 
             $('<span/>', {
                 "class": this.options.selector.filter,
@@ -1939,7 +1926,7 @@
                         $('<button/>', {
                             "type": "button",
                             "class": scope.options.selector.filterButton,
-                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + all + "</span> <span class='" + scope.options.selector.dropdownCaret + "'></span>",
+                            "style": "display: none;",
                             "click": function (e) {
                                 e.stopPropagation();
                                 scope.container.toggleClass('filter');
@@ -1959,122 +1946,93 @@
 
                     $(this).append(
                         $('<ul/>', {
-                            "class": scope.options.selector.dropdown,
-                            "html": function () {
-
-                                console.log(scope.dropdownFilter)
-                                for (var group in scope.dropdownFilter) {
-                                    for (var i = 0, ii = scope.dropdownFilter[group].length; i <= ii; i++) {
-
-                                        (function (i, group, ulScope) {
-
-                                            var itemTemplate = all;
-                                            if (scope.dropdownFilter[group][i]) {
-                                                if (template) {
-                                                    itemTemplate = template.replace(new RegExp('\{\{' + group + '}}', 'gi'), scope.dropdownFilter[group][i])
-                                                } else {
-                                                    itemTemplate = scope.dropdownFilter[group][i];
-                                                }
-                                            }
-
-                                            $(ulScope).append(
-                                                $("<li/>", {
-                                                    "class": scope.options.selector.dropdownItem + '__' + scope.helper.slugify.call(scope, group + '-' + (scope.dropdownFilter[group][i] || all)),
-                                                    "html": $("<a/>", {
-                                                        "href": "javascript:;",
-                                                        "html": itemTemplate,
-                                                        "click": function (e) {
-                                                            e.preventDefault();
-                                                            _selectFilter.call(scope, {
-                                                                key: group,
-                                                                value: scope.dropdownFilter[group][i] || '*',
-                                                                template: itemTemplate
-                                                            });
-                                                        }
-                                                    })
-                                                })
-                                            );
-
-                                        }(i, group, this));
-
-                                    }
-                                }
-
-                                //for (var i = 0, ii = )
-
-
-                                //var items = scope.options.dropdownFilter;
-                                //
-                                //if (~['string', 'boolean'].indexOf(typeof scope.options.dropdownFilter)) {
-                                //
-                                //    items = [];
-                                //    for (var group in scope.options.source) {
-                                //        if (!scope.options.source.hasOwnProperty(group)) continue;
-                                //        items.push({
-                                //            key: 'group',
-                                //            value: group
-                                //        });
-                                //    }
-                                //
-                                //    items.push({
-                                //        key: 'group',
-                                //        value: '*',
-                                //        display: typeof scope.options.dropdownFilter === "string" && scope.options.dropdownFilter || 'all'
-                                //    });
-                                //}
-
-                                //for (var i = 0, ii = items.length; i < ii; i++) {
-                                //
-                                //    (function (i, item, ulScope) {
-                                //
-                                //        if ((!item.key && item.value !== "*") || !item.value) {
-                                //
-                                //            // {debug}
-                                //            if (scope.options.debug) {
-                                //                _debug.log({
-                                //                    'node': scope.node.selector,
-                                //                    'function': 'buildDropdownLayout()',
-                                //                    'arguments': JSON.stringify(item),
-                                //                    'message': 'WARNING - Missing key or value, skipping dropdown filter."'
-                                //                });
-                                //
-                                //                _debug.print();
-                                //            }
-                                //            // {/debug}
-                                //
-                                //            return;
-                                //        }
-                                //
-                                //        if (item.value === '*') {
-                                //            $(ulScope).append(
-                                //                $("<li/>", {
-                                //                    "class": "divider"
-                                //                })
-                                //            );
-                                //        }
-                                //
-                                //        $(ulScope).append(
-                                //            $("<li/>", {
-                                //                "class": "",
-                                //                "html": $("<a/>", {
-                                //                    "href": "javascript:;",
-                                //                    "html": item.display || item.value,
-                                //                    "click": ({"item": item}, function (e) {
-                                //                        e.preventDefault();
-                                //                        _selectFilter.apply(scope, [item]);
-                                //                    })
-                                //                })
-                                //            })
-                                //        );
-                                //
-                                //    }(i, items[i], this));
-                                //
-                                //}
-                            }
+                            "class": scope.options.selector.dropdown
                         })
                     );
                 }
             }).insertAfter(scope.container.find('.' + scope.options.selector.query));
+
+        },
+
+        buildDropdownItemLayout: function (type) {
+
+            var scope = this,
+                template,
+                all = typeof this.options.dropdownFilter === 'string' && this.options.dropdownFilter || 'All',
+                ulScope = this.container.find('.' + this.options.selector.dropdown),
+                filter;
+
+            // Use regular groups defined in options.source
+            if (type === 'static' && this.options.dropdownFilter === true || typeof this.options.dropdownFilter === 'string') {
+                this.dropdownFilter.static.push({
+                    key: 'group',
+                    template: '{{group}}',
+                    all: all,
+                    value: Object.keys(this.options.source)
+                });
+            }
+
+            for (var i = 0, ii = this.dropdownFilter[type].length; i < ii; i++) {
+
+                filter = this.dropdownFilter[type][i];
+
+                if (!(filter.value instanceof Array)) {
+                    filter.value = [filter.value];
+                }
+
+                if (filter.all) {
+                    this.dropdownFilterAll = filter.all;
+                }
+
+                for (var k = 0, kk = filter.value.length; k <= kk; k++) {
+
+                    // Only add "all" at the last filter iteration
+                    if (k === kk && (i !== ii - 1)) {
+                        continue;
+                    } else if (k === kk && (i === ii - 1)) {
+                        if (type === 'static' && this.dropdownFilter['dynamic'].length) {
+                            continue;
+                        }
+                    }
+
+                    template = this.dropdownFilterAll || all;
+                    if (filter.value[k]) {
+                        if (filter.template) {
+                            template = filter.template.replace(new RegExp('\{\{' + filter.key + '}}', 'gi'), filter.value[k])
+                        } else {
+                            template = filter.value[k]
+                        }
+                    } else {
+                        this.container.find('.' + scope.options.selector.filterButton).html(template)
+                    }
+
+                    (function (k, filter, template) {
+
+                        ulScope.append(
+                            $("<li/>", {
+                                "class": scope.options.selector.dropdownItem + ' ' + scope.helper.slugify.call(scope, filter.key + '-' + (filter.value[k] || all)),
+                                "html": $("<a/>", {
+                                    "href": "javascript:;",
+                                    "html": template,
+                                    "click": function (e) {
+                                        e.preventDefault();
+                                        _selectFilter.call(scope, {
+                                            key: filter.key,
+                                            value: filter.value[k] || '*',
+                                            template: template
+                                        });
+                                    }
+                                })
+                            })
+                        );
+
+                    }(k, filter, template));
+                }
+            }
+
+            if (this.dropdownFilter[type].length) {
+                this.container.find('.' + scope.options.selector.filterButton).removeAttr('style');
+            }
 
             /**
              * @private
@@ -2083,9 +2041,6 @@
              * @param {object} item
              */
             function _selectFilter(item) {
-
-                console.log(item)
-
                 if (item.value === "*") {
                     delete this.filters.dropdown;
                 } else {
@@ -2094,15 +2049,13 @@
 
                 this.container
                     .removeClass('filter')
-                    .find('.' + this.options.selector.filterValue)
+                    .find('.' + this.options.selector.filterButton)
                     .html(item.template);
 
                 this.node.trigger('dynamic' + _namespace);
 
                 this.node.focus();
-
             }
-
         },
 
         dynamicFilter: {
@@ -2290,7 +2243,6 @@
         buildCancelButtonLayout: function () {
             if (!this.options.cancelButton) return;
             var scope = this;
-            console.log(this.node)
 
             $('<span/>', {
                 "class": this.options.selector.cancelButton,
@@ -2322,9 +2274,8 @@
             this.init();
             this.delegateEvents();
             this.buildCancelButtonLayout();
-            if (!this.dropdownFilter) {
-                this.buildDropdownLayout();
-            }
+            this.buildDropdownLayout();
+            this.buildDropdownItemLayout('static');
 
             this.helper.executeCallback.call(this, this.options.callback.onReady, [this.node]);
         },
