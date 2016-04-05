@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.4.0 (2016-4-3)
+ * @version 2.4.0 (2016-4-4)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -263,8 +263,33 @@
                 this.options.display = [this.options.display];
             }
 
-            if (this.options.group && !(this.options.group instanceof Array)) {
-                this.options.group = [this.options.group];
+            if (this.options.group) {
+                if (!(this.options.group instanceof Array)) {
+                    if (typeof this.options.group === "string") {
+                        this.options.group = {
+                            key: this.options.group
+                        }
+                    } else if (typeof this.options.group === "boolean") {
+                        this.options.group = {
+                            key: 'group'
+                        }
+                    }
+
+                    this.options.group.key = this.options.group.key || "group";
+                }
+                // {debug}
+                else {
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'extendOptions()',
+                            'message': 'options.group must be a boolean|string|object as of 2.5.0'
+                        });
+
+                        _debug.print();
+                    }
+                }
+                // {/debug}
             }
 
             if (this.options.highlight && !~["any", true].indexOf(this.options.highlight)) {
@@ -329,8 +354,8 @@
                 }
             }
 
-            if (this.options.group && typeof this.options.group[0] === "string" && this.options.maxItemPerGroup) {
-                this.groupBy = this.options.group[0];
+            if (this.options.maxItemPerGroup && this.options.group && this.options.group.key) {
+                this.groupBy = this.options.group.key;
             }
 
             // Compatibility onClick callback
@@ -1303,7 +1328,7 @@
 
             var scope = this,
                 group,
-                groupBy = this.options.group && typeof this.options.group[0] !== "boolean" ? this.options.group[0] : "group",
+                groupBy = this.groupBy,
                 groupReference = null,
                 item,
                 match,
@@ -1618,7 +1643,7 @@
 
                         (function (index, item, ulScope) {
 
-                            var _group = item.group,
+                            var _group,
                                 _liHtml,
                                 _aHtml,
                                 _display = [],
@@ -1628,14 +1653,15 @@
                                 _template;
 
                             if (scope.options.group) {
-                                if (scope.options.group[1]) {
-                                    if (typeof scope.options.group[1] === "function") {
-                                        _group = scope.options.group[1](item);
-                                    } else if (typeof scope.options.group[1] === "string") {
-                                        _group = scope.options.group[1].replace(/(\{\{group}})/gi, item[scope.options.group[0]] || _group);
+                                _group = item[scope.options.group.key];
+                                if (scope.options.group.template) {
+                                    if (typeof scope.options.group.template === "function") {
+                                        _group = scope.options.group.template(item);
+                                    } else if (typeof scope.options.template === "string") {
+                                        _group = scope.options.group.template.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
+                                            return scope.helper.namespace(index, item, 'get', '');
+                                        });
                                     }
-                                } else if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
-                                    _group = item[scope.options.group[0]];
                                 }
                                 if (!$(ulScope).find('li[data-search-group="' + _group + '"]')[0]) {
                                     $(ulScope).append(
@@ -1659,7 +1685,7 @@
 
                                         if (_href) {
                                             if (typeof _href === "string") {
-                                                _href = _href.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
+                                                _href = _href.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/gi, function (match, index, option) {
 
                                                     var value = scope.helper.namespace(index, item, 'get', '');
 
@@ -1690,7 +1716,7 @@
                                                 _template = _template.call(scope, scope.query, item);
                                             }
 
-                                            _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index, option) {
+                                            _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/gi, function (match, index, option) {
 
                                                 var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace(index, item, 'get', '')));
 

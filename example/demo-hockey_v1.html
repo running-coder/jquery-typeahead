@@ -282,7 +282,19 @@
             //cache: true,
             searchOnFocus: true,
             //group: ["division", "{{group}} division"],
-            group: "division",
+            group: {
+                key: "conference",
+                template: function (item) {
+
+                    var conference = item.conference;
+                    if (conference.toLowerCase() === "eastern") {
+                        conference += " Yay!123";
+                    }
+
+                    return conference;
+                }
+            },
+            //groupOrder: ["Eastern", "Western"],
 //            group: {
 //                group: 'division',
 //                template: '{{group}} division'

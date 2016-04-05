@@ -205,7 +205,9 @@
             maxItem: 15,
             order: "asc",
             hint: true,
-            group: [true, "{{group}} beers!"],
+            group: {
+                template: "{{group}} beers!"
+            },
             maxItemPerGroup: 5,
             backdrop: {
                 "background-color": "#fff"
