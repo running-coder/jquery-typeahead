@@ -83,7 +83,7 @@ input {
 
 .typeahead__container {
   position: relative;
-  font: 14px/21px Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font: 14px Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
 }
 
 .typeahead__container * {
@@ -133,7 +133,7 @@ input {
 }
 
 .typeahead__query, .typeahead__filter, .typeahead__button {
-  font: 14px/21px Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-size: 14px;
 }
 
 .typeahead__button {
