@@ -52,7 +52,7 @@
         hint: false,            // -> Improved feature, Added support for excessive "space" characters
         accent: false,          // -> Improved feature, define a custom replacement object
         highlight: true,        // -> Added "any" to highlight any word in the template, by default true will only highlight display keys
-        group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
+        group: false,           // -> Improved feature, Boolean,string,object(key, template (string, function))
         groupOrder: null,       // -> New feature, order groups "asc", "desc", Array, Function
         maxItemPerGroup: null,  // -> Renamed option
         dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
