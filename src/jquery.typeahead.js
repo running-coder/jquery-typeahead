@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.0 (2016-4-4)
+ * @version 2.5.0 (2016-4-6)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -72,7 +72,7 @@
         template: null,
         correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
         emptyTemplate: false,   // -> New feature, display an empty template if no result
-        cancelButton: true,     // -> New feature, if text is detected in the input, a clear button will be available to reset the input (pressing ESC also clears)
+        cancelButton: true,     // -> New feature, if text is detected in the input, a cancel button will be available to reset the input (pressing ESC also cancels)
         filter: true,           // -> New feature, set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
         matcher: null,          // -> New feature, add an extra filtering function after the typeahead functions
         source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
@@ -2285,7 +2285,7 @@
         },
 
         toggleCancelButton: function () {
-            this.container.toggleClass('clear', !!this.query.length);
+            this.container.toggleClass('cancel', !!this.query.length);
         },
 
         __construct: function () {
