@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.0 (2016-4-8)
+ * @version 2.5.0 (2016-4-12)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -1884,6 +1884,7 @@
                         'class': this.node.attr('class'),
                         'readonly': true,
                         'unselectable': 'on',
+                        'aria-hidden': 'true',
                         'tabindex': -1,
                         'click': function () {
                             // IE8 Fix

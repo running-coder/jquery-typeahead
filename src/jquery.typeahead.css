@@ -180,12 +180,11 @@ input {
   height: 0;
 }
 
-.typeahead__ .typeahead-container.hint .typeahead__field input {
+.typeahead__container.hint .typeahead__field input {
   background: transparent;
 }
 
-.typeahead__ .typeahead-container.hint .typeahead-field input:last-child,
-.typeahead__ .typeahead-hint {
+.typeahead__container.hint .typeahead__field input:last-child, .typeahead__hint {
   background: #fff;
 }
 
