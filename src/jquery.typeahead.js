@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.1 (2016-4-12)
+ * @version 2.5.1 (2016-4-13)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -72,6 +72,7 @@
         template: null,
         correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
         emptyTemplate: false,   // -> New feature, display an empty template if no result
+        resultTemplate: null,   // -> New feature, set a custom result template
         cancelButton: true,     // -> New feature, if text is detected in the input, a cancel button will be available to reset the input (pressing ESC also cancels)
         filter: true,           // -> New feature, set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
         matcher: null,          // -> New feature, add an extra filtering function after the typeahead functions
@@ -158,7 +159,9 @@
         this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
         this.groupCount = 0;            // Number of groups, this value gets counted on the initial source unification
         this.groupBy = "group";         // This option will change according to filtering or custom grouping
+        this.groups = [];               // Array of all the available groups, used to build the resultTemplate
         this.result = {};               // Results based on Source-query match (only contains the displayed elements)
+        this.resultTemplate = '';       // Result template at the {{group}} level
         this.resultHtml = null;         // HTML Results (displayed elements)
         this.resultCount = 0;           // Total results based on Source-query match
         this.resultCountPerGroup = {};  // Total results based on Source-query match per group
@@ -330,6 +333,10 @@
                 } else {
                     this.options.accent = _accent;
                 }
+            }
+
+            if (this.options.resultTemplate) {
+                this.resultTemplate = this.options.resultTemplate;
             }
 
             if (this.options.resultContainer) {
@@ -1553,6 +1560,8 @@
                 groupOrder = Object.keys(this.result);
             }
 
+            this.groups = groupOrder;
+
             for (var i = 0, ii = groupOrder.length; i < ii; i++) {
                 concatResults = concatResults.concat(this.result[groupOrder[i]] || []);
             }
@@ -1614,192 +1623,196 @@
                 _query = this.helper.removeAccent.call(this, _query);
             }
 
-            var scope = this;
+            var scope = this,
+                resultTemplate = this.resultTemplate || '<ul></ul>',
+                hasEmptyTemplate = false;
 
-            this.resultHtml = $("<ul/>", {
-                "class": this.options.selector.list + (scope.helper.isEmpty(scope.result) ? ' empty' : ''),
-                "html": function () {
+            resultTemplate = $(resultTemplate.replace(/<([^>]+)>\{\{(.+?)}}<\/[^>]+>/g, function (match, tag, group, offset, string) {
 
-                    if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
+                var template = '',
+                    groups = group === "group" ? scope.groups : [group];
 
-                        var _emptyTemplate = typeof scope.options.emptyTemplate === "function" ?
-                            scope.options.emptyTemplate.call(scope, scope.query) :
-                            scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query.sanitize());
+                if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
+                    if (hasEmptyTemplate === true) return '';
+                    hasEmptyTemplate = true;
 
-                        if (_emptyTemplate instanceof $ && _emptyTemplate[0].nodeName === "LI") {
-                            return _emptyTemplate;
-                        } else {
-                            return $("<li/>", {
-                                "class": scope.options.selector.empty,
-                                "html": $("<a/>", {
-                                    "href": "javascript:;",
-                                    "html": _emptyTemplate
-                                })
+                    var emptyTemplate = typeof scope.options.emptyTemplate === "function" ?
+                        scope.options.emptyTemplate.call(scope, scope.query) :
+                        scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query.sanitize());
+
+                    if (emptyTemplate instanceof $) {
+                        emptyTemplate = emptyTemplate[0].outerHTML;
+                    }
+
+                    return '<' + tag + ' class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></' + tag + '>';
+                }
+
+                for (var i = 0, ii = groups.length; i < ii; ++i) {
+                    template += '<' + tag + ' data-result-template="' + groups[i] + '"><ul></ul></' + tag + '>';
+                }
+
+                return template;
+            }));
+
+            resultTemplate.addClass(this.options.selector.list + (this.helper.isEmpty(this.result) ? ' empty' : ''));
+
+            var _group = 'group',
+                _item,
+                _href,
+                _liHtml,
+                _template,
+                _aHtml,
+                _display,
+                _displayKeys,
+                _unUsedGroups = this.resultTemplate && this.result.length && scope.groups || null,
+                _tmpIndexOf;
+
+            for (var i = 0, ii = this.result.length; i < ii; ++i) {
+
+                _item = this.result[i];
+                _href = this.options.source[_item.group].href || this.options.href;
+                _display = [];
+                _displayKeys = this.options.source[_item.group].display || this.options.display;
+
+                if (this.options.group) {
+                    _group = _item[this.options.group.key];
+                    if (this.options.group.template) {
+                        if (typeof this.options.group.template === "function") {
+                            _group = this.options.group.template(_item);
+                        } else if (typeof this.options.template === "string") {
+                            _group = this.options.group.template.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
+                                return this.helper.namespace(index, _item, 'get', '');
                             });
                         }
                     }
-
-                    for (var i in scope.result) {
-                        if (!scope.result.hasOwnProperty(i)) continue;
-
-                        (function (index, item, ulScope) {
-
-                            var _group,
-                                _liHtml,
-                                _aHtml,
-                                _display = [],
-                                _displayKeys = scope.options.source[item.group].display || scope.options.display,
-                                _href = scope.options.source[item.group].href || scope.options.href,
-                                _handle,
-                                _template;
-
-                            if (scope.options.group) {
-                                _group = item[scope.options.group.key];
-                                if (scope.options.group.template) {
-                                    if (typeof scope.options.group.template === "function") {
-                                        _group = scope.options.group.template(item);
-                                    } else if (typeof scope.options.template === "string") {
-                                        _group = scope.options.group.template.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
-                                            return scope.helper.namespace(index, item, 'get', '');
-                                        });
-                                    }
-                                }
-                                if (!$(ulScope).find('li[data-search-group="' + _group + '"]')[0]) {
-                                    $(ulScope).append(
-                                        $("<li/>", {
-                                            "class": scope.options.selector.group,
-                                            "html": $("<a/>", {
-                                                "href": "javascript:;",
-                                                "html": _group,
-                                                "tabindex": -1
-                                            }),
-                                            "data-search-group": _group
-                                        })
-                                    );
-                                }
-                            }
-
-                            _liHtml = $("<li/>", {
-                                "class": scope.options.selector.item,
+                    if (!resultTemplate.find('[data-search-group="' + _group + '"]')[0]) {
+                        (this.resultTemplate ? resultTemplate.find('[data-result-template="' + _group + '"] ul') : resultTemplate).append(
+                            $("<li/>", {
+                                "class": scope.options.selector.group,
                                 "html": $("<a/>", {
-                                    "href": function () {
+                                    "href": "javascript:;",
+                                    "html": _group,
+                                    "tabindex": -1
+                                }),
+                                "data-search-group": _group
+                            })
+                        );
+                    }
+                }
 
-                                        if (_href) {
-                                            if (typeof _href === "string") {
-                                                _href = _href.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/gi, function (match, index, option) {
+                if (this.resultTemplate) {
+                    _tmpIndexOf = _unUsedGroups.indexOf(_group || _item.group)
+                    if (~_tmpIndexOf) {
+                        _unUsedGroups.splice(_tmpIndexOf, 1)
+                    }
+                }
 
-                                                    var value = scope.helper.namespace(index, item, 'get', '');
+                _liHtml = $("<li/>", {
+                    "class": scope.options.selector.item,
+                    "html": $("<a/>", {
+                        "href": function () {
+                            if (_href) {
+                                if (typeof _href === "string") {
+                                    _href = _href.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/gi, function (match, index, option) {
 
-                                                    // #151 Slugify should be an option, not enforced
-                                                    if (option && option === "slugify") {
-                                                        value = scope.helper.slugify.call(scope, value);
-                                                    }
+                                        var value = scope.helper.namespace(index, _item, 'get', '');
 
-                                                    return value;
-                                                });
-                                            } else if (typeof _href === "function") {
-                                                _href = _href(item);
-                                            }
-                                            item['href'] = _href;
+                                        // #151 Slugify should be an option, not enforced
+                                        if (option && option === "slugify") {
+                                            value = scope.helper.slugify.call(scope, value);
                                         }
 
-                                        return _href || "javascript:;";
-
-                                    },
-                                    "data-group": _group,
-                                    "data-index": index,
-                                    "html": function () {
-
-                                        _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
-
-                                        if (_template) {
-                                            if (typeof _template === "function") {
-                                                _template = _template.call(scope, scope.query, item);
-                                            }
-
-                                            _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/gi, function (match, index, option) {
-
-                                                var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace(index, item, 'get', '')));
-
-                                                if (!option || option !== "raw") {
-                                                    if (scope.options.highlight === true && _query && ~_displayKeys.indexOf(index)) {
-                                                        value = scope.helper.highlight.call(scope, value, _query.split(" "), scope.options.accent)
-                                                    }
-                                                }
-                                                return value;
-                                            });
-                                        } else {
-                                            for (var i = 0, ii = _displayKeys.length; i < ii; i++) {
-                                                _display.push(item[_displayKeys[i]]);
-                                            }
-
-                                            _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.cleanStringFromScript(String(_display.join(" "))) + '</span>';
-                                        }
-
-                                        if ((scope.options.highlight === true && _query && !_template) || scope.options.highlight === "any") {
-                                            _aHtml = scope.helper.highlight.call(scope, _aHtml, _query.split(" "), scope.options.accent)
-                                        }
-
-                                        $(this).append(_aHtml);
-
-                                    },
-                                    "click": ({"item": item}, function (e) {
-
-                                        if (scope.options.mustSelectItem && scope.helper.isEmpty(item)) {
-                                            e.preventDefault();
-                                            return;
-                                        }
-
-                                        scope.item = item;
-
-                                        if (scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, $(this), item, e]) === false) return;
-                                        if ((e.originalEvent && e.originalEvent.defaultPrevented) || e.isDefaultPrevented()) {
-                                            return;
-                                        }
-
-                                        scope.query = scope.rawQuery = item[item.matchedKey].toString();
-                                        scope.node.val(scope.query).focus();
-
-                                        scope.searchResult(true);
-                                        scope.buildLayout();
-                                        scope.hideLayout();
-
-                                        scope.helper.executeCallback.call(scope, scope.options.callback.onClickAfter, [scope.node, $(this), item, e]);
-
-                                    }),
-                                    "mouseenter": function (e) {
-
-                                        $(this).closest('ul').find('li.active').removeClass('active');
-                                        $(this).closest('li').addClass('active');
-
-                                        scope.helper.executeCallback.call(scope, scope.options.callback.onMouseEnter, [scope.node, $(this), item, e]);
-                                    },
-                                    "mouseleave": function (e) {
-
-                                        $(this).closest('li').removeClass('active');
-
-                                        scope.helper.executeCallback.call(scope, scope.options.callback.onMouseLeave, [scope.node, $(this), item, e]);
-                                    }
-                                })
-                            });
-
-                            if (scope.options.group) {
-
-                                _handle = $(ulScope).find('a[data-group="' + _group + '"]:last').closest('li');
-                                if (!_handle[0]) {
-                                    _handle = $(ulScope).find('li[data-search-group="' + _group + '"]');
+                                        return value;
+                                    });
+                                } else if (typeof _href === "function") {
+                                    _href = _href(_item);
                                 }
-                                $(_liHtml).insertAfter(_handle);
+                                _item.href = _href;
+                            }
+                            return _href || "javascript:;";
+                        },
+                        "data-group": _group,
+                        "data-index": i,
+                        "html": function () {
 
+                            _template = (_item.group && scope.options.source[_item.group].template) || scope.options.template;
+
+                            if (_template) {
+                                if (typeof _template === "function") {
+                                    _template = _template.call(scope, scope.query, _item);
+                                }
+
+                                _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/gi, function (match, index, option) {
+
+                                    var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace(index, _item, 'get', '')));
+
+                                    if (!option || option !== "raw") {
+                                        if (scope.options.highlight === true && _query && ~_displayKeys.indexOf(index)) {
+                                            value = scope.helper.highlight.call(scope, value, _query.split(" "), scope.options.accent)
+                                        }
+                                    }
+                                    return value;
+                                });
                             } else {
-                                $(ulScope).append(_liHtml);
+                                for (var i = 0, ii = _displayKeys.length; i < ii; i++) {
+                                    _display.push(_item[_displayKeys[i]]);
+                                }
+
+                                _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.cleanStringFromScript(String(_display.join(" "))) + '</span>';
                             }
 
-                        }(i, scope.result[i], this));
-                    }
+                            if ((scope.options.highlight === true && _query && !_template) || scope.options.highlight === "any") {
+                                _aHtml = scope.helper.highlight.call(scope, _aHtml, _query.split(" "), scope.options.accent)
+                            }
 
+                            $(this).append(_aHtml);
+
+                        }
+                    })
+                });
+
+                (function(i, item, liHtml) {
+                    liHtml.on('click', function (e) {
+                        if (scope.options.mustSelectItem && scope.helper.isEmpty(item)) {
+                            e.preventDefault();
+                            return;
+                        }
+
+                        scope.item = item;
+
+                        if (scope.helper.executeCallback.call(scope, scope.options.callback.onClickBefore, [scope.node, $(this), item, e]) === false) return;
+                        if ((e.originalEvent && e.originalEvent.defaultPrevented) || e.isDefaultPrevented()) {
+                            return;
+                        }
+
+                        scope.query = scope.rawQuery = item[item.matchedKey].toString();
+                        scope.node.val(scope.query).focus();
+
+                        scope.searchResult(true);
+                        scope.buildLayout();
+                        scope.hideLayout();
+
+                        scope.helper.executeCallback.call(scope, scope.options.callback.onClickAfter, [scope.node, $(this), item, e]);
+                    });
+                    liHtml.on('mouseenter', function (e) {
+                        scope.helper.executeCallback.call(scope, scope.options.callback.onMouseEnter, [scope.node, $(this), item, e]);
+                    });
+                    liHtml.on('mouseleave', function (e) {
+                        scope.helper.executeCallback.call(scope, scope.options.callback.onMouseLeave, [scope.node, $(this), item, e]);
+                    });
+                }(i, _item, _liHtml));
+
+                (this.resultTemplate ? resultTemplate.find('[data-result-template="' + _group + '"] ul') : resultTemplate).append(_liHtml);
+
+            }
+
+            if (_unUsedGroups) {
+                for (var i = 0, ii = _unUsedGroups.length; i < ii; ++i) {
+                    resultTemplate.find('[data-result-template="' + _unUsedGroups[i] + '"]').remove();
                 }
-            });
+            }
+
+            this.resultHtml = resultTemplate;
 
         },
 
