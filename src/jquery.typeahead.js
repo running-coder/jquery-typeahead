@@ -1213,7 +1213,7 @@
 
             if (!this.isGenerated || !this.result.length) return;
 
-            var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
+            var itemList = this.resultContainer.find('.' + this.options.selector.item),
                 activeItem = itemList.filter('.active'),
                 activeItemIndex = activeItem[0] && itemList.index(activeItem) || null,
                 newActiveItemIndex = null;
