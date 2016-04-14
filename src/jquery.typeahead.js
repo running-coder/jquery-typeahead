@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.1 (2016-4-13)
+ * @version 2.5.1 (2016-4-14)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -1618,6 +1618,21 @@
                 this.container.append(this.resultContainer);
             }
 
+            var emptyTemplate;
+            if (!this.result.length) {
+                if (this.options.emptyTemplate) {
+                    emptyTemplate = typeof this.options.emptyTemplate === "function" ?
+                        this.options.emptyTemplate.call(this, this.query) :
+                        this.options.emptyTemplate.replace(/\{\{query}}/gi, this.query.sanitize());
+
+                    if (emptyTemplate instanceof $) {
+                        emptyTemplate = emptyTemplate[0].outerHTML;
+                    }
+                } else {
+                    return;
+                }
+            }
+
             var _query = this.query.toLowerCase();
             if (this.options.accent) {
                 _query = this.helper.removeAccent.call(this, _query);
@@ -1627,32 +1642,30 @@
                 groupTemplate = this.groupTemplate || '<ul></ul>',
                 hasEmptyTemplate = false;
 
-            groupTemplate = $(groupTemplate.replace(/<([^>]+)>\{\{(.+?)}}<\/[^>]+>/g, function (match, tag, group, offset, string) {
+            if (this.groupTemplate) {
+                groupTemplate = $(groupTemplate.replace(/<([^>]+)>\{\{(.+?)}}<\/[^>]+>/g, function (match, tag, group, offset, string) {
+                    var template = '',
+                        groups = group === "group" ? scope.groups : [group];
 
-                var template = '',
-                    groups = group === "group" ? scope.groups : [group];
+                    if (!scope.result.length) {
+                        if (hasEmptyTemplate === true) return '';
+                        hasEmptyTemplate = true;
 
-                if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
-                    if (hasEmptyTemplate === true) return '';
-                    hasEmptyTemplate = true;
-
-                    var emptyTemplate = typeof scope.options.emptyTemplate === "function" ?
-                        scope.options.emptyTemplate.call(scope, scope.query) :
-                        scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query.sanitize());
-
-                    if (emptyTemplate instanceof $) {
-                        emptyTemplate = emptyTemplate[0].outerHTML;
+                        return '<' + tag + ' class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></' + tag + '>';
                     }
 
-                    return '<' + tag + ' class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></' + tag + '>';
-                }
+                    for (var i = 0, ii = groups.length; i < ii; ++i) {
+                        template += '<' + tag + ' data-result-template="' + groups[i] + '"><ul></ul></' + tag + '>';
+                    }
 
-                for (var i = 0, ii = groups.length; i < ii; ++i) {
-                    template += '<' + tag + ' data-result-template="' + groups[i] + '"><ul></ul></' + tag + '>';
+                    return template;
+                }));
+            } else {
+                groupTemplate = $(groupTemplate);
+                if (!this.result.length) {
+                    groupTemplate.append('<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>');
                 }
-
-                return template;
-            }));
+            }
 
             groupTemplate.addClass(this.options.selector.list + (this.helper.isEmpty(this.result) ? ' empty' : ''));
 
@@ -1773,7 +1786,7 @@
                     })
                 });
 
-                (function(i, item, liHtml) {
+                (function (i, item, liHtml) {
                     liHtml.on('click', function (e) {
                         if (scope.options.mustSelectItem && scope.helper.isEmpty(item)) {
                             e.preventDefault();
@@ -1808,7 +1821,7 @@
 
             }
 
-            if (_unUsedGroups) {
+            if (this.result.length && _unUsedGroups) {
                 for (var i = 0, ii = _unUsedGroups.length; i < ii; ++i) {
                     groupTemplate.find('[data-result-template="' + _unUsedGroups[i] + '"]').remove();
                 }
