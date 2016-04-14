@@ -17,3 +17,4 @@ Object.keys(window).forEach(function (key) {
 require('./unit/config-test.js');
 require('./unit/helper-test.js');
 require('./integration/sanitize-test.js');
+require('./integration/beforeSend-test.js');

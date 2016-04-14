@@ -857,10 +857,6 @@
                         }
                     }
 
-                    console.log('~~~~~~~~')
-                    console.log(xhrObject.request.beforeSend)
-                    console.log('~~~~~~~~')
-
                     $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
 
                         var tmpData;
