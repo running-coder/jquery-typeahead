@@ -186,6 +186,7 @@
 
         this.backdrop = {};             // The backdrop object
         this.hint = {};                 // The hint object
+        this.hasDragged = false;        // Will cancel mouseend events if true
 
         this.__construct();
 
@@ -503,14 +504,13 @@
                     'generateOnLoad' + _namespace
                 ];
 
-            this.container.off(_namespace).on("click" + _namespace + ' touchstart' + _namespace, function (e) {
-                //#146 allow bubbling
-                //e.stopPropagation();
-                if (scope.options.dropdownFilter &&
-                    scope.container.hasClass('filter') && !$(e.target).closest('.' + scope.options.selector.dropdown.replace(" ", "."))[0]) {
+            //#149 - Adding support for Mobiles
+            $('html').on("touchmove", function () {
+                scope.hasDragged = true;
+            });
 
-                    scope.container.removeClass('filter');
-                }
+            $('html').on("touchstart", function () {
+                scope.hasDragged = false;
             });
 
             this.node.closest('form').on("submit", function (e) {
@@ -1992,7 +1992,8 @@
                                 $('html').off(_ns);
 
                                 if (scope.container.hasClass('filter')) {
-                                    $('html').one("click" + _ns + " touchstart" + _ns, function () {
+                                    $('html').on("click" + _ns + " touchend" + _ns, function (e) {
+                                        if ($(e.target).closest('.' + scope.options.selector.filter)[0] || scope.hasDragged) return;
                                         scope.container.removeClass('filter');
                                     });
                                 }
@@ -2251,8 +2252,8 @@
             var scope = this;
 
             $('html').off(_namespace)
-                .on("click" + _namespace + " touchstart" + _namespace, function (e) {
-                    if ($(e.target).closest(scope.container)[0]) return;
+                .on("click" + _namespace + " touchend" + _namespace, function (e) {
+                    if ($(e.target).closest(scope.container)[0] || scope.hasDragged) return;
                     scope.hideLayout();
                 });
 
