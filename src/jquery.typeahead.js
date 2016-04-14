@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.1 (2016-4-13)
+ * @version 2.5.1 (2016-4-14)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -70,9 +70,9 @@
         href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on link results
         display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
         template: null,
+        groupTemplate: null,    // -> New feature, set a custom template for the groups
         correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
         emptyTemplate: false,   // -> New feature, display an empty template if no result
-        resultTemplate: null,   // -> New feature, set a custom result template
         cancelButton: true,     // -> New feature, if text is detected in the input, a cancel button will be available to reset the input (pressing ESC also cancels)
         filter: true,           // -> New feature, set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
         matcher: null,          // -> New feature, add an extra filtering function after the typeahead functions
@@ -159,9 +159,9 @@
         this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
         this.groupCount = 0;            // Number of groups, this value gets counted on the initial source unification
         this.groupBy = "group";         // This option will change according to filtering or custom grouping
-        this.groups = [];               // Array of all the available groups, used to build the resultTemplate
+        this.groups = [];               // Array of all the available groups, used to build the groupTemplate
         this.result = {};               // Results based on Source-query match (only contains the displayed elements)
-        this.resultTemplate = '';       // Result template at the {{group}} level
+        this.groupTemplate = '';       // Result template at the {{group}} level
         this.resultHtml = null;         // HTML Results (displayed elements)
         this.resultCount = 0;           // Total results based on Source-query match
         this.resultCountPerGroup = {};  // Total results based on Source-query match per group
@@ -335,8 +335,8 @@
                 }
             }
 
-            if (this.options.resultTemplate) {
-                this.resultTemplate = this.options.resultTemplate;
+            if (this.options.groupTemplate) {
+                this.groupTemplate = this.options.groupTemplate;
             }
 
             if (this.options.resultContainer) {
@@ -1622,45 +1622,59 @@
                 this.container.append(this.resultContainer);
             }
 
+            var emptyTemplate;
+            if (!this.result.length) {
+                if (this.options.emptyTemplate) {
+                    emptyTemplate = typeof this.options.emptyTemplate === "function" ?
+                        this.options.emptyTemplate.call(this, this.query) :
+                        this.options.emptyTemplate.replace(/\{\{query}}/gi, this.query.sanitize());
+
+                    if (emptyTemplate instanceof $) {
+                        emptyTemplate = emptyTemplate[0].outerHTML;
+                    }
+                } else {
+                    return;
+                }
+            }
+
             var _query = this.query.toLowerCase();
             if (this.options.accent) {
                 _query = this.helper.removeAccent.call(this, _query);
             }
 
             var scope = this,
-                resultTemplate = this.resultTemplate || '<ul></ul>',
+                groupTemplate = this.groupTemplate || '<ul></ul>',
                 hasEmptyTemplate = false;
 
-            resultTemplate = $(resultTemplate.replace(/<([^>]+)>\{\{(.+?)}}<\/[^>]+>/g, function (match, tag, group, offset, string) {
+            if (this.groupTemplate) {
+                groupTemplate = $(groupTemplate.replace(/<([^>]+)>\{\{(.+?)}}<\/[^>]+>/g, function (match, tag, group, offset, string) {
+                    var template = '',
+                        groups = group === "group" ? scope.groups : [group];
 
-                var template = '',
-                    groups = group === "group" ? scope.groups : [group];
+                    if (!scope.result.length) {
+                        if (hasEmptyTemplate === true) return '';
+                        hasEmptyTemplate = true;
 
-                if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
-                    if (hasEmptyTemplate === true) return '';
-                    hasEmptyTemplate = true;
-
-                    var emptyTemplate = typeof scope.options.emptyTemplate === "function" ?
-                        scope.options.emptyTemplate.call(scope, scope.query) :
-                        scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query.sanitize());
-
-                    if (emptyTemplate instanceof $) {
-                        emptyTemplate = emptyTemplate[0].outerHTML;
+                        return '<' + tag + ' class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></' + tag + '>';
                     }
 
-                    return '<' + tag + ' class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></' + tag + '>';
+                    for (var i = 0, ii = groups.length; i < ii; ++i) {
+                        template += '<' + tag + ' data-result-template="' + groups[i] + '"><ul></ul></' + tag + '>';
+                    }
+
+                    return template;
+                }));
+            } else {
+                groupTemplate = $(groupTemplate);
+                if (!this.result.length) {
+                    groupTemplate.append('<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>');
                 }
+            }
 
-                for (var i = 0, ii = groups.length; i < ii; ++i) {
-                    template += '<' + tag + ' data-result-template="' + groups[i] + '"><ul></ul></' + tag + '>';
-                }
-
-                return template;
-            }));
-
-            resultTemplate.addClass(this.options.selector.list + (this.helper.isEmpty(this.result) ? ' empty' : ''));
+            groupTemplate.addClass(this.options.selector.list + (this.helper.isEmpty(this.result) ? ' empty' : ''));
 
             var _group = 'group',
+                _groupTemplate,
                 _item,
                 _href,
                 _liHtml,
@@ -1668,7 +1682,7 @@
                 _aHtml,
                 _display,
                 _displayKeys,
-                _unUsedGroups = this.resultTemplate && this.result.length && scope.groups || null,
+                _unUsedGroups = this.groupTemplate && this.result.length && scope.groups || null,
                 _tmpIndexOf;
 
             for (var i = 0, ii = this.result.length; i < ii; ++i) {
@@ -1682,20 +1696,21 @@
                     _group = _item[this.options.group.key];
                     if (this.options.group.template) {
                         if (typeof this.options.group.template === "function") {
-                            _group = this.options.group.template(_item);
+                            _groupTemplate = this.options.group.template(_item);
                         } else if (typeof this.options.template === "string") {
-                            _group = this.options.group.template.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
+                            _groupTemplate = this.options.group.template.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
                                 return this.helper.namespace(index, _item, 'get', '');
                             });
                         }
                     }
-                    if (!resultTemplate.find('[data-search-group="' + _group + '"]')[0]) {
-                        (this.resultTemplate ? resultTemplate.find('[data-result-template="' + _group + '"] ul') : resultTemplate).append(
+
+                    if (!groupTemplate.find('[data-search-group="' + _group + '"]')[0]) {
+                        (this.groupTemplate ? groupTemplate.find('[data-result-template="' + _group + '"] ul') : groupTemplate).append(
                             $("<li/>", {
                                 "class": scope.options.selector.group,
                                 "html": $("<a/>", {
                                     "href": "javascript:;",
-                                    "html": _group,
+                                    "html": _groupTemplate || _group,
                                     "tabindex": -1
                                 }),
                                 "data-search-group": _group
@@ -1704,7 +1719,7 @@
                     }
                 }
 
-                if (this.resultTemplate) {
+                if (this.groupTemplate) {
                     _tmpIndexOf = _unUsedGroups.indexOf(_group || _item.group)
                     if (~_tmpIndexOf) {
                         _unUsedGroups.splice(_tmpIndexOf, 1)
@@ -1775,7 +1790,7 @@
                     })
                 });
 
-                (function(i, item, liHtml) {
+                (function (i, item, liHtml) {
                     liHtml.on('click', function (e) {
                         if (scope.options.mustSelectItem && scope.helper.isEmpty(item)) {
                             e.preventDefault();
@@ -1806,17 +1821,17 @@
                     });
                 }(i, _item, _liHtml));
 
-                (this.resultTemplate ? resultTemplate.find('[data-result-template="' + _group + '"] ul') : resultTemplate).append(_liHtml);
+                (this.groupTemplate ? groupTemplate.find('[data-result-template="' + _group + '"] ul') : groupTemplate).append(_liHtml);
 
             }
 
-            if (_unUsedGroups) {
+            if (this.result.length && _unUsedGroups) {
                 for (var i = 0, ii = _unUsedGroups.length; i < ii; ++i) {
-                    resultTemplate.find('[data-result-template="' + _unUsedGroups[i] + '"]').remove();
+                    groupTemplate.find('[data-result-template="' + _unUsedGroups[i] + '"]').remove();
                 }
             }
 
-            this.resultHtml = resultTemplate;
+            this.resultHtml = groupTemplate;
 
         },
 
