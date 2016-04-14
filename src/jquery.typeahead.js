@@ -728,6 +728,7 @@
                     url: null,
                     dataType: 'json',
                     beforeSend: function (jqXHR, options) {
+                        // Important to call .abort() in case of dynamic requests
                         scope.xhr[group] = jqXHR;
 
                         var beforeSend = scope.requests[group].extra.beforeSend || groupSource.url[0].beforeSend;
@@ -748,17 +749,16 @@
                 validForGroup: [group]
             };
 
-            // Fixes #105 Allow user to define their beforeSend function.
-            Object.defineProperty(xhrObject.request, 'beforeSend', {writable: false});
-
-            if (groupSource.url[0] instanceof Object) {
+            if (typeof groupSource.url[0] !== "function" && groupSource.url[0] instanceof Object) {
 
                 if (groupSource.url[0].callback) {
                     xhrObject.extra.callback = groupSource.url[0].callback;
                     delete groupSource.url[0].callback;
                 }
 
-                xhrObject.request = $.extend(true, xhrObject.request, groupSource.url[0]);
+                // Fixes #105 Allow user to define their beforeSend function.
+                // Fixes #181 IE8 incompatibility
+                xhrObject.request = $.extend(true, xhrObject.request, groupSource.url[0], {beforeSend: xhrObject.request.beforeSend});
 
             } else if (typeof groupSource.url[0] === "string") {
                 xhrObject.request.url = groupSource.url[0];
@@ -811,7 +811,7 @@
 
                         var _groupRequest = scope.options.source[group].url[0].call(scope, scope.query);
 
-                        xhrObject.request = $.extend(true, xhrObject.request, _groupRequest);
+                        xhrObject.request = $.extend(true, xhrObject.request, _groupRequest, {beforeSend: xhrObject.request.beforeSend});
                         if (typeof xhrObject.request !== "object" || !xhrObject.request.url) {
                             // {debug}
                             if (scope.options.debug) {
@@ -856,6 +856,10 @@
                             }
                         }
                     }
+
+                    console.log('~~~~~~~~')
+                    console.log(xhrObject.request.beforeSend)
+                    console.log('~~~~~~~~')
 
                     $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
 
