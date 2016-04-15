@@ -18,3 +18,4 @@ require('./unit/config-test.js');
 require('./unit/helper-test.js');
 require('./integration/sanitize-test.js');
 require('./integration/beforeSend-test.js');
+require('./integration/groupTemplate-test.js');

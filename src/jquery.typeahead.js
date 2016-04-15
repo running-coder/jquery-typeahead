@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.1 (2016-4-14)
+ * @version 2.5.1 (2016-4-15)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -1655,7 +1655,7 @@
                     }
 
                     for (var i = 0, ii = groups.length; i < ii; ++i) {
-                        template += '<' + tag + ' data-result-template="' + groups[i] + '"><ul></ul></' + tag + '>';
+                        template += '<' + tag + ' data-group-template="' + groups[i] + '"><ul></ul></' + tag + '>';
                     }
 
                     return template;
@@ -1669,7 +1669,7 @@
 
             groupTemplate.addClass(this.options.selector.list + (this.helper.isEmpty(this.result) ? ' empty' : ''));
 
-            var _group = 'group',
+            var _group,
                 _groupTemplate,
                 _item,
                 _href,
@@ -1684,6 +1684,7 @@
             for (var i = 0, ii = this.result.length; i < ii; ++i) {
 
                 _item = this.result[i];
+                _group = _item['group'];
                 _href = this.options.source[_item.group].href || this.options.href;
                 _display = [];
                 _displayKeys = this.options.source[_item.group].display || this.options.display;
@@ -1701,7 +1702,7 @@
                     }
 
                     if (!groupTemplate.find('[data-search-group="' + _group + '"]')[0]) {
-                        (this.groupTemplate ? groupTemplate.find('[data-result-template="' + _group + '"] ul') : groupTemplate).append(
+                        (this.groupTemplate ? groupTemplate.find('[data-group-template="' + _group + '"] ul') : groupTemplate).append(
                             $("<li/>", {
                                 "class": scope.options.selector.group,
                                 "html": $("<a/>", {
