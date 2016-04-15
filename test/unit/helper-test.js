@@ -128,6 +128,19 @@ describe('Typeahead Helpers Tests', function () {
 
     });
 
+    it('Typeahead.prototype.helper.cleanStringFromScript', function () {
+
+        expect(Typeahead.prototype.helper.cleanStringFromScript).to.be.a('function');
+
+        expect(myTypeahead.helper.cleanStringFromScript(1)).to.equal(1);
+        expect(myTypeahead.helper.cleanStringFromScript(undefined)).to.equal(undefined);
+        expect(myTypeahead.helper.cleanStringFromScript(true)).to.equal(true);
+        expect(myTypeahead.helper.cleanStringFromScript("test")).to.equal("test");
+        expect(myTypeahead.helper.cleanStringFromScript("<script>alert('test');</script>")).to.equal("alert('test');");
+        expect(myTypeahead.helper.cleanStringFromScript("\u003cscript\u003ealert('<iframe src='www.test.com'>test</iframe>');\u003c/script\u003e")).to.equal("alert('test');");
+
+    });
+
     it('Typeahead.prototype.helper.executeCallback', function () {
 
         window.definedTestFunction = function () {

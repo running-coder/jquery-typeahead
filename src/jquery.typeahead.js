@@ -514,7 +514,6 @@
             });
 
             this.node.closest('form').on("submit", function (e) {
-
                 if (scope.options.mustSelectItem && scope.helper.isEmpty(scope.item)) {
                     e.preventDefault();
                     return;
@@ -1219,15 +1218,10 @@
                 newActiveItemIndex = null;
 
             if (e.keyCode === 13) {
-
-                // Prevent form submit
-                e.preventDefault();
-
                 if (activeItem.length > 0) {
+                    // Prevent form submit if an element is selected
+                    e.preventDefault();
                     activeItem.find('a:first')[0].click();
-                } else {
-                    // Go through Typeahead form submit
-                    this.node.closest('form').submit();
                 }
                 return;
             }
@@ -1393,6 +1387,8 @@
                     displayKeys = this.options.source[group].display || this.options.display;
 
                     for (var i = 0, ii = displayKeys.length; i < ii; i++) {
+                        // #182 Continue looping if invalid key
+                        if (!item[displayKeys[i]]) continue;
 
                         item[displayKeys[i]] = this.helper.cleanStringFromScript(item[displayKeys[i]]);
 
@@ -2510,7 +2506,9 @@
              * @returns {string}
              */
             cleanStringFromScript: function (string) {
-                return string.replace(/<\/?(?:script|iframe)\b[^>]*>/gm, '');
+                return typeof string === "string" &&
+                    string.replace(/<\/?(?:script|iframe)\b[^>]*>/gm, '') ||
+                    string;
             },
 
             /**
