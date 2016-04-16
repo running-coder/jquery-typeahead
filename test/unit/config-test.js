@@ -1,7 +1,6 @@
-var expect = require('chai').expect;
-var pkg = require('../../package.json');
-var jQuery = $ = require("jquery");
-var Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
+var expect = require('chai').expect,
+    jQuery = $ = require("jquery"),
+    Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
 
 describe('Typeahead Config Tests', function () {
     'use strict';

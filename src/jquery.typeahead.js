@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.1 (2016-4-15)
+ * @version 2.5.1 (2016-4-16)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -904,8 +904,11 @@
                             _debug.log({
                                 'node': scope.node.selector,
                                 'function': 'Ajax.callback.fail()',
-                                'message': 'Request failed'
+                                'arguments': JSON.stringify(xhrObject.request),
+                                'message': textStatus
                             });
+
+                            console.log(errorThrown);
 
                             _debug.print();
                         }
@@ -1339,6 +1342,7 @@
                 maxItemPerGroup = this.options.maxItemPerGroup,
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
+                displayValue,
                 missingDisplayKey = {},
                 groupFilter,
                 groupFilterResult,
@@ -1387,13 +1391,29 @@
                     displayKeys = this.options.source[group].display || this.options.display;
 
                     for (var i = 0, ii = displayKeys.length; i < ii; i++) {
-                        // #182 Continue looping if invalid key
-                        if (!item[displayKeys[i]]) continue;
 
-                        item[displayKeys[i]] = this.helper.cleanStringFromScript(item[displayKeys[i]]);
+                        // #183 Allow searching for deep source object keys
+                        displayValue = /\./.test(displayKeys[i]) ?
+                            this.helper.namespace(displayKeys[i], item) :
+                            item[displayKeys[i]];
+
+                        // #182 Continue looping if empty or undefined key
+                        if (typeof displayValue === 'undefined' || displayValue === '') {
+                            // {debug}
+                            if (this.options.debug) {
+                                missingDisplayKey[i] = {
+                                    display: displayKeys[i],
+                                    data: item
+                                };
+                            }
+                            // {/debug}
+                            continue;
+                        }
+
+                        displayValue = this.helper.cleanStringFromScript(displayValue);
 
                         if (typeof groupFilter === "function") {
-                            groupFilterResult = groupFilter.call(this, item, item[displayKeys[i]]);
+                            groupFilterResult = groupFilter.call(this, item, displayValue);
 
                             // return undefined to skip to next item
                             // return false to attempt the matching function on the next displayKey
@@ -1408,20 +1428,7 @@
                         }
 
                         if (~[undefined, true].indexOf(groupFilter)) {
-                            comparedDisplay = item[displayKeys[i]];
-
-                            if (!comparedDisplay) {
-                                // {debug}
-                                if (this.options.debug) {
-                                    missingDisplayKey[i] = {
-                                        display: displayKeys[i],
-                                        data: item
-                                    };
-                                }
-                                // {/debug}
-                                continue;
-                            }
-
+                            comparedDisplay = displayValue;
                             comparedDisplay = comparedDisplay.toString().toLowerCase();
 
                             if (this.options.accent) {
@@ -1450,7 +1457,7 @@
                             if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
 
                             if (groupMatcher) {
-                                groupMatcherResult = groupMatcher.call(this, item, item[displayKeys[i]]);
+                                groupMatcherResult = groupMatcher.call(this, item, displayValue);
 
                                 // return undefined to skip to next item
                                 // return false to attempt the matching function on the next displayKey
@@ -1674,6 +1681,7 @@
                 _aHtml,
                 _display,
                 _displayKeys,
+                _displayValue,
                 _unUsedGroups = this.groupTemplate && this.result.length && scope.groups || null,
                 _tmpIndexOf;
 
@@ -1767,7 +1775,13 @@
                                 });
                             } else {
                                 for (var i = 0, ii = _displayKeys.length; i < ii; i++) {
-                                    _display.push(_item[_displayKeys[i]]);
+                                    _displayValue = /\./.test(_displayKeys[i]) ?
+                                        scope.helper.namespace(_displayKeys[i], _item) :
+                                        _item[_displayKeys[i]];
+
+                                    if (typeof _displayValue === 'undefined' || _displayValue === '') continue;
+
+                                    _display.push(_displayValue);
                                 }
 
                                 _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.cleanStringFromScript(String(_display.join(" "))) + '</span>';

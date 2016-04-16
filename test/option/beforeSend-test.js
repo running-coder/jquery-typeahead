@@ -1,7 +1,6 @@
-var expect = require('chai').expect;
-var pkg = require('../../package.json');
-var jQuery = $ = require("jquery");
-var Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
+var expect = require('chai').expect,
+    jQuery = $ = require("jquery"),
+    Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
 
 describe('Typeahead beforeSend Tests', function () {
     'use strict';
@@ -18,11 +17,11 @@ describe('Typeahead beforeSend Tests', function () {
                 input: '.js-typeahead-before-send-object',
                 minLength: 0,
                 generateOnLoad: true,
-                highlight: true,
                 source: {
                     url: "http://www.gamer-hub.com/tag/list.json",
                     dataType: "jsonp",
-                    beforeSend: function (jqXHR, options) {}
+                    beforeSend: function (jqXHR, options) {
+                    }
                 }
             });
 
@@ -55,7 +54,8 @@ describe('Typeahead beforeSend Tests', function () {
                         return {
                             url: "http://www.gamer-hub.com/tag/list.json",
                             dataType: "jsonp",
-                            beforeSend: function (jqXHR, options) {}
+                            beforeSend: function (jqXHR, options) {
+                            }
                         }
                     }, "data"]
                 }

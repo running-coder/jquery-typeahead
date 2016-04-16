@@ -1,7 +1,7 @@
-var expect = require('chai').expect;
-var pkg = require('../../package.json');
-var jQuery = $ = require("jquery");
-var Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
+var expect = require('chai').expect,
+    pkg = require('../../package.json'),
+    jQuery = $ = require("jquery"),
+    Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
 
 describe('Typeahead Helpers Tests', function () {
     'use strict';
@@ -76,10 +76,10 @@ describe('Typeahead Helpers Tests', function () {
                 )
             )
         ).to.eql([
-                {display: 'aDisplay'},
-                {display: 'bDisplay'},
-                {display: 'cDisplay'}
-            ]);
+            {display: 'aDisplay'},
+            {display: 'bDisplay'},
+            {display: 'cDisplay'}
+        ]);
 
         expect(
             myArray.sort(
@@ -92,10 +92,10 @@ describe('Typeahead Helpers Tests', function () {
                 )
             )
         ).to.eql([
-                {display: 'cDisplay'},
-                {display: 'bDisplay'},
-                {display: 'aDisplay'}
-            ])
+            {display: 'cDisplay'},
+            {display: 'bDisplay'},
+            {display: 'aDisplay'}
+        ])
 
     });
 

@@ -1,7 +1,6 @@
-var expect = require('chai').expect;
-var pkg = require('../../package.json');
-var jQuery = $ = require("jquery");
-var Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
+var expect = require('chai').expect,
+    jQuery = $ = require("jquery"),
+    Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
 
 describe('Typeahead groupTemplate option Tests', function () {
     'use strict';
@@ -18,7 +17,6 @@ describe('Typeahead groupTemplate option Tests', function () {
                 input: '.js-typeahead-group-template-hardcoded',
                 minLength: 0,
                 generateOnLoad: true,
-                highlight: true,
                 groupTemplate: (`
                 <table>
                     <tr>
@@ -29,13 +27,13 @@ describe('Typeahead groupTemplate option Tests', function () {
                 </table>`).replace(/\s/g, ''),
                 source: {
                     group_one: {
-                        data: ['group_one_data_one','group_one_data_two','group_one_data_three','group_one_data_four']
+                        data: ['group_one_data_one', 'group_one_data_two', 'group_one_data_three', 'group_one_data_four']
                     },
                     group_two: {
-                        data: ['group_two_data_one','group_two_data_two','group_two_data_three','group_two_data_four']
+                        data: ['group_two_data_one', 'group_two_data_two', 'group_two_data_three', 'group_two_data_four']
                     },
                     group_three: {
-                        data: ['group_three_data_one','group_three_data_two','group_three_data_three','group_three_data_four']
+                        data: ['group_three_data_one', 'group_three_data_two', 'group_three_data_three', 'group_three_data_four']
                     }
                 }
             });

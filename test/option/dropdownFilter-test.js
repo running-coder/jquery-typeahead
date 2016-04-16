@@ -1,7 +1,6 @@
-var expect = require('chai').expect;
-var pkg = require('../../package.json');
-var jQuery = $ = require("jquery");
-var Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
+var expect = require('chai').expect,
+    jQuery = $ = require("jquery"),
+    Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
 
 describe('Typeahead dropdownFilter option Tests', function () {
     'use strict';
@@ -16,7 +15,6 @@ describe('Typeahead dropdownFilter option Tests', function () {
             input: '.js-typeahead-dropdown-filter',
             minLength: 0,
             generateOnLoad: true,
-            highlight: true,
             display: ['display'],
             template: '{{display}} {{details}}',
             emptyTemplate: "no result for {{query}}",
@@ -27,7 +25,7 @@ describe('Typeahead dropdownFilter option Tests', function () {
 
     it('Typeahead.options.dropdownFilter - Test for boolean', function () {
 
-           // dropdownFilter: true,
+        // dropdownFilter: true,
 
     });
 

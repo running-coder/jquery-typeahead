@@ -1,8 +1,9 @@
-var glob = require('glob');
-var path = require('path');
-var jsdom = require('jsdom');
-var doc = jsdom.jsdom('<!doctype html><html><body></body></html>');
-var win = doc.defaultView;
+'use strict';
+
+var glob = require('glob'),
+    jsdom = require('jsdom'),
+    doc = jsdom.jsdom('<!doctype html><html><body></body></html>'),
+    win = doc.defaultView;
 
 global.document = doc;
 global.window = win;
@@ -17,5 +18,8 @@ Object.keys(window).forEach(function (key) {
 require('./unit/config-test.js');
 require('./unit/helper-test.js');
 require('./integration/sanitize-test.js');
-require('./integration/beforeSend-test.js');
-require('./integration/groupTemplate-test.js');
+require('./integration/anyValueType-test.js');
+require('./option/beforeSend-test.js');
+require('./option/dropdownFilter-test.js');
+require('./option/groupTemplate-test.js');
+require('./option/display-test.js');
