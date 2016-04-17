@@ -8,7 +8,6 @@ describe('Typeahead beforeSend Tests', function () {
     let myTypeahead;
 
     describe('request.beforeSend as an Object', function () {
-
         before(function () {
 
             document.write('<input class="js-typeahead-before-send-object">');
@@ -24,22 +23,17 @@ describe('Typeahead beforeSend Tests', function () {
                     }
                 }
             });
-
         });
 
-        it('Typeahead.source.group.request.beforeSend - Test $.extend integrity', function () {
-
+        it('should preserve Typeahead request.beforeSend Function', function () {
             myTypeahead.node.val('test');
             myTypeahead.node.trigger('input.typeahead');
 
             expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group] = jqXHR;')).to.be.true;
-
         });
-
     });
 
     describe('request.beforeSend as an Array', function () {
-
         before(function () {
 
             document.write('<input class="js-typeahead-before-send-array">');
@@ -60,19 +54,14 @@ describe('Typeahead beforeSend Tests', function () {
                     }, "data"]
                 }
             });
-
         });
 
-        it('Typeahead.source.group.request.beforeSend - Test $.extend integrity', function () {
-
+        it('should preserve Typeahead request.beforeSend Function', function () {
             myTypeahead.node.val('test');
             myTypeahead.node.trigger('input.typeahead');
 
             expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group] = jqXHR;')).to.be.true;
-
         });
-
     });
-
 
 });

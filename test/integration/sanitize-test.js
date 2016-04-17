@@ -31,28 +31,23 @@ describe('Typeahead Sanitize Tests', function () {
                 }
             ]
         });
-
     });
 
-    it('Typeahead.sanitize - Test for display values', function () {
-
+    it('Should display values', function () {
         myTypeahead.node.val('test');
         myTypeahead.node.trigger('input.typeahead');
 
         expect(myTypeahead.resultCount).to.be.equal(2);
         expect(myTypeahead.resultHtml).to.not.be.null;
         expect(/<\/?(?:script|iframe)\b[^>]*>/.test(myTypeahead.resultHtml[0].innerHTML)).to.be.false;
-
     });
 
-    it('Typeahead.sanitize - Test for empty template', function () {
-
+    it('Should display sanitized values', function () {
         myTypeahead.node.val('<script>empty</script>');
         myTypeahead.node.trigger('input.typeahead');
 
         expect(myTypeahead.resultCount).to.be.equal(0);
         expect(!!~myTypeahead.resultHtml[0].innerHTML.indexOf('&lt;script&gt;empty&lt;/script&gt;')).to.be.true;
-
     });
 
 });

@@ -41,37 +41,30 @@ describe('Typeahead Config Tests', function () {
             },
             debug: true
         });
-
     });
 
-    it('Typeahead.options', function () {
-
+    it('Should merge options', function () {
         expect(myTypeahead.options.input).to.equal('.js-typeahead-options');
         expect(myTypeahead.options.minLength).to.equal(0);
         expect(myTypeahead.options.highlight).to.be.false;
         expect(myTypeahead.options.groupOrder).to.equal('asc');
-
     });
 
-
-    it('Typeahead.callbacks', function () {
-
+    it('Should merge callbacks', function () {
         expect(myTypeahead.options.callback.onInit).to.be.a('function');
         expect(myTypeahead.options.callback.onInit.apply(myTypeahead).node.selector).to.equal('.js-typeahead-options');
-
         expect(myTypeahead.options.callback.onSearch).to.be.a('function');
+
         myTypeahead.node.val('test');
         myTypeahead.node.trigger('input.typeahead');
-        expect(myTypeahead.options.callback.onSearch.apply(myTypeahead).query).to.equal('test')
 
+        expect(myTypeahead.options.callback.onSearch.apply(myTypeahead).query).to.equal('test')
     });
 
-    it('Typeahead.selectors', function () {
-
+    it('Should merge selectors', function () {
         expect(myTypeahead.options.selector.container).to.equal('typeahead-container-test');
         expect(myTypeahead.options.selector.result).to.equal('typeahead-result-test');
         expect(myTypeahead.options.selector.list).to.equal('typeahead-list-test');
-
     });
 
 });

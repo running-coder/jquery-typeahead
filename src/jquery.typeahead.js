@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.1 (2016-4-16)
+ * @version 2.5.1 (2016-4-17)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -1628,9 +1628,6 @@
                         this.options.emptyTemplate.call(this, this.query) :
                         this.options.emptyTemplate.replace(/\{\{query}}/gi, this.query.sanitize());
 
-                    if (emptyTemplate instanceof $) {
-                        emptyTemplate = emptyTemplate[0].outerHTML;
-                    }
                 } else {
                     return;
                 }
@@ -1666,7 +1663,11 @@
             } else {
                 groupTemplate = $(groupTemplate);
                 if (!this.result.length) {
-                    groupTemplate.append('<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>');
+                    groupTemplate.append(
+                        emptyTemplate instanceof $ ?
+                            emptyTemplate :
+                        '<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>'
+                    );
                 }
             }
 
@@ -1682,7 +1683,7 @@
                 _display,
                 _displayKeys,
                 _displayValue,
-                _unUsedGroups = this.groupTemplate && this.result.length && scope.groups || [],
+                _unusedGroups = this.groupTemplate && this.result.length && scope.groups || [],
                 _tmpIndexOf;
 
             for (var i = 0, ii = this.result.length; i < ii; ++i) {
@@ -1720,10 +1721,10 @@
                     }
                 }
 
-                if (this.groupTemplate && _unUsedGroups.length) {
-                    _tmpIndexOf = _unUsedGroups.indexOf(_group || _item.group)
+                if (this.groupTemplate && _unusedGroups.length) {
+                    _tmpIndexOf = _unusedGroups.indexOf(_group || _item.group)
                     if (~_tmpIndexOf) {
-                        _unUsedGroups.splice(_tmpIndexOf, 1)
+                        _unusedGroups.splice(_tmpIndexOf, 1)
                     }
                 }
 
@@ -1831,9 +1832,9 @@
                 (this.groupTemplate ? groupTemplate.find('[data-group-template="' + _group + '"] ul') : groupTemplate).append(_liHtml);
             }
 
-            if (this.result.length && _unUsedGroups.length) {
-                for (var i = 0, ii = _unUsedGroups.length; i < ii; ++i) {
-                    groupTemplate.find('[data-result-template="' + _unUsedGroups[i] + '"]').remove();
+            if (this.result.length && _unusedGroups.length) {
+                for (var i = 0, ii = _unusedGroups.length; i < ii; ++i) {
+                    groupTemplate.find('[data-group-template="' + _unusedGroups[i] + '"]').remove();
                 }
             }
 

@@ -2,13 +2,13 @@ var expect = require('chai').expect,
     jQuery = $ = require("jquery"),
     Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
 
-describe('Typeahead options.display Tests', function () {
+describe('Typeahead display option Tests', function () {
     'use strict';
 
     let myTypeahead;
 
-    describe('options.display can search for a deep key', function () {
-
+    describe('Search for a deep key', function () {
+        
         before(function () {
 
             document.write('<input class="js-typeahead-display">');
@@ -35,7 +35,7 @@ describe('Typeahead options.display Tests', function () {
 
         });
 
-        it('Typeahead.display - Test for deep key matching inside the source data', function () {
+        it('Should resolve a deep key inside the source data', function () {
 
             myTypeahead.node.val('42');
             myTypeahead.node.trigger('input.typeahead');
@@ -45,5 +45,4 @@ describe('Typeahead options.display Tests', function () {
         });
 
     });
-
 });
