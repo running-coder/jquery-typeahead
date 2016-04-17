@@ -1682,7 +1682,7 @@
                 _display,
                 _displayKeys,
                 _displayValue,
-                _unUsedGroups = this.groupTemplate && this.result.length && scope.groups || null,
+                _unUsedGroups = this.groupTemplate && this.result.length && scope.groups || [],
                 _tmpIndexOf;
 
             for (var i = 0, ii = this.result.length; i < ii; ++i) {
@@ -1720,7 +1720,7 @@
                     }
                 }
 
-                if (this.groupTemplate) {
+                if (this.groupTemplate && _unUsedGroups.length) {
                     _tmpIndexOf = _unUsedGroups.indexOf(_group || _item.group)
                     if (~_tmpIndexOf) {
                         _unUsedGroups.splice(_tmpIndexOf, 1)
@@ -1828,11 +1828,10 @@
                     });
                 }(i, _item, _liHtml));
 
-                (this.groupTemplate ? groupTemplate.find('[data-result-template="' + _group + '"] ul') : groupTemplate).append(_liHtml);
-
+                (this.groupTemplate ? groupTemplate.find('[data-group-template="' + _group + '"] ul') : groupTemplate).append(_liHtml);
             }
 
-            if (this.result.length && _unUsedGroups) {
+            if (this.result.length && _unUsedGroups.length) {
                 for (var i = 0, ii = _unUsedGroups.length; i < ii; ++i) {
                     groupTemplate.find('[data-result-template="' + _unUsedGroups[i] + '"]').remove();
                 }
