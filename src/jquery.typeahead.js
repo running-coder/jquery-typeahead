@@ -1728,7 +1728,7 @@
                             _groupTemplate = this.options.group.template(_item);
                         } else if (typeof this.options.template === "string") {
                             _groupTemplate = this.options.group.template.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
-                                return this.helper.namespace(index, _item, 'get', '');
+                                return scope.helper.namespace(index, _item, 'get', '');
                             });
                         }
                     }
@@ -1761,12 +1761,13 @@
                         "href": function () {
                             if (_href) {
                                 if (typeof _href === "string") {
-                                    _href = _href.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/gi, function (match, index, option) {
+                                    _href = _href.replace(/\{\{([^\|}]+)(?:\|([^}]+))*}}/gi, function (match, index, options) {
 
                                         var value = scope.helper.namespace(index, _item, 'get', '');
 
                                         // #151 Slugify should be an option, not enforced
-                                        if (option && option === "slugify") {
+                                        options = options && options.split("|") || [];
+                                        if (~options.indexOf('slugify')) {
                                             value = scope.helper.slugify.call(scope, value);
                                         }
 
@@ -1790,11 +1791,17 @@
                                     _template = _template.call(scope, scope.query, _item);
                                 }
 
-                                _aHtml = _template.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/gi, function (match, index, option) {
+                                _aHtml = _template.replace(/\{\{([^\|}]+)(?:\|([^}]+))*}}/gi, function (match, index, options) {
 
                                     var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace(index, _item, 'get', '')));
 
-                                    if (!option || option !== "raw") {
+                                    // #151 Slugify should be an option, not enforced
+                                    options = options && options.split("|") || [];
+                                    if (~options.indexOf('slugify')) {
+                                        value = scope.helper.slugify.call(scope, value);
+                                    }
+
+                                    if (!~options.indexOf('raw')) {
                                         if (scope.options.highlight === true && _query && ~_displayKeys.indexOf(index)) {
                                             value = scope.helper.highlight.call(scope, value, _query.split(" "), scope.options.accent)
                                         }
