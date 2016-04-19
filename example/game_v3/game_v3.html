@@ -264,39 +264,37 @@
             },
             source: {
                 champion: {
-                    url: [
-                        {
-                            url: "https://global.api.pvp.net/api/lol/static-data/na/v1.2/champion",
-                            dataType: "json",
-                            data: {
-                                champData: 'info,tags,image,blurb',
-                                api_key: '4a9e144c-33b6-4283-98a8-378e0d58b8ab'
-                            },
-                            callback: {
-                                done: function (data) {
-                                    if (!(data instanceof Array)) {
-                                        data = $.map(data.data, function (value, index) {
-                                            for (var type in classification) {
-                                                if (!classification.hasOwnProperty(type)) continue;
-                                                if (~classification[type].indexOf(value.key)) {
-                                                    value.classification = type;
-                                                    break;
-                                                }
+                    ajax: {
+                        url: "https://global.api.pvp.net/api/lol/static-data/na/v1.2/champion",
+                        dataType: "json",
+                        data: {
+                            champData: 'info,tags,image,blurb',
+                            api_key: '4a9e144c-33b6-4283-98a8-378e0d58b8ab'
+                        },
+                        callback: {
+                            done: function (data) {
+                                if (!(data instanceof Array)) {
+                                    data = $.map(data.data, function (value, index) {
+                                        for (var type in classification) {
+                                            if (!classification.hasOwnProperty(type)) continue;
+                                            if (~classification[type].indexOf(value.key)) {
+                                                value.classification = type;
+                                                break;
                                             }
-                                            var tags = {};
-                                            for (var i = 0; i < value.tags.length; i++) {
-                                                tags[value.tags[i]] = true;
-                                            }
-                                            value.tags = tags;
+                                        }
+                                        var tags = {};
+                                        for (var i = 0; i < value.tags.length; i++) {
+                                            tags[value.tags[i]] = true;
+                                        }
+                                        value.tags = tags;
 
-                                            return value;
-                                        });
-                                    }
-                                    return data;
+                                        return value;
+                                    });
                                 }
+                                return data;
                             }
                         }
-                    ]
+                    }
                 }
             },
             callback: {
@@ -378,10 +376,10 @@
             $('.champion-filters input[type="radio"]').prop("checked", false).first().prop("checked", true);
 
             // Clear dynamic filters inside Typeahead "game_v3-query" instance, at this point you know what you are doing.
-            Typeahead['#game_v3-query'].filters.dynamic = {};
+            Typeahead['.js-typeahead-input'].filters.dynamic = {};
 
             // Trigger a manual search
-            $('#game_v3-query').trigger('input.typeahead');
+            $('.js-typeahead-input').trigger('input.typeahead');
 
         });
 

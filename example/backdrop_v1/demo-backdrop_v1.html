@@ -87,9 +87,9 @@
 
 <script>
     var typeaheadResultCount = $('.js-typeahead-result-count'),
-        typeaheadResultCountDefault = typeaheadResultCount.text(),
-        typeaheadToggle = $('.js-typeahead-toggle'),
-        typeaheadSubmit = $('.js-typeahead-submit');
+            typeaheadResultCountDefault = typeaheadResultCount.text(),
+            typeaheadToggle = $('.js-typeahead-toggle'),
+            typeaheadSubmit = $('.js-typeahead-submit');
 
     typeaheadToggle.on('click', function (e) {
         $('.js-typeahead-input').focus();
@@ -116,6 +116,7 @@
         },
         maxItemPerGroup: 30,
         backdropOnFocus: true,
+        cancelButton: false,
         emptyTemplate: function (query) {
             return 'no result for ' + query;
         },
@@ -125,31 +126,30 @@
                 template: function (query, item) {
                     return '<div><img src="http://cdn.gamer-hub.com/images/' + this.helper.slugify.call(this, item.display) + '.jpg"></div>'
                 },
-                url: [{
+                ajax: {
                     url: "http://www.gamer-hub.com/game/list.json",
-                    dataType: "jsonp"
-                }, "data"]
+                    dataType: "jsonp",
+                    path: "data"
+                }
             },
             category: {
                 href: "http://www.gamer-hub.com/category/{{id}}/{{display|slugify}}",
-                url: [{
+                ajax: {
                     url: "http://www.gamer-hub.com/category/list.json",
-                    dataType: "jsonp"
-                }, "data"]
+                    dataType: "jsonp",
+                    path: "data"
+                }
             },
             tag: {
                 href: "http://www.gamer-hub.com/tag/{{id}}/{{display|slugify}}",
-                url: [{
+                ajax: {
                     url: "http://www.gamer-hub.com/tag/list.json",
-                    dataType: "jsonp"
-                }, "data"]
+                    dataType: "jsonp",
+                    path: "data"
+                }
             }
         },
         callback: {
-            onClick: function (node, a, item, event) {
-                event.preventDefault();
-                window.open(item.href);
-            },
             onSearch: function (node, query) {
                 if (query.length < this.options.minLength) {
                     typeaheadResultCount.text(typeaheadResultCountDefault);
@@ -171,27 +171,21 @@
                 typeaheadResultCount.text(text || typeaheadResultCountDefault);
             },
             onShowLayout: function (node, query) {
+                $('html').css('overflow', 'hidden');
                 var scope = this;
 
-                $('html').css('overflow', 'hidden');
-
-                node.closest('form').find('.typeahead-close').on('click touchend', function (e) {
+                node.closest('form').find('.typeahead__close').on('click touchend', function (e) {
                     scope.hideLayout();
                 });
-                $(document).off('keyup.typeahead').on('keyup.typeahead', function (e) {
-                    if (e.keyCode !== 27 || node.is(':focus')) return;
-                    scope.hideLayout();
-                })
             },
             onHideLayout: function (node, query) {
                 $('html').removeAttr('style');
-                $(document).off('keyup.typeahead');
             },
             onNavigateBefore: function (node, query, event) {
                 if (event.keyCode === 13) {
                     var form = node.closest('form');
 
-                    if (!form.find('.typeahead-item.active')[0]) {
+                    if (!form.find('.typeahead__item.active')[0]) {
                         form[0].submit();
                     }
                 }

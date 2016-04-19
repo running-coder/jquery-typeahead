@@ -294,25 +294,21 @@
                     return conference;
                 }
             },
-            //groupOrder: ["Eastern", "Western"],
-//            group: {
-//                group: 'division',
-//                template: '{{group}} division'
-//            },
+            emptyTemplate: 'no result for {{query}}',
+            groupOrder: ["Eastern", "Western"],
             display: ["name", "city", "division"],
             correlativeTemplate: true,
 //            dropdownFilter: true,
 //            dropdownFilter: 'All Teams',
-//            dropdownFilter: [{
-//                key: 'conference',
-//                template: '<strong>{{conference}}</strong> Conference',
-//                all: 'yay'
-//            }, {
-//                key: 'division',
-//                value: 'Northeast',
-//                template: '<strong>{{division}}</strong> Division',
-//                all: 'All :o'
-//            }],
+            dropdownFilter: [{
+                key: 'conference',
+                template: '<strong>{{conference}}</strong> Conference',
+                all: 'All Teams'
+            }, {
+                key: 'division',
+                value: 'Northeast',
+                template: '<strong>{{division}}</strong> Division'
+            }],
 //            dropdownFilter: [
 //                {
 //                    key: 'conference',
