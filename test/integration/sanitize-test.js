@@ -47,7 +47,7 @@ describe('Typeahead Sanitize Tests', function () {
         myTypeahead.node.trigger('input.typeahead');
 
         expect(myTypeahead.resultCount).to.be.equal(0);
-        expect(!!~myTypeahead.resultHtml[0].innerHTML.indexOf('&lt;script&gt;empty&lt;/script&gt;')).to.be.true;
+        expect(myTypeahead.resultHtml.text()).to.be.equal('no result for empty');
     });
 
 });
