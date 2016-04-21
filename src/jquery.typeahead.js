@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.1 (2016-4-19)
+ * @version 2.5.1 (2016-4-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -539,9 +539,7 @@
             //#149 - Adding support for Mobiles
             $('html').on("touchmove", function () {
                 scope.hasDragged = true;
-            });
-
-            $('html').on("touchstart", function () {
+            }).on("touchstart", function () {
                 scope.hasDragged = false;
             });
 
@@ -868,7 +866,7 @@
                             xhrObject = $.extend(true, {}, xhrObject);
                             _isExtended = true;
                         }
-                        xhrObject.request.url = xhrObject.request.url.replace('{{query}}', scope.query.sanitize());
+                        xhrObject.request.url = xhrObject.request.url.replace('{{query}}', encodeURIComponent(scope.query));
                     }
 
                     if (xhrObject.request.data) {
@@ -879,7 +877,7 @@
                                     xhrObject = $.extend(true, {}, xhrObject);
                                     _isExtended = true;
                                 }
-                                xhrObject.request.data[i] = xhrObject.request.data[i].replace('{{query}}', scope.query.sanitize());
+                                xhrObject.request.data[i] = xhrObject.request.data[i].replace('{{query}}', encodeURIComponent(scope.query));
                                 break;
                             }
                         }
@@ -911,7 +909,7 @@
                                 // {/debug}
                             }
 
-                            scope.populateSource(data, _request.extra.group, _request.extra.path);
+                            scope.populateSource(data, _request.extra.group, _request.extra.path || _request.request.path);
 
                             requestsCount -= 1;
                             if (requestsCount === 0) {
@@ -1653,7 +1651,7 @@
                 if (this.options.emptyTemplate) {
                     emptyTemplate = typeof this.options.emptyTemplate === "function" ?
                         this.options.emptyTemplate.call(this, this.query) :
-                        this.options.emptyTemplate.replace(/\{\{query}}/gi, this.query.sanitize());
+                        this.options.emptyTemplate.replace(/\{\{query}}/gi, this.helper.cleanStringFromScript(this.query));
 
                 } else {
                     return;
@@ -2810,23 +2808,6 @@
 
     _debug.print();
 // {/debug}
-
-    if (!('sanitize' in String.prototype)) {
-        String.prototype.sanitize = function () {
-            var entityMap = {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': '&quot;',
-                "'": '&#39;',
-                "/": '&#x2F;'
-            };
-
-            return this.replace(/[&<>"'\/]/g, function (s) {
-                return entityMap[s];
-            });
-        };
-    }
 
 // IE8 Shims
     window.console = window.console || {
