@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.5.1 (2016-4-21)
+ * @version 2.5.1 (2016-4-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -774,20 +774,18 @@
                 if (groupSource.ajax instanceof Object) {
                     xhrObject = this.extendXhrObject(xhrObject, groupSource.ajax);
                 }
-            }
 
-            var stringRequest;
+                if (Object.keys(this.options.source).length > 1) {
+                    for (var _group in this.requests) {
+                        if (!this.requests.hasOwnProperty(_group)) continue;
+                        if (this.requests[_group].isDuplicated) continue;
 
-            for (var _group in this.requests) {
-                if (!this.requests.hasOwnProperty(_group)) continue;
-
-                stringRequest = JSON.stringify(this.requests[_group].request);
-
-                if (stringRequest === JSON.stringify(xhrObject.request)) {
-                    this.requests[_group].validForGroup.push(group);
-                    xhrObject.isDuplicated = true;
-                    delete xhrObject.validForGroup;
-                    break;
+                        if (xhrObject.request.url && xhrObject.request.url === this.requests[_group].request.url) {
+                            this.requests[_group].validForGroup.push(group);
+                            xhrObject.isDuplicated = true;
+                            delete xhrObject.validForGroup;
+                        }
+                    }
                 }
             }
 
@@ -974,7 +972,7 @@
 
             var scope = this,
                 groupSource = this.options.source[group],
-                extraData = groupSource.url && groupSource.data;
+                extraData = groupSource.ajax && groupSource.data;
 
             data = typeof path === "string" ? this.helper.namespace(path, data) : data;
 
