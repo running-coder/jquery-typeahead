@@ -1754,7 +1754,8 @@
                 _liHtml = $("<li/>", {
                     "class": scope.options.selector.item,
                     "html": $("<a/>", {
-                        "href": function () {
+                        // #190 Strange JS-code fragment in href attribute using jQuery version below 1.10
+                        "href": (function () {
                             if (_href) {
                                 if (typeof _href === "string") {
                                     _href = _href.replace(/\{\{([^\|}]+)(?:\|([^}]+))*}}/gi, function (match, index, options) {
@@ -1775,7 +1776,7 @@
                                 _item.href = _href;
                             }
                             return _href || "javascript:;";
-                        },
+                        }()),
                         "data-group": _group,
                         "data-index": i,
                         "html": function () {
