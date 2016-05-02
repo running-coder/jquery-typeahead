@@ -153,30 +153,31 @@
      */
     var Typeahead = function (node, options) {
 
-        this.rawQuery = '';             // Unmodified input query
-        this.query = node.val() || '';  // Input query
-        this.tmpSource = {};            // Temp var to preserve the source order for the searchResult function
-        this.source = {};               // The generated source kept in memory
-        this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
-        this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
-        this.groupCount = 0;            // Number of groups, this value gets counted on the initial source unification
-        this.groupBy = "group";         // This option will change according to filtering or custom grouping
-        this.groups = [];               // Array of all the available groups, used to build the groupTemplate
-        this.result = {};               // Results based on Source-query match (only contains the displayed elements)
-        this.groupTemplate = '';       // Result template at the {{group}} level
-        this.resultHtml = null;         // HTML Results (displayed elements)
-        this.resultCount = 0;           // Total results based on Source-query match
-        this.resultCountPerGroup = {};  // Total results based on Source-query match per group
-        this.options = options;         // Typeahead options (Merged default & user defined)
-        this.node = node;               // jQuery object of the Typeahead <input>
-        this.container = null;          // Typeahead container, usually right after <form>
-        this.resultContainer = null;    // Typeahead result container (html)
-        this.item = null;               // The selected item
-        this.xhr = {};                  // Ajax request(s) stack
-        this.hintIndex = null;          // Numeric value of the hint index in the result list
-        this.filters = {                // Filter list for searching, dropdown and dynamic(s)
-            dropdown: {},               // Dropdown menu if options.dropdownFilter is set
-            dynamic: {}                 // Checkbox / Radio / Select to filter the source data
+        this.rawQuery = node.val() || '';   // Unmodified input query
+        this.query = node.val() || '';      // Input query
+        this.namespace = '.' + node.selector + _namespace; // Every Typeahead instance gets its own namespace for events
+        this.tmpSource = {};                // Temp var to preserve the source order for the searchResult function
+        this.source = {};                   // The generated source kept in memory
+        this.isGenerated = null;            // Generated results -> null: not generated, false: generating, true generated
+        this.generatedGroupCount = 0;       // Number of groups generated, if limit reached the search can be done
+        this.groupCount = 0;                // Number of groups, this value gets counted on the initial source unification
+        this.groupBy = "group";             // This option will change according to filtering or custom grouping
+        this.groups = [];                   // Array of all the available groups, used to build the groupTemplate
+        this.result = {};                   // Results based on Source-query match (only contains the displayed elements)
+        this.groupTemplate = '';            // Result template at the {{group}} level
+        this.resultHtml = null;             // HTML Results (displayed elements)
+        this.resultCount = 0;               // Total results based on Source-query match
+        this.resultCountPerGroup = {};      // Total results based on Source-query match per group
+        this.options = options;             // Typeahead options (Merged default & user defined)
+        this.node = node;                   // jQuery object of the Typeahead <input>
+        this.container = null;              // Typeahead container, usually right after <form>
+        this.resultContainer = null;        // Typeahead result container (html)
+        this.item = null;                   // The selected item
+        this.xhr = {};                      // Ajax request(s) stack
+        this.hintIndex = null;              // Numeric value of the hint index in the result list
+        this.filters = {                    // Filter list for searching, dropdown and dynamic(s)
+            dropdown: {},                   // Dropdown menu if options.dropdownFilter is set
+            dynamic: {}                     // Checkbox / Radio / Select to filter the source data
         };
         this.dropdownFilter = {
             static: [],                 // Objects that has a value
@@ -527,13 +528,13 @@
 
             var scope = this,
                 events = [
-                    'focus' + _namespace,
-                    'input' + _namespace,
-                    'propertychange' + _namespace,  // IE8 Fix
-                    'keydown' + _namespace,
-                    'keyup' + _namespace,           // IE9 Fix
-                    'dynamic' + _namespace,
-                    'generate' + _namespace
+                    'focus' + this.namespace,
+                    'input' + this.namespace,
+                    'propertychange' + this.namespace,  // IE8 Fix
+                    'keydown' + this.namespace,
+                    'keyup' + this.namespace,           // IE9 Fix
+                    'dynamic' + this.namespace,
+                    'generate' + this.namespace
                 ];
 
             //#149 - Adding support for Mobiles
@@ -561,7 +562,7 @@
             // IE8 fix
             var preventNextEvent = false;
 
-            this.node.off(_namespace).on(events.join(' '), function (e) {
+            this.node.off(this.namespace).on(events.join(' '), function (e) {
 
                 switch (e.type) {
                     case "generate":
@@ -591,7 +592,7 @@
                             scope.generateSource();
                         }
                         if (_isIE9 && scope.node[0].value.replace(/^\s+/, '').toString().length < scope.query.length) {
-                            scope.node.trigger('input' + _namespace);
+                            scope.node.trigger('input' + scope.namespace);
                         }
                         break;
                     case "propertychange":
@@ -644,7 +645,7 @@
             });
 
             if (this.options.generateOnLoad) {
-                this.node.trigger('generate' + _namespace);
+                this.node.trigger('generate' + this.namespace);
             }
 
         },
@@ -1204,7 +1205,7 @@
 
             this.options.loadingAnimation && this.container.removeClass('loading');
 
-            this.node.trigger('dynamic' + _namespace);
+            this.node.trigger('dynamic' + this.namespace);
 
         },
 
@@ -1229,7 +1230,7 @@
                 e.preventDefault();
                 if (this.query.length) {
                     this.node.val('')
-                    this.node.trigger('input' + _namespace);
+                    this.node.trigger('input' + this.namespace);
                 } else {
                     this.node.blur();
                     this.hideLayout();
@@ -2029,7 +2030,7 @@
                                 e.stopPropagation();
                                 scope.container.toggleClass('filter');
 
-                                var _ns = _namespace + '-dropdown-filter';
+                                var _ns = scope.namespace + '-dropdown-filter';
 
                                 $('html').off(_ns);
 
@@ -2151,7 +2152,7 @@
                     .find('.' + this.options.selector.filterButton)
                     .html(item.template);
 
-                this.node.trigger('dynamic' + _namespace);
+                this.node.trigger('dynamic' + this.namespace);
 
                 this.node.focus();
             }
@@ -2258,9 +2259,9 @@
                     }
 
                     (function (filter) {
-                        filter.selector.off(_namespace).on('change' + _namespace, function () {
+                        filter.selector.off(scope.namespace).on('change' + scope.namespace, function () {
                             scope.dynamicFilter.set.apply(scope, [filter.key, scope.dynamicFilter.getValue(this)]);
-                        }).trigger('change' + _namespace);
+                        }).trigger('change' + scope.namespace);
                     }(filter));
 
                 }
@@ -2293,8 +2294,8 @@
 
             var scope = this;
 
-            $('html').off(_namespace)
-                .on("click" + _namespace + " touchend" + _namespace, function (e) {
+            $('html').off(this.namespace)
+                .on("click" + this.namespace + " touchend" + this.namespace, function (e) {
                     if ($(e.target).closest(scope.container)[0] || scope.hasDragged) return;
                     scope.hideLayout();
                 });
@@ -2319,7 +2320,7 @@
             if (this.options.backdropOnFocus && this.container.hasClass('backdrop')) return;
 
             // Make sure the event gets cleared in case of "ESC"
-            $('html').off(_namespace);
+            $('html').off(this.namespace);
 
             this.helper.executeCallback.call(this, this.options.callback.onHideLayout, [this.node, this.query]);
 
@@ -2351,7 +2352,7 @@
                     e.preventDefault();
 
                     scope.node.val('');
-                    scope.node.trigger('input' + _namespace);
+                    scope.node.trigger('input' + scope.namespace);
                 }
             }).insertBefore(this.node);
 
