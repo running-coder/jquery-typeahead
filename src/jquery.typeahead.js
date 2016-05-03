@@ -190,6 +190,7 @@
         this.backdrop = {};             // The backdrop object
         this.hint = {};                 // The hint object
         this.hasDragged = false;        // Will cancel mouseend events if true
+        this.focusOnly = false;         // Focus the input preventing any operations
 
         this.__construct();
 
@@ -570,6 +571,10 @@
                         scope.generateSource();
                         break;
                     case "focus":
+                        if (scope.focusOnly) {
+                            scope.focusOnly = false;
+                            break;
+                        }
                         if (scope.options.backdropOnFocus) {
                             scope.buildBackdropLayout();
                             scope.showLayout();
@@ -1845,6 +1850,8 @@
                         }
 
                         scope.query = scope.rawQuery = item[item.matchedKey].toString();
+
+                        scope.focusOnly = true;
                         scope.node.val(scope.query).focus();
 
                         scope.searchResult(true);
