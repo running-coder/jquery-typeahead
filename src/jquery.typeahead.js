@@ -725,12 +725,18 @@
                 }
 
                 // Get group source from data
-                if (groupSource.data && !groupSource.ajax) {
+                if (groupSource.data && !groupSource.ajax && typeof groupSource.data !== 'function') {
                     this.populateSource(
                         $.extend(true, [], groupSource.data),
                         group
                     );
                     continue;
+                }
+
+                if (typeof groupSource.data === 'function') {
+                    if (!this.requests[group]) {
+                        this.requests[group] = this.generateCallbackObject(group);
+                    }
                 }
 
                 // Get group source from Ajax / JsonP
@@ -742,6 +748,26 @@
             }
 
             this.handleRequests();
+
+        },
+
+        generateCallbackObject: function (group) {
+
+            var scope = this,
+                object = {};
+
+            object.callback = function (data) {
+                object.done = true;
+                if (typeof object.onDone === 'function') {
+                    object.onDone(data);
+                }
+            };
+            object.call = function() {
+                object.done = false;
+                scope.options.source[group].data(scope.query, object.callback);
+            };
+
+            return object;
 
         },
 
@@ -841,6 +867,19 @@
                 if (this.requests[group].isDuplicated) continue;
 
                 (function (group, xhrObject) {
+                    
+                    // this is callback object
+                    if (!xhrObject.request) {
+                        xhrObject.onDone = function (data) {
+                            scope.populateSource(data, group);
+                            requestsCount -= 1;
+                            if (requestsCount === 0) {
+                                scope.helper.executeCallback.call(scope, scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
+                            }
+                        };
+                        xhrObject.call();
+                        return;
+                    }
 
                     if (typeof scope.options.source[group].ajax === "function") {
 
