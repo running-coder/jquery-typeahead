@@ -155,7 +155,7 @@
 
         this.rawQuery = node.val() || '';   // Unmodified input query
         this.query = node.val() || '';      // Input query
-        this.namespace = '.' + node.selector + _namespace; // Every Typeahead instance gets its own namespace for events
+        this.namespace = '.' + _namespace; // Every Typeahead instance gets its own namespace for events
         this.tmpSource = {};                // Temp var to preserve the source order for the searchResult function
         this.source = {};                   // The generated source kept in memory
         this.isGenerated = null;            // Generated results -> null: not generated, false: generating, true generated
@@ -170,6 +170,9 @@
         this.resultCountPerGroup = {};      // Total results based on Source-query match per group
         this.options = options;             // Typeahead options (Merged default & user defined)
         this.node = node;                   // jQuery object of the Typeahead <input>
+        this.namespace = '.' +              // Every Typeahead instance gets its own namespace for events
+            this.helper.slugify.call(this, node.selector) +
+            _namespace;
         this.container = null;              // Typeahead container, usually right after <form>
         this.resultContainer = null;        // Typeahead result container (html)
         this.item = null;                   // The selected item
@@ -180,17 +183,17 @@
             dynamic: {}                     // Checkbox / Radio / Select to filter the source data
         };
         this.dropdownFilter = {
-            static: [],                 // Objects that has a value
+            static: [],                     // Objects that has a value
             dynamic: []
         };
-        this.dropdownFilterAll = null;  // The last "all" definition
+        this.dropdownFilterAll = null;      // The last "all" definition
 
-        this.requests = {};             // Store the group:request instead of generating them every time
+        this.requests = {};                 // Store the group:request instead of generating them every time
 
-        this.backdrop = {};             // The backdrop object
-        this.hint = {};                 // The hint object
-        this.hasDragged = false;        // Will cancel mouseend events if true
-        this.focusOnly = false;         // Focus the input preventing any operations
+        this.backdrop = {};                 // The backdrop object
+        this.hint = {};                     // The hint object
+        this.hasDragged = false;            // Will cancel mouseend events if true
+        this.focusOnly = false;             // Focus the input preventing any operations
 
         this.__construct();
 
@@ -2772,6 +2775,11 @@
                 // {/debug}
 
                 return;
+            }
+
+            // Forcing node.selector... damn you jQuery...
+            if (options.input && !node.selector) {
+                node.selector = options.input;
             }
 
             return window.Typeahead[options.input || node.selector] = new Typeahead(node, options);

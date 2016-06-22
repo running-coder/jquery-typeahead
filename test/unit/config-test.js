@@ -43,6 +43,11 @@ describe('Typeahead Config Tests', function () {
         });
     });
 
+
+    it('Should create properties', function () {
+        expect(myTypeahead.namespace).to.equal('.js-typeahead-options.typeahead');
+    });
+
     it('Should merge options', function () {
         expect(myTypeahead.options.input).to.equal('.js-typeahead-options');
         expect(myTypeahead.options.minLength).to.equal(0);
