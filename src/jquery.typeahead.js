@@ -1254,7 +1254,7 @@
                 if (activeItem.length > 0) {
                     // Prevent form submit if an element is selected
                     e.preventDefault();
-                    activeItem.find('a:first')[0].click();
+                    activeItem.find('a:first').trigger('click', e);
                 }
                 return;
             }
@@ -1836,7 +1836,12 @@
                 });
 
                 (function (i, item, liHtml) {
-                    liHtml.on('click', function (e) {
+                    liHtml.on('click', function (e, originalEvent) {
+                        // #208 - Attach "keyboard Enter" original event
+                        if (originalEvent && typeof originalEvent === "object") {
+                            e.originalEvent = originalEvent;
+                        }
+
                         if (scope.options.mustSelectItem && scope.helper.isEmpty(item)) {
                             e.preventDefault();
                             return;
