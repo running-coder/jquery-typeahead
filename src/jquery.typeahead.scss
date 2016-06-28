@@ -170,27 +170,27 @@
 
 // VARIABLES -----------------------------------------------------------------------------------------------------------
 
-$typeahead-font-size: 14px;
-$typeahead-font-family: Lato, 'Helvetica Neue', Arial, Helvetica, sans-serif;
-$typeahead-primary-color: #66afe9;
-$typeahead-radius: 2px;
-$typeahead-shadow: false; // true / false
-$typeahead-dropdown-spacing: 5px;
-$typeahead-outline-color: $typeahead-primary-color;
-$typeahead-loading-size: 21px;
+$typeahead-font-size: 14px !default;
+$typeahead-font-family: Lato, 'Helvetica Neue', Arial, Helvetica, sans-serif !default;
+$typeahead-primary-color: #66afe9 !default;
+$typeahead-radius: 2px !default;
+$typeahead-shadow: false !default; // true / false
+$typeahead-dropdown-spacing: 5px !default;
+$typeahead-outline-color: $typeahead-primary-color !default;
+$typeahead-loading-size: 21px !default;
 
-$typeahead-height: 32px;
-$typeahead-padding: 6px 12px;
+$typeahead-height: 32px !default;
+$typeahead-padding: 6px 12px !default;
 
-$typeahead-color: #555;
-$typeahead-border-color: #ccc;
+$typeahead-color: #555 !default;
+$typeahead-border-color: #ccc !default;
 
-$typeahead-group-color: darken($typeahead-primary-color, 30%);
-$typeahead-group-background: lighten($typeahead-primary-color, 30%);
-$typeahead-group-border-color: lighten($typeahead-primary-color, 20%);
+$typeahead-group-color: darken($typeahead-primary-color, 30%) !default;
+$typeahead-group-background: lighten($typeahead-primary-color, 30%) !default;
+$typeahead-group-border-color: lighten($typeahead-primary-color, 20%) !default;
 
-$typeahead-item-background: #fff;
-$typeahead-item-hover-background: #f5f5f5;
+$typeahead-item-background: #fff !default;
+$typeahead-item-hover-background: #f5f5f5 !default;
 
 // TYPEAHEAD -----------------------------------------------------------------------------------------------------------
 
