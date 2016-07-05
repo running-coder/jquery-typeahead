@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.6.1 (2016-6-28)
+ * @version 2.6.1 (2016-7-5)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -97,7 +97,8 @@
             onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
             onPopulateSource: null,     // -> New callback, Perform operation on the source data before it gets in Typeahead data
             onCacheSave: null,          // -> New callback, Perform operation on the source data before it gets in Typeahead cache
-            onSubmit: null
+            onSubmit: null,
+            onCancel: null              // -> New callback, triggered if the typeahead had text inside and is cleared
         },
         selector: {
             container: "typeahead__container",
@@ -566,7 +567,7 @@
             // IE8 fix
             var preventNextEvent = false;
 
-            this.node.off(this.namespace).on(events.join(' '), function (e) {
+            this.node.off(this.namespace).on(events.join(' '), function (e, originalEvent) {
 
                 switch (e.type) {
                     case "generate":
@@ -611,6 +612,15 @@
                     case "input":
 
                         scope.rawQuery = scope.node[0].value.toString();
+
+                        // #195 Trigger an onCancel event if the Typeahead is cleared
+                        if (scope.rawQuery === "" && scope.query !== "") {
+                            if (originalEvent && typeof originalEvent === "object") {
+                                e.originalEvent = originalEvent;
+                            }
+                            scope.helper.executeCallback.call(scope, scope.options.callback.onCancel, [scope.node, e]);
+                        }
+
                         scope.query = scope.rawQuery.replace(/^\s+/, '');
 
                         scope.options.cancelButton && scope.toggleCancelButton();
@@ -1238,7 +1248,7 @@
                 e.preventDefault();
                 if (this.query.length) {
                     this.node.val('')
-                    this.node.trigger('input' + this.namespace);
+                    this.node.trigger('input' + this.namespace, [e]);
                 } else {
                     this.node.blur();
                     this.hideLayout();
@@ -2367,7 +2377,7 @@
                     e.preventDefault();
 
                     scope.node.val('');
-                    scope.node.trigger('input' + scope.namespace);
+                    scope.node.trigger('input' + scope.namespace, [e]);
                 }
             }).insertBefore(this.node);
 
