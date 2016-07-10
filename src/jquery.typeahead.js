@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.6.1 (2016-7-5)
+ * @version 2.6.1 (2016-7-10)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -686,7 +686,9 @@
                 this.xhr = {};
             }
 
-            var group,
+            var scope = this,
+                group,
+                groupData,
                 groupSource,
                 dataInStorage,
                 isValidStorage;
@@ -739,10 +741,27 @@
 
                 // Get group source from data
                 if (groupSource.data && !groupSource.ajax) {
-                    this.populateSource(
-                        $.extend(true, [], groupSource.data),
-                        group
-                    );
+
+                    // #198 Add support for async data source
+                    if (typeof groupSource.data === "function") {
+
+                        groupData = groupSource.data();
+                        if (Array.isArray(groupData)) {
+                            scope.populateSource(groupData, group);
+                        } else if (typeof groupData.promise === "function") {
+                            $.when(groupData).then(function (deferredData) {
+                                if (deferredData && Array.isArray(deferredData)) {
+                                    scope.populateSource(deferredData, group);
+                                }
+                            });
+                        }
+                    } else {
+                        this.populateSource(
+                            $.extend(true, [], groupSource.data),
+                            group
+                        );
+                    }
+
                     continue;
                 }
 
