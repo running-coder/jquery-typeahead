@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.6.1 (2016-7-10)
+ * @version 2.6.1 (2016-7-19)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -649,7 +649,7 @@
                         scope.searchResult();
                         scope.buildLayout();
 
-                        if ((scope.result.length > 0 || scope.options.emptyTemplate) &&
+                        if ((scope.result.length > 0 || (scope.options.emptyTemplate && scope.query !== "")) &&
                             scope.query.length >= scope.options.minLength
                         ) {
                             scope.showLayout();
@@ -945,13 +945,6 @@
                                 // {/debug}
                             }
 
-                            scope.populateSource(data, _request.extra.group, _request.extra.path || _request.request.path);
-
-                            requestsCount -= 1;
-                            if (requestsCount === 0) {
-                                scope.helper.executeCallback.call(scope, scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
-                            }
-
                         }
 
                     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -981,6 +974,18 @@
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
                             _request.callback.always instanceof Function && _request.callback.always(data, textStatus, jqXHR);
+
+                            scope.populateSource(
+                                typeof data.promise === "function" && [] || data,
+                                _request.extra.group,
+                                _request.extra.path || _request.request.path
+                            );
+
+                            requestsCount -= 1;
+                            if (requestsCount === 0) {
+                                scope.helper.executeCallback.call(scope, scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
+                            }
+
                         }
 
                     }).then(function (jqXHR, textStatus) {
@@ -1684,7 +1689,7 @@
 
             var emptyTemplate;
             if (!this.result.length) {
-                if (this.options.emptyTemplate) {
+                if (this.options.emptyTemplate && this.query !== "") {
                     emptyTemplate = typeof this.options.emptyTemplate === "function" ?
                         this.options.emptyTemplate.call(this, this.query) :
                         this.options.emptyTemplate.replace(/\{\{query}}/gi, this.helper.cleanStringFromScript(this.query));
