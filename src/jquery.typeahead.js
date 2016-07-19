@@ -902,7 +902,8 @@
                             xhrObject = $.extend(true, {}, xhrObject);
                             _isExtended = true;
                         }
-                        xhrObject.request.url = xhrObject.request.url.replace('{{query}}', scope.query);
+                        // #184 Invalid encoded characters on dynamic requests for `{{query}}`
+                        xhrObject.request.url = xhrObject.request.url.replace('{{query}}', encodeURIComponent(scope.query));
                     }
 
                     if (xhrObject.request.data) {
@@ -913,6 +914,7 @@
                                     xhrObject = $.extend(true, {}, xhrObject);
                                     _isExtended = true;
                                 }
+                                // jQuery handles encodeURIComponent when the query is inside the data object
                                 xhrObject.request.data[i] = xhrObject.request.data[i].replace('{{query}}', scope.query);
                                 break;
                             }
