@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.6.1 (2016-7-19)
+ * @version 2.6.1 (2016-7-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -745,7 +745,7 @@
                     // #198 Add support for async data source
                     if (typeof groupSource.data === "function") {
 
-                        groupData = groupSource.data();
+                        groupData = groupSource.data.call(this);
                         if (Array.isArray(groupData)) {
                             scope.populateSource(groupData, group);
                         } else if (typeof groupData.promise === "function") {

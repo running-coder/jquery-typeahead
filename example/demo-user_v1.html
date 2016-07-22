@@ -1,0 +1,202 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title></title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="stylesheet" href="../src/jquery.typeahead.css">
+
+    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <!--script src="../dist/jquery.typeahead.min.js"></script-->
+    <script src="../src/jquery.typeahead.js"></script>
+
+</head>
+<body>
+
+<div style="width: 100%; max-width: 800px; margin: 0 auto;">
+
+    <h1>Hockey_v2 Demo</h1>
+
+    <ul>
+        <li>
+            <a href="http://www.runningcoder.org/jquerytypeahead/documentation/">Documentation</a>
+        </li>
+        <li>
+            <a href="http://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
+        </li>
+    </ul>
+
+    <form>
+        <div class="typeahead__container">
+            <div class="typeahead__field">
+
+            <span class="typeahead__query">
+                <input class="js-typeahead-input"
+                       name="q"
+                       type="search"
+                       autofocus
+                       autocomplete="off">
+            </span>
+            <span class="typeahead__button">
+                <button type="submit">
+                    <span class="typeahead__search-icon"></span>
+                </button>
+            </span>
+
+            </div>
+        </div>
+    </form>
+
+    <script>
+
+        $.typeahead({
+            input: '.js-typeahead-input',
+            minLength: 0,
+            order: "asc",
+            dynamic: true,
+            delay: 500,
+            backdrop: {
+                "background-color": "#fff"
+            },
+            template: function (query, item) {
+
+                var color = "#777";
+                if (item.status === "owner") {
+                    color = "#ff1493";
+                }
+
+                return '<span class="row">' +
+                        '<span class="avatar">' +
+                        '<img src="{{avatar}}">' +
+                        "</span>" +
+                        '<span class="username">{{username}} <small style="color: ' + color + ';">({{status}})</small></span>' +
+                        '<span class="id">({{id}})</span>' +
+                        "</span>"
+            },
+            emptyTemplate: "no result for {{query}}",
+            source: {
+                user: {
+                    display: "username",
+                    href: "https://www.github.com/{{username|slugify}}",
+                    data: [{
+                        "id": 415849,
+                        "username": "an inserted user that is not inside the database",
+                        "avatar": "https://avatars3.githubusercontent.com/u/415849",
+                        "status":  "contributor"
+                    }],
+                    data: function () {
+                        var deferred = $.Deferred(),
+                            query = this.query;
+
+//                            $.ajax({
+//                                url:'https://phpproxy-dev.herokuapp.com/',
+//                                data: {
+//                                    'url':'http://personer.eniro.se/resultat/'+who+'/'+where
+//                                },
+//                                dataType: 'jsonp',
+//                                jsonp: 'callback',
+//                                error: function(jqXHR, textStatus, errorThrown){
+//                                    console.log(textStatus + errorThrown);
+//                                },
+//                                success: function(data){
+//                                    console.log(data); //data.contents has the HTML
+//                                }
+//                            });
+
+                        $.getJSON(
+                            //'//gamer-hub.com/game/list.json?callback=?',
+                            '//runningcoder.org/jquerytypeahead/user_v1.json?callback=?',
+                            {
+                                q: query
+                            },
+                            function (data) {
+                                console.log('____')
+                                console.log(data)
+                                console.log('____')
+
+                                deferred.resolve(data)
+                            }
+                        )
+
+                        return deferred;
+
+
+                    }
+//                    ajax: function (query) {
+//                        return {
+//                            type: "GET",
+//                            url: "//runningcoder.org/jquerytypeahead/user_v1.json",
+//                            path: "data.user",
+//                            data: {
+//                                q: "{{query}}"
+//                            },
+//                            callback: {
+//                                done: function (data) {
+//                                    for (var i = 0; i < data.data.user.length; i++) {
+//                                        if (data.data.user[i].username === 'running-coder') {
+//                                            data.data.user[i].status = 'owner';
+//                                        } else {
+//                                            data.data.user[i].status = 'contributor';
+//                                        }
+//                                    }
+//                                    return data;
+//                                }
+//                            }
+//                        }
+//                    }
+
+                },
+//                project: {
+//                    display: "project",
+//                    href: function (item) {
+//                        return '/' + item.project.replace(/\s+/g, '').toLowerCase() + '/documentation/'
+//                    },
+//                    ajax: [{
+//                        type: "GET",
+//                        url: "//runningcoder.org/jquerytypeahead/user_v1.json",
+//                        data: {
+//                            q: "{{query}}"
+//                        }
+//                    }, "data.project"],
+//                    template: '<span>' +
+//                    '<span class="project-logo">' +
+//                    '<img src="{{image}}">' +
+//                    '</span>' +
+//                    '<span class="project-information">' +
+//                    '<span class="project">{{project}} <small>{{version}}</small></span>' +
+//                    '<ul>' +
+//                    '<li>{{demo}} Demos</li>' +
+//                    '<li>{{option}}+ Options</li>' +
+//                    '<li>{{callback}}+ Callbacks</li>' +
+//                    '</ul>' +
+//                    '</span>' +
+//                    '</span>'
+//                }
+            },
+            callback: {
+                onClick: function (node, a, item, event) {
+
+                    // You can do a simple window.location of the item.href
+                    alert(JSON.stringify(item));
+
+                },
+                onSendRequest: function (node, query) {
+                    console.log('request is sent')
+                },
+                onReceiveRequest: function (node, query) {
+                    console.log('request is received')
+                }
+            },
+            debug: true
+        });
+
+    </script>
+
+</div>
+
+</body>
+</html>
