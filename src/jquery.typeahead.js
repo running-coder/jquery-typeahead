@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.6.1 (2016-7-22)
+ * @version 2.6.1 (2016-7-29)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -141,6 +141,13 @@
      * @private
      */
     var _isIE9 = ~window.navigator.appVersion.indexOf("MSIE 9.");
+
+    /**
+     * #193 Clicking on a suggested option does not select it on IE10/11
+     * @private
+     */
+    var _isIE10 = ~window.navigator.appVersion.indexOf("MSIE 10");
+    var _isIE11 = ~window.navigator.userAgent.indexOf("Trident") && ~window.navigator.userAgent.indexOf("rv:11");
 
     // SOURCE GROUP RESERVED WORDS: ajax, data, url
     // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, compiled, href
@@ -566,6 +573,22 @@
 
             // IE8 fix
             var preventNextEvent = false;
+
+            // IE10/11 fix
+            if (this.node.attr('placeholder') && (_isIE10 || _isIE11)) {
+                var preventInputEvent = true;
+
+                this.node.on("focusin focusout", function() {
+                    preventInputEvent = !!(!this.value && this.placeholder);
+                });
+
+                this.node.on("input", function(e) {
+                    if (preventInputEvent) {
+                        e.stopImmediatePropagation();
+                        preventInputEvent = false;
+                    }
+                });
+            }
 
             this.node.off(this.namespace).on(events.join(' '), function (e, originalEvent) {
 
