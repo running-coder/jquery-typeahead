@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.6.1 (2016-8-1)
+ * @version 2.6.1 (2016-8-5)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */;
 (function (factory) {
@@ -549,7 +549,7 @@
                     'generate' + this.namespace
                 ];
 
-            //#149 - Adding support for Mobiles
+            // #149 - Adding support for Mobiles
             $('html').on("touchmove", function () {
                 scope.hasDragged = true;
             }).on("touchstart", function () {
@@ -569,6 +569,12 @@
                 if (scope.options.callback.onSubmit) {
                     return scope.helper.executeCallback.call(scope, scope.options.callback.onSubmit, [scope.node, this, scope.item, e]);
                 }
+            }).on("reset", function () {
+                // #221 - Reset Typeahead on form reset.
+                // Placed in a setTimeout to re-queue the `input.typeahead` event at the end of the reset queue
+                setTimeout(function () {
+                    scope.node.trigger('input' + scope.namespace);
+                }, 10)
             });
 
             // IE8 fix
