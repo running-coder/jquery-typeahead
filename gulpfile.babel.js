@@ -7,6 +7,7 @@ import rename from 'gulp-rename';
 import replace from 'gulp-replace';
 import autoprefixer from 'gulp-autoprefixer';
 import uglify from 'gulp-uglify';
+import jshint from 'gulp-jshint';
 
 let pkg = require('./package.json'),
     version = pkg.version,
@@ -23,7 +24,8 @@ let pkg = require('./package.json'),
  * @author ${pkg.author.name}
  * @version ${version} (${yyyymmdd})
  * @link http://www.runningcoder.org/jquerytypeahead/
- */`;
+ */
+`;
 
 gulp.task('scss', function () {
     return gulp.src('./src/jquery.typeahead.scss')
@@ -46,6 +48,20 @@ gulp.task('scss', function () {
         .pipe(gulp.dest('./dist'));
 });
 
+gulp.task('jshint', function() {
+    return gulp.src('./src/jquery.typeahead.js')
+        .pipe(jshint({
+            shadow: true,
+            expr: true,
+            loopfunc: true,
+            // Switch statements "falls through"
+            "-W086": true,
+            validthis: true,
+            scripturl:true
+        }))
+        .pipe(jshint.reporter('default'));
+});
+
 gulp.task('js', function () {
     return gulp.src('./src/jquery.typeahead.js')
         .pipe(replace(/\/\*![\S\s]+?\*\/[\r\n]*/, banner))
@@ -66,5 +82,5 @@ gulp.task('watch', function () {
     });
 });
 
-gulp.task('default', gulp.parallel('scss', 'js'));
+gulp.task('default', gulp.parallel('scss', 'jshint', 'js'));
 

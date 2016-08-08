@@ -4,10 +4,10 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.6.1 (2016-8-5)
+ * @version 2.6.1 (2016-8-8)
  * @link http://www.runningcoder.org/jquerytypeahead/
- */;
-(function (factory) {
+ */
+;(function (factory) {
     if (typeof define === 'function' && define.amd) {
         define('jquery-typeahead', ['jquery'], function (jQuery) {
             return factory(jQuery);
@@ -240,7 +240,7 @@
                         return false;
                     }
 
-                    supported = typeof window[cache] !== "undefined"
+                    supported = typeof window[cache] !== "undefined";
 
                     try {
                         window[cache].setItem("typeahead", "typeahead");
@@ -287,11 +287,11 @@
                     if (typeof this.options.group === "string") {
                         this.options.group = {
                             key: this.options.group
-                        }
+                        };
                     } else if (typeof this.options.group === "boolean") {
                         this.options.group = {
                             key: 'group'
-                        }
+                        };
                     }
 
                     this.options.group.key = this.options.group.key || "group";
@@ -325,7 +325,7 @@
             }
 
             if (this.options.dynamicFilter && !Array.isArray(this.options.dynamicFilter)) {
-                this.options.dynamicFilter = [this.options.dynamicFilter]
+                this.options.dynamicFilter = [this.options.dynamicFilter];
             }
 
             if (this.options.accent) {
@@ -571,10 +571,10 @@
                 }
             }).on("reset", function () {
                 // #221 - Reset Typeahead on form reset.
-                // Placed in a setTimeout to re-queue the `input.typeahead` event at the end of the reset queue
+                // setTimeout to re-queue the `input.typeahead` event at the end
                 setTimeout(function () {
                     scope.node.trigger('input' + scope.namespace);
-                }, 10)
+                });
             });
 
             // IE8 fix
@@ -619,6 +619,7 @@
                                 scope.generateSource();
                             }
                         }
+                        break;
                     case "keydown":
                         if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                             preventNextEvent = true;
@@ -644,9 +645,7 @@
 
                         // #195 Trigger an onCancel event if the Typeahead is cleared
                         if (scope.rawQuery === "" && scope.query !== "") {
-                            if (originalEvent && typeof originalEvent === "object") {
-                                e.originalEvent = originalEvent;
-                            }
+                            e.originalEvent = originalEvent || {};
                             scope.helper.executeCallback.call(scope, scope.options.callback.onCancel, [scope.node, e]);
                         }
 
@@ -656,7 +655,7 @@
 
                         if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
                             if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
-                                scope.hint.container.val('')
+                                scope.hint.container.val('');
                             }
                         }
                         if (scope.options.dynamic) {
@@ -1173,7 +1172,7 @@
                     // #109 correlativeTemplate can be an array of display keys instead of the complete template
                     if (Array.isArray(this.options.correlativeTemplate)) {
                         for (var i = 0, ii = this.options.correlativeTemplate.length; i < ii; i++) {
-                            compiledTemplate += "{{" + this.options.correlativeTemplate[i] + "}} "
+                            compiledTemplate += "{{" + this.options.correlativeTemplate[i] + "}} ";
                         }
                     } else {
                         compiledTemplate = template
@@ -1181,7 +1180,7 @@
                     }
 
                     for (var i = 0, ii = data.length; i < ii; i++) {
-                        data[i]['compiled'] = compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
+                        data[i].compiled = compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
                                 return scope.helper.namespace(index, data[i], 'get', '');
                             }
                         ).trim();
@@ -1304,7 +1303,7 @@
                 // #166 Different browsers do not have the same behaviors by default, lets enforce what we want instead
                 e.preventDefault();
                 if (this.query.length) {
-                    this.node.val('')
+                    this.node.val('');
                     this.node.trigger('input' + this.namespace, [e]);
                 } else {
                     this.node.blur();
@@ -1381,7 +1380,7 @@
                     newActiveItemIndex !== null && newActiveItemIndex < this.result.length ?
                         [this.result[newActiveItemIndex]] :
                         null
-                )
+                );
             }
 
             if (this.options.hint && this.hint.container) {
@@ -1390,7 +1389,7 @@
                     e.preventInputChange ?
                         this.hint.css.color :
                     newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
-                )
+                );
             }
 
             this.node.val(
@@ -1633,7 +1632,7 @@
                             displayKeys,
                             scope.options.order === "asc",
                             function (a) {
-                                return a.toString().toUpperCase()
+                                return a.toString().toUpperCase();
                             }
                         )
                     );
@@ -1654,7 +1653,7 @@
                         [],
                         scope.options.groupOrder === "asc",
                         function (a) {
-                            return a.toString().toUpperCase()
+                            return a.toString().toUpperCase();
                         }
                     )
                 );
@@ -1788,7 +1787,7 @@
             for (var i = 0, ii = this.result.length; i < ii; ++i) {
 
                 _item = this.result[i];
-                _group = _item['group'];
+                _group = _item.group;
                 _href = this.options.source[_item.group].href || this.options.href;
                 _display = [];
                 _displayKeys = this.options.source[_item.group].display || this.options.display;
@@ -1821,9 +1820,9 @@
                 }
 
                 if (this.groupTemplate && _unusedGroups.length) {
-                    _tmpIndexOf = _unusedGroups.indexOf(_group || _item.group)
+                    _tmpIndexOf = _unusedGroups.indexOf(_group || _item.group);
                     if (~_tmpIndexOf) {
-                        _unusedGroups.splice(_tmpIndexOf, 1)
+                        _unusedGroups.splice(_tmpIndexOf, 1);
                     }
                 }
 
@@ -1876,7 +1875,7 @@
 
                                     if (!~options.indexOf('raw')) {
                                         if (scope.options.highlight === true && _query && ~_displayKeys.indexOf(index)) {
-                                            value = scope.helper.highlight.call(scope, value, _query.split(" "), scope.options.accent)
+                                            value = scope.helper.highlight.call(scope, value, _query.split(" "), scope.options.accent);
                                         }
                                     }
                                     return value;
@@ -1896,7 +1895,7 @@
                             }
 
                             if ((scope.options.highlight === true && _query && !_template) || scope.options.highlight === "any") {
-                                _aHtml = scope.helper.highlight.call(scope, _aHtml, _query.split(" "), scope.options.accent)
+                                _aHtml = scope.helper.highlight.call(scope, _aHtml, _query.split(" "), scope.options.accent);
                             }
 
                             $(this).append(_aHtml);
@@ -2045,14 +2044,14 @@
                         }
                     }).addClass(this.options.selector.hint)
                         .css(this.hint.css)
-                        .insertAfter(this.node)
+                        .insertAfter(this.node);
 
                     this.node.parent().css({
                         "position": "relative"
                     });
                 }
 
-                this.hint.container.css('color', this.hint.css.color)
+                this.hint.container.css('color', this.hint.css.color);
 
                 // Do not display hint for empty query
                 if (query) {
@@ -2172,7 +2171,7 @@
                     if (k === kk && (i !== ii - 1)) {
                         continue;
                     } else if (k === kk && (i === ii - 1)) {
-                        if (type === 'static' && this.dropdownFilter['dynamic'].length) {
+                        if (type === 'static' && this.dropdownFilter.dynamic.length) {
                             continue;
                         }
                     }
@@ -2180,12 +2179,12 @@
                     template = this.dropdownFilterAll || all;
                     if (filter.value[k]) {
                         if (filter.template) {
-                            template = filter.template.replace(new RegExp('\{\{' + filter.key + '}}', 'gi'), filter.value[k])
+                            template = filter.template.replace(new RegExp('\{\{' + filter.key + '}}', 'gi'), filter.value[k]);
                         } else {
-                            template = filter.value[k]
+                            template = filter.value[k];
                         }
                     } else {
-                        this.container.find('.' + scope.options.selector.filterButton).html(template)
+                        this.container.find('.' + scope.options.selector.filterButton).html(template);
                     }
 
                     (function (k, filter, template) {
@@ -2417,7 +2416,7 @@
             this.resultHtml = null;
 
             if (this.options.hint && this.hint.container) {
-                this.hint.container.val('')
+                this.hint.container.val('');
             }
 
         },
@@ -2522,7 +2521,7 @@
                 var key = function (x) {
                     for (var i = 0, ii = field.length; i < ii; i++) {
                         if (typeof x[field[i]] !== 'undefined') {
-                            return primer(x[field[i]])
+                            return primer(x[field[i]]);
                         }
                     }
                     return x;
@@ -2532,7 +2531,7 @@
 
                 return function (a, b) {
                     return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
-                }
+                };
             },
 
             /**
@@ -2577,7 +2576,7 @@
                         keys.splice(i, 1);
                         continue;
                     }
-                    keys[i] = keys[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
+                    keys[i] = keys[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
                 }
 
                 searchString.replace(
@@ -2614,7 +2613,7 @@
                     element.focus();
 
                     var r = document.selection.createRange();
-                    if (r == null) {
+                    if (r === null) {
                         return 0;
                     }
 
@@ -2760,7 +2759,7 @@
                 return function (callback, ms) {
                     clearTimeout(timer);
                     timer = setTimeout(callback, ms);
-                }
+                };
             })()
 
         }
@@ -2849,6 +2848,7 @@
                 node.selector = options.input;
             }
 
+            /*jshint boss:true */
             return window.Typeahead[options.input || node.selector] = new Typeahead(node, options);
 
         }
@@ -2869,7 +2869,7 @@
                 'node': '',
                 'function': '',
                 'arguments': ''
-            }, debugObject)
+            }, debugObject);
 
         },
         print: function () {
