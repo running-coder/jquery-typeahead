@@ -217,6 +217,8 @@
                 this.options.compression = false;
             }
 
+            var scope = this;
+
             if (this.options.cache) {
                 this.options.cache = (function (cache) {
 
@@ -227,9 +229,9 @@
                         cache = 'localStorage';
                     } else if (typeof cache === "string" && !~supportedCache.indexOf(cache)) {
                         // {debug}
-                        if (this.options.debug) {
+                        if (scope.options.debug) {
                             _debug.log({
-                                'node': this.node.selector,
+                                'node': scope.node.selector,
                                 'function': 'extendOptions()',
                                 'message': 'Invalid options.cache, possible options are "localStorage" or "sessionStorage"'
                             });
@@ -584,11 +586,11 @@
             if (this.node.attr('placeholder') && (_isIE10 || _isIE11)) {
                 var preventInputEvent = true;
 
-                this.node.on("focusin focusout", function() {
+                this.node.on("focusin focusout", function () {
                     preventInputEvent = !!(!this.value && this.placeholder);
                 });
 
-                this.node.on("input", function(e) {
+                this.node.on("input", function (e) {
                     if (preventInputEvent) {
                         e.stopImmediatePropagation();
                         preventInputEvent = false;
@@ -1792,6 +1794,7 @@
                 _display = [];
                 _displayKeys = this.options.source[_item.group].display || this.options.display;
 
+                // @TODO Optimize this, shouldn't occur on every looped item?
                 if (this.options.group) {
                     _group = _item[this.options.group.key];
                     if (this.options.group.template) {
@@ -1827,7 +1830,7 @@
                 }
 
                 _liHtml = $("<li/>", {
-                    "class": scope.options.selector.item,
+                    "class": scope.options.selector.item + " " + scope.options.selector.group + '-' + this.helper.slugify.call(this, _group),
                     "html": $("<a/>", {
                         // #190 Strange JS-code fragment in href attribute using jQuery version below 1.10
                         "href": (function () {
