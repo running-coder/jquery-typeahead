@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.6.1 (2016-8-8)
+ * @version 2.7.0 (2016-8-13)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -32,7 +32,7 @@
     "use strict";
 
     window.Typeahead = {
-        version: '2.6.1'
+        version: '2.7.0'
     };
 
     /**
@@ -2485,7 +2485,12 @@
                 if (typeof string !== "string") {
                     return;
                 }
-                var accent = this.options.accent || _accent;
+
+                var accent = _accent;
+
+                if (typeof this.options.accent === "object") {
+                    accent = this.options.accent;
+                }
 
                 string = string.toLowerCase().replace(new RegExp('[' + accent.from + ']', 'g'), function (match) {
                     return accent.to[accent.from.indexOf(match)];
