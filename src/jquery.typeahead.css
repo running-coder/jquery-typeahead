@@ -260,8 +260,8 @@
 
 .typeahead__field input[type="search"],
 .typeahead__field input[type="search"]::-webkit-search-cancel-button {
-  -webkit-appearance: textfield;
-  appearance: textfield;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .typeahead__field input[type="search"]::-ms-clear {
