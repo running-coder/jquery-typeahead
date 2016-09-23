@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.0 (2016-9-16)
+ * @version 2.7.0 (2016-9-23)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1113,6 +1113,16 @@
                     (this.options.display[0] === 'compiled' ? this.options.display[1] : this.options.display[0]);
 
             for (var i = 0, ii = data.length; i < ii; i++) {
+                if (data[i] === null || typeof data[i] === "boolean") {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'populateSource()',
+                        'message': 'WARNING - NULL/BOOLEAN value inside ' + group + '! The data was skipped.'
+                    });
+
+                    _debug.print();
+                    continue;
+                }
                 if (typeof data[i] === "string") {
                     tmpObj = {};
                     tmpObj[display] = data[i];
@@ -1472,6 +1482,8 @@
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
+                    // Validation over null item
+                    if (item === null || typeof item === "boolean") continue;
 
                     // dropdownFilter by custom groups
                     if (this.filters.dropdown && (item[this.filters.dropdown.key] || "").toLowerCase() !== (this.filters.dropdown.value || "").toLowerCase()) continue;
