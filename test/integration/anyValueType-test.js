@@ -2,17 +2,43 @@ var expect = require('chai').expect,
     jQuery = $ = require("jquery"),
     Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
 
-describe('Typeahead can display any value type Tests', function () {
+describe('Typeahead can not display null or boolean if the item is a string', function () {
     'use strict';
 
     let myTypeahead;
 
     before(function () {
 
-        document.write('<input class="js-typeahead-any-value-type">');
+        document.write('<input class="js-typeahead-no-null-or-boolean-for-string">');
 
         myTypeahead = $.typeahead({
-            input: '.js-typeahead-any-value-type',
+            input: '.js-typeahead-no-null-or-boolean-for-string',
+            minLength: 0,
+            generateOnLoad: true,
+            source: {
+                data: [null, false, true, "null", "false", "true"]
+            }
+        });
+    });
+
+    it('Should display any value types', function () {
+        myTypeahead.node.trigger('input.typeahead');
+
+        expect(myTypeahead.result.length).to.equal(3);
+    });
+});
+
+describe('Typeahead can display any value type Tests from inside an object', function () {
+    'use strict';
+
+    let myTypeahead;
+
+    before(function () {
+
+        document.write('<input class="js-typeahead-any-value-type-for-object">');
+
+        myTypeahead = $.typeahead({
+            input: '.js-typeahead-any-value-type-for-object',
             minLength: 0,
             generateOnLoad: true,
             display: ['string','numeric', 'booleanT', 'booleanF', 'undefined', 'deeper.key.level'],
