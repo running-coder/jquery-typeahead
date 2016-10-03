@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.1 (2016-9-30)
+ * @version 2.7.1 (2016-10-3)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -576,6 +576,8 @@
                 // setTimeout to re-queue the `input.typeahead` event at the end
                 setTimeout(function () {
                     scope.node.trigger('input' + scope.namespace);
+                    // #243 - minLength: 0 opens the Typeahead results
+                    scope.hideLayout();
                 });
             });
 
