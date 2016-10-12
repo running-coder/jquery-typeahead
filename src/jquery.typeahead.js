@@ -1335,7 +1335,7 @@
                 if (activeItem.length > 0) {
                     // Prevent form submit if an element is selected
                     e.preventDefault();
-                    activeItem.find('a:first').trigger('click', e);
+                    activeItem.find('a:first')[0].click();
                 }
                 return;
             }
