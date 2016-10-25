@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.1 (2016-10-3)
+ * @version 2.7.1 (2016-10-25)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1011,11 +1011,14 @@
                             _request = scope.requests[xhrObject.validForGroup[i]];
                             _request.callback.always instanceof Function && _request.callback.always(data, textStatus, jqXHR);
 
-                            scope.populateSource(
-                                typeof data.promise === "function" && [] || data,
-                                _request.extra.group,
-                                _request.extra.path || _request.request.path
-                            );
+                            // #248 Aborted requests would call populate with invalid data
+                            if (typeof jqXHR === "object") {
+                                scope.populateSource(
+                                    typeof data.promise === "function" && [] || data,
+                                    _request.extra.group,
+                                    _request.extra.path || _request.request.path
+                                );
+                            }
 
                             requestsCount -= 1;
                             if (requestsCount === 0) {
