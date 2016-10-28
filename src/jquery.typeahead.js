@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.2 (2016-10-26)
+ * @version 2.7.2 (2016-10-28)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1168,7 +1168,7 @@
                     compiledTemplate = "";
 
                 if (typeof template === "function") {
-                    template = template();
+                    template = template.call(this, '', {});
                 }
 
                 if (!template) {
