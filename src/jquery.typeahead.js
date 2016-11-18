@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.2 (2016-10-28)
+ * @version 2.7.2 (2016-11-18)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1320,7 +1320,7 @@
                 // #166 Different browsers do not have the same behaviors by default, lets enforce what we want instead
                 e.preventDefault();
                 if (this.query.length) {
-                    this.node.val('');
+                    this.resetInput();
                     this.node.trigger('input' + this.namespace, [e]);
                 } else {
                     this.node.blur();
@@ -2441,6 +2441,15 @@
 
         },
 
+        resetInput: function () {
+
+            this.node.val('');
+            this.item = null;
+            this.query = '';
+            this.rawQuery = '';
+
+        },
+
         buildCancelButtonLayout: function () {
             if (!this.options.cancelButton) return;
             var scope = this;
@@ -2452,7 +2461,7 @@
                     e.stopImmediatePropagation();
                     e.preventDefault();
 
-                    scope.node.val('');
+                    scope.resetInput();
                     scope.node.trigger('input' + scope.namespace, [e]);
                 }
             }).insertBefore(this.node);
