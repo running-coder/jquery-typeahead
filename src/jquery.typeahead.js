@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.2 (2016-11-18)
+ * @version 2.7.2 (2016-11-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -911,7 +911,8 @@
                     if (typeof scope.options.source[group].ajax === "function") {
 
                         var _groupRequest = scope.options.source[group].ajax.call(scope, scope.query);
-                        xhrObject = scope.extendXhrObject(xhrObject, _groupRequest);
+
+                        xhrObject = scope.extendXhrObject(xhrObject, (typeof _groupRequest === "object") ? _groupRequest : {});
 
                         if (typeof xhrObject.request !== "object" || !xhrObject.request.url) {
                             // {debug}
@@ -924,6 +925,7 @@
                                 _debug.print();
                             }
                             // {/debug}
+                            scope.populateSource([], group);
                             return;
                         }
                     }
