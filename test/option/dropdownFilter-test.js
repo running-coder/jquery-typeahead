@@ -1,6 +1,6 @@
 var expect = require('chai').expect,
-    jQuery = $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
+    $ = require("jquery"),
+    Typeahead = require('../../src/jquery.typeahead');
 
 describe('Typeahead dropdownFilter option Tests', function () {
     'use strict';

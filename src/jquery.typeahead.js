@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.2 (2016-11-21)
+ * @version 2.7.2 (2016-11-28)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -23,7 +23,7 @@
                 }
             }
             return factory(jQuery);
-        };
+        }();
     } else {
         factory(jQuery);
     }

@@ -1,6 +1,6 @@
 var expect = require('chai').expect,
-    jQuery = $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead')(jQuery, window);
+    $ = require("jquery"),
+    Typeahead = require('../../src/jquery.typeahead');
 
 describe('Typeahead can not display null or boolean if the item is a string', function () {
     'use strict';
