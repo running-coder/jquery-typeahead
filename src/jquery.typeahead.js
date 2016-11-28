@@ -23,7 +23,7 @@
                 }
             }
             return factory(jQuery);
-        };
+        }();
     } else {
         factory(jQuery);
     }
