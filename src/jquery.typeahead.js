@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.3 (2016-11-29)
+ * @version 2.7.3 (2016-12-6)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -93,6 +93,7 @@
             onMouseLeave: null,
             onClickBefore: null,        // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
             onClickAfter: null,         // -> New feature, happens after the default clicked behaviors has been executed
+            onDropdownFilter: null,     // -> New feature, when the dropdownFilter is changed, trigger this callback
             onSendRequest: null,        // -> New callback, gets called when the Ajax request(s) are sent
             onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
             onPopulateSource: null,     // -> New callback, Perform operation on the source data before it gets in Typeahead data
@@ -195,6 +196,7 @@
             dynamic: []
         };
         this.dropdownFilterAll = null;      // The last "all" definition
+        this.isDropdownEvent = false;       // If a dropdownFilter is clicked, this will be true to trigger the callback
 
         this.requests = {};                 // Store the group:request instead of generating them every time
 
@@ -1445,6 +1447,10 @@
 
             this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
 
+            if (this.isDropdownEvent) {
+                this.helper.executeCallback.call(this, this.options.callback.onDropdownFilter, [this.node, this.query, this.filters.dropdown, this.result]);
+                this.isDropdownEvent = false;
+            }
         },
 
         searchResultData: function () {
@@ -1689,7 +1695,6 @@
             }
 
             this.result = concatResults;
-
         },
 
         buildLayout: function () {
@@ -2255,6 +2260,7 @@
                     .find('.' + this.options.selector.filterButton)
                     .html(item.template);
 
+                this.isDropdownEvent = true;
                 this.node.trigger('dynamic' + this.namespace);
 
                 this.node.focus();
