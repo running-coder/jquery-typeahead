@@ -40,6 +40,7 @@ describe('Typeahead request Tests', function () {
                         callback: {
                             done: function (data) {
                                 hasDone = true;
+                                data.data[0].newKey = 'newKey';
                                 return data;
                             },
                             fail: function () {
@@ -66,6 +67,11 @@ describe('Typeahead request Tests', function () {
             expect(hasThen).to.be.true;
             expect(hasAlways).to.be.true;
             expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group] = jqXHR;')).to.be.true;
+        });
+
+        it('should have modified the data object `from callback.done`', function () {
+            expect(myTypeahead.result[0].newKey).to.be.defined;
+            expect(myTypeahead.result[0].invalidKey).to.not.be.defined;
         });
     });
 

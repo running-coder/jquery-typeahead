@@ -933,7 +933,8 @@
                     }
 
                     var _request,
-                        _isExtended = false; // Prevent the main request from being changed
+                        _isExtended = false, // Prevent the main request from being changed
+                        _data; // New data array in case it is modified inside callback.done
 
                     if (~xhrObject.request.url.indexOf('{{query}}')) {
                         if (!_isExtended) {
@@ -971,8 +972,11 @@
                                 tmpData = _request.callback.done(data, textStatus, jqXHR);
                                 data = Array.isArray(tmpData) && tmpData || data;
 
+                                if (Array.isArray(data)) {
+                                    _data = data;
+                                }
                                 // {debug}
-                                if (!Array.isArray(tmpData)) {
+                                else {
                                     if (scope.options.debug) {
                                         _debug.log({
                                             'node': scope.node.selector,
@@ -984,7 +988,6 @@
                                 }
                                 // {/debug}
                             }
-
                         }
 
                     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -1016,9 +1019,10 @@
                             _request.callback.always instanceof Function && _request.callback.always(data, textStatus, jqXHR);
 
                             // #248 Aborted requests would call populate with invalid data
+                            // #265 Modified data from ajax.callback.done is not being registred (use of _data)
                             if (typeof jqXHR === "object") {
                                 scope.populateSource(
-                                    typeof data.promise === "function" && [] || data,
+                                    typeof data.promise === "function" && [] || _data || data,
                                     _request.extra.group,
                                     _request.extra.path || _request.request.path
                                 );
