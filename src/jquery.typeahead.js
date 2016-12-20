@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.4 (2016-12-8)
+ * @version 2.7.4 (2016-12-20)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1127,13 +1127,17 @@
 
             for (var i = 0, ii = data.length; i < ii; i++) {
                 if (data[i] === null || typeof data[i] === "boolean") {
-                    _debug.log({
-                        'node': this.node.selector,
-                        'function': 'populateSource()',
-                        'message': 'WARNING - NULL/BOOLEAN value inside ' + group + '! The data was skipped.'
-                    });
+                    // {debug}
+                    if (this.options.debug) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'populateSource()',
+                            'message': 'WARNING - NULL/BOOLEAN value inside ' + group + '! The data was skipped.'
+                        });
 
-                    _debug.print();
+                        _debug.print();
+                    }
+                    // {/debug}
                     continue;
                 }
                 if (typeof data[i] === "string") {
@@ -1226,14 +1230,16 @@
                 data = this.helper.executeCallback.call(this, this.options.callback.onPopulateSource, [this.node, data, group, path]);
 
                 // {debug}
-                if (!data || !Array.isArray(data)) {
-                    _debug.log({
-                        'node': this.node.selector,
-                        'function': 'callback.populateSource()',
-                        'message': 'callback.onPopulateSource must return the "data" parameter'
-                    });
+                if (this.options.debug) {
+                    if (!data || !Array.isArray(data)) {
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'callback.populateSource()',
+                            'message': 'callback.onPopulateSource must return the "data" parameter'
+                        });
 
-                    _debug.print();
+                        _debug.print();
+                    }
                 }
                 // {/debug}
             }
@@ -1247,14 +1253,16 @@
                     data = this.helper.executeCallback.call(this, this.options.callback.onCacheSave, [this.node, data, group, path]);
 
                     // {debug}
-                    if (!data || !Array.isArray(data)) {
-                        _debug.log({
-                            'node': this.node.selector,
-                            'function': 'callback.populateSource()',
-                            'message': 'callback.onCacheSave must return the "data" parameter'
-                        });
+                    if (this.options.debug) {
+                        if (!data || !Array.isArray(data)) {
+                            _debug.log({
+                                'node': this.node.selector,
+                                'function': 'callback.populateSource()',
+                                'message': 'callback.onCacheSave must return the "data" parameter'
+                            });
 
-                        _debug.print();
+                            _debug.print();
+                        }
                     }
                     // {/debug}
                 }
