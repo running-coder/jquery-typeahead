@@ -23,6 +23,7 @@ describe('Typeahead request Tests', function () {
                 input: '.js-typeahead-request-object',
                 minLength: 0,
                 generateOnLoad: true,
+                dynamic: true,
                 source: {
                     ajax: {
                         url: "http://www.gamer-hub.com/tag/list.json",
@@ -40,7 +41,9 @@ describe('Typeahead request Tests', function () {
                         callback: {
                             done: function (data) {
                                 hasDone = true;
-                                data.data[0].newKey = 'newKey';
+                                if (this.query == "q") {
+                                    data.data[0].newKey = 'newKey';
+                                }
                                 return data;
                             },
                             fail: function () {
@@ -69,9 +72,17 @@ describe('Typeahead request Tests', function () {
             expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group] = jqXHR;')).to.be.true;
         });
 
-        it('should have modified the data object `from callback.done`', function () {
+        it('should have modified the data object `from callback.done` if query == q', function () {
+            myTypeahead.node.val('q');
+            myTypeahead.node.trigger('input.typeahead');
             expect(myTypeahead.result[0].newKey).to.be.defined;
             expect(myTypeahead.result[0].invalidKey).to.not.be.defined;
+        });
+
+        it('shouldn\'t have modified the data object `from callback.done`', function () {
+            myTypeahead.node.val('test');
+            myTypeahead.node.trigger('input.typeahead');
+            expect(myTypeahead.result[0].newKey).to.not.be.defined;
         });
     });
 
@@ -140,6 +151,60 @@ describe('Typeahead request Tests', function () {
             expect(hasThen).to.be.true;
             expect(hasAlways).to.be.true;
             expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group] = jqXHR;')).to.be.true;
+        });
+    });
+
+    // #271 Data is cached inside the xhrObject
+    describe('$ajax.request should have variable GET data', function () {
+        before(function () {
+
+            document.write('<input class="js-typeahead-request-data">');
+
+            myTypeahead = $.typeahead({
+                input: '.js-typeahead-request-data',
+                minLength: 0,
+                generateOnLoad: true,
+                source: {
+                    ajax: function (query) {
+
+                        var data = {
+                            hi: 1,
+                            hello: 2
+                        };
+
+                        if (query == 'q') {
+                            data.hey = 3
+                        }
+
+                        return {
+                            url: `http://www.gamer-hub.com/tag/list.json?q=${query}`,
+                            data: data,
+                            path: "data",
+                            dataType: "jsonp"
+                        }
+                    }
+
+                }
+            });
+        });
+
+        it('should merge Typeahead $.ajax.data dynamically when ajax is a function', function () {
+            myTypeahead.node.val('test');
+            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('generate.typeahead');
+
+            expect(Object.keys(myTypeahead.requests.group.request.data).length).to.be.equal(2);
+
+            myTypeahead.node.val('q');
+            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('generate.typeahead');
+            expect(Object.keys(myTypeahead.requests.group.request.data).length).to.be.equal(3);
+
+            myTypeahead.node.val('test');
+            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('generate.typeahead');
+
+            expect(Object.keys(myTypeahead.requests.group.request.data).length).to.be.equal(2);
         });
     });
 

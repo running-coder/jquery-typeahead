@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.5 (2016-12-21)
+ * @version 2.7.5 (2016-12-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -864,7 +864,6 @@
             }
 
             return xhrObject;
-
         },
 
         extendXhrObject: function (xhrObject, groupRequest) {
@@ -882,7 +881,11 @@
 
             // Fixes #105 Allow user to define their beforeSend function.
             // Fixes #181 IE8 incompatibility
-            xhrObject.request = $.extend(true, xhrObject.request, groupRequest/*, {beforeSend: xhrObject.request.beforeSend}*/);
+            xhrObject.request = $.extend(
+                true,
+                xhrObject.request,
+                groupRequest
+            );
 
             // JSONP needs a unique jsonpCallback to run concurrently
             if (xhrObject.request.dataType.toLowerCase() === 'jsonp' && !xhrObject.request.jsonpCallback) {
@@ -890,7 +893,6 @@
             }
 
             return xhrObject;
-
         },
 
         handleRequests: function () {
@@ -903,7 +905,6 @@
                 return;
             }
 
-
             for (var group in this.requests) {
                 if (!this.requests.hasOwnProperty(group)) continue;
                 if (this.requests[group].isDuplicated) continue;
@@ -914,7 +915,11 @@
 
                         var _groupRequest = scope.options.source[group].ajax.call(scope, scope.query);
 
-                        xhrObject = scope.extendXhrObject(xhrObject, (typeof _groupRequest === "object") ? _groupRequest : {});
+                        // Fixes #271 Data is cached inside the xhrObject
+                        xhrObject = scope.extendXhrObject(
+                            scope.generateRequestObject(group),
+                            (typeof _groupRequest === "object") ? _groupRequest : {}
+                        );
 
                         if (typeof xhrObject.request !== "object" || !xhrObject.request.url) {
                             // {debug}
@@ -930,6 +935,8 @@
                             scope.populateSource([], group);
                             return;
                         }
+
+                        scope.requests[group] = xhrObject;
                     }
 
                     var _request,
@@ -961,22 +968,17 @@
                     }
 
                     $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
-
-                        var tmpData;
+                        _data = null;
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
 
                             _request = scope.requests[xhrObject.validForGroup[i]];
 
                             if (_request.callback.done instanceof Function) {
 
-                                tmpData = _request.callback.done(data, textStatus, jqXHR);
-                                data = Array.isArray(tmpData) && tmpData || data;
+                                _data = _request.callback.done(data, textStatus, jqXHR);
 
-                                if (Array.isArray(data)) {
-                                    _data = data;
-                                }
                                 // {debug}
-                                else {
+                                if (!Array.isArray(_data) || typeof _data !== "object") {
                                     if (scope.options.debug) {
                                         _debug.log({
                                             'node': scope.node.selector,
@@ -1020,13 +1022,11 @@
 
                             // #248 Aborted requests would call populate with invalid data
                             // #265 Modified data from ajax.callback.done is not being registred (use of _data)
-                            if (typeof jqXHR === "object") {
-                                scope.populateSource(
-                                    typeof data.promise === "function" && [] || _data || data,
-                                    _request.extra.group,
-                                    _request.extra.path || _request.request.path
-                                );
-                            }
+                            scope.populateSource(
+                                typeof data.promise === "function" && [] || _data || data,
+                                _request.extra.group,
+                                _request.extra.path || _request.request.path
+                            );
 
                             requestsCount -= 1;
                             if (requestsCount === 0) {
