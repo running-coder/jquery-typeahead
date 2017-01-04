@@ -20,6 +20,7 @@ require('./unit/helper-test.js');
 require('./integration/sanitize-test.js');
 require('./integration/anyValueType-test.js');
 require('./integration/request-test.js');
+require('./integration/callback-test.js');
 require('./option/source-test.js');
 require('./option/dropdownFilter-test.js');
 require('./option/groupTemplate-test.js');

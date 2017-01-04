@@ -1,10 +1,10 @@
 /*!
  * jQuery Typeahead
- * Copyright (C) 2016 RunningCoder.org
+ * Copyright (C) 2017 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2016-12-23)
+ * @version 2.7.6 (2017-1-4)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -648,14 +648,13 @@
                     case "input":
 
                         scope.rawQuery = scope.node[0].value.toString();
+                        scope.query = scope.rawQuery.replace(/^\s+/, '');
 
                         // #195 Trigger an onCancel event if the Typeahead is cleared
-                        if (scope.rawQuery === "" && scope.query !== "") {
+                        if (scope.rawQuery === "" && scope.query === "") {
                             e.originalEvent = originalEvent || {};
                             scope.helper.executeCallback.call(scope, scope.options.callback.onCancel, [scope.node, e]);
                         }
-
-                        scope.query = scope.rawQuery.replace(/^\s+/, '');
 
                         scope.options.cancelButton && scope.toggleCancelButton();
 
