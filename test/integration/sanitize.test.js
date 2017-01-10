@@ -1,18 +1,17 @@
-var expect = require('chai').expect,
-    $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead Sanitize Tests', function () {
+describe('Typeahead Sanitize Tests', () => {
     'use strict';
 
     let myTypeahead;
 
-    before(function () {
+    beforeAll(() => {
 
-        document.write('<input class="js-typeahead-sanitize">');
+        document.body.innerHTML = '<input class="js-typeahead">';
 
         myTypeahead = $.typeahead({
-            input: '.js-typeahead-sanitize',
+            input: '.js-typeahead',
             minLength: 0,
             generateOnLoad: true,
             display: ['display'],
@@ -33,21 +32,21 @@ describe('Typeahead Sanitize Tests', function () {
         });
     });
 
-    it('Should display values', function () {
+    it('Should display values', () => {
         myTypeahead.node.val('test');
         myTypeahead.node.trigger('input.typeahead');
 
-        expect(myTypeahead.resultCount).to.be.equal(2);
-        expect(myTypeahead.resultHtml).to.not.be.null;
-        expect(/<\/?(?:script|iframe)\b[^>]*>/.test(myTypeahead.resultHtml[0].innerHTML)).to.be.false;
+        expect(myTypeahead.resultCount).toEqual(2);
+        expect(myTypeahead.resultHtml).toBeDefined();
+        expect(/<\/?(?:script|iframe)\b[^>]*>/.test(myTypeahead.resultHtml[0].innerHTML)).toBeFalsy();
     });
 
-    it('Should display sanitized values', function () {
+    it('Should display sanitized values', () => {
         myTypeahead.node.val('<script>empty</script>');
         myTypeahead.node.trigger('input.typeahead');
 
-        expect(myTypeahead.resultCount).to.be.equal(0);
-        expect(myTypeahead.resultHtml.text()).to.be.equal('no result for empty');
+        expect(myTypeahead.resultCount).toEqual(0);
+        expect(myTypeahead.resultHtml.text()).toEqual('no result for empty');
     });
 
 });

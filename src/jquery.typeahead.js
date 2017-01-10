@@ -973,8 +973,7 @@
                             _request = scope.requests[xhrObject.validForGroup[i]];
 
                             if (_request.callback.done instanceof Function) {
-
-                                _data = _request.callback.done(data, textStatus, jqXHR);
+                                _data = _request.callback.done.call(scope, data, textStatus, jqXHR);
 
                                 // {debug}
                                 if (!Array.isArray(_data) || typeof _data !== "object") {
@@ -995,7 +994,7 @@
 
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.callback.fail instanceof Function && _request.callback.fail(jqXHR, textStatus, errorThrown);
+                            _request.callback.fail instanceof Function && _request.callback.fail.call(scope, jqXHR, textStatus, errorThrown);
                         }
 
                         // {debug}
@@ -1017,7 +1016,7 @@
 
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.callback.always instanceof Function && _request.callback.always(data, textStatus, jqXHR);
+                            _request.callback.always instanceof Function && _request.callback.always.call(scope, data, textStatus, jqXHR);
 
                             // #248 Aborted requests would call populate with invalid data
                             // #265 Modified data from ajax.callback.done is not being registred (use of _data)
@@ -1038,7 +1037,7 @@
 
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.callback.then instanceof Function && _request.callback.then(jqXHR, textStatus);
+                            _request.callback.then instanceof Function && _request.callback.then.call(scope, jqXHR, textStatus);
                         }
 
                     });

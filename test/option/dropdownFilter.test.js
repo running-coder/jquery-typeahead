@@ -1,18 +1,17 @@
-var expect = require('chai').expect,
-    $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead dropdownFilter option Tests', function () {
+describe('Typeahead dropdownFilter option Tests', () => {
     'use strict';
 
     let myTypeahead;
 
-    before(function () {
+    beforeAll(() => {
 
-        document.write('<input class="js-typeahead-dropdown-filter">');
+        document.body.innerHTML = '<input class="js-typeahead">';
 
         myTypeahead = $.typeahead({
-            input: '.js-typeahead-dropdown-filter',
+            input: '.js-typeahead',
             minLength: 0,
             generateOnLoad: true,
             display: ['display'],
@@ -23,19 +22,19 @@ describe('Typeahead dropdownFilter option Tests', function () {
 
     });
 
-    it('Typeahead.options.dropdownFilter - Test for boolean', function () {
+    it('Typeahead.options.dropdownFilter - Test for boolean', () => {
 
         // dropdownFilter: true,
 
     });
 
-    it('Typeahead.options.dropdownFilter - Test for string', function () {
+    it('Typeahead.options.dropdownFilter - Test for string', () => {
 
         // dropdownFilter: 'All Teams',
 
     });
 
-    it('Typeahead.options.dropdownFilter - Test for static', function () {
+    it('Typeahead.options.dropdownFilter - Test for static', () => {
 
         // dropdownFilter: [{
         //     key: 'conference',
@@ -50,7 +49,7 @@ describe('Typeahead dropdownFilter option Tests', function () {
 
     });
 
-    it('Typeahead.options.dropdownFilter - Test for dynamic', function () {
+    it('Typeahead.options.dropdownFilter - Test for dynamic', () => {
 
         // dropdownFilter: [{
         //     key: 'conference',
@@ -60,7 +59,7 @@ describe('Typeahead dropdownFilter option Tests', function () {
 
     });
 
-    it('Typeahead.options.dropdownFilter - Test for static & dynamic', function () {
+    it('Typeahead.options.dropdownFilter - Test for static & dynamic', () => {
 
         // dropdownFilter: [{
         //     key: 'conference',

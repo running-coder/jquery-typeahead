@@ -1,18 +1,17 @@
-var expect = require('chai').expect,
-    $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead can not display null or boolean if the item is a string', function () {
+describe('Typeahead can not display null or boolean if the item is a string', () => {
     'use strict';
 
     let myTypeahead;
 
-    before(function () {
+    beforeAll(() => {
 
-        document.write('<input class="js-typeahead-no-null-or-boolean-for-string">');
+        document.body.innerHTML = '<input class="js-typeahead">';
 
         myTypeahead = $.typeahead({
-            input: '.js-typeahead-no-null-or-boolean-for-string',
+            input: '.js-typeahead',
             minLength: 0,
             generateOnLoad: true,
             source: {
@@ -21,24 +20,24 @@ describe('Typeahead can not display null or boolean if the item is a string', fu
         });
     });
 
-    it('Should display any value types', function () {
+    it('Should display any value types', () => {
         myTypeahead.node.trigger('input.typeahead');
 
-        expect(myTypeahead.result.length).to.equal(3);
+        expect(myTypeahead.result.length).toEqual(3);
     });
 });
 
-describe('Typeahead can display any value type Tests from inside an object', function () {
+describe('Typeahead can display any value type Tests from inside an object', () => {
     'use strict';
 
     let myTypeahead;
 
-    before(function () {
+    beforeAll(() => {
 
-        document.write('<input class="js-typeahead-any-value-type-for-object">');
+        document.body.innerHTML = '<input class="js-typeahead">';
 
         myTypeahead = $.typeahead({
-            input: '.js-typeahead-any-value-type-for-object',
+            input: '.js-typeahead',
             minLength: 0,
             generateOnLoad: true,
             display: ['string','numeric', 'booleanT', 'booleanF', 'undefined', 'deeper.key.level'],
@@ -58,23 +57,23 @@ describe('Typeahead can display any value type Tests from inside an object', fun
         });
     });
 
-    it('Should display any value types', function () {
+    it('Should display any value types', () => {
         myTypeahead.node.trigger('input.typeahead');
 
-        expect(myTypeahead.resultHtml.find('span').text()).to.equal('string 12345 true false 42');
+        expect(myTypeahead.resultHtml.find('span').text()).toEqual('string 12345 true false 42');
     });
 
-    it('Should display a boolean "false" search', function () {
+    it('Should display a boolean "false" search', () => {
         myTypeahead.node.val('false');
         myTypeahead.node.trigger('input.typeahead');
 
-        expect(myTypeahead.result.length).to.equal(1);
+        expect(myTypeahead.result.length).toEqual(1);
     });
 
-    it('Should display a numeric value', function () {
+    it('Should display a numeric value', () => {
         myTypeahead.node.val('345');
         myTypeahead.node.trigger('input.typeahead');
 
-        expect(myTypeahead.result.length).to.equal(1);
+        expect(myTypeahead.result.length).toEqual(1);
     });
 });

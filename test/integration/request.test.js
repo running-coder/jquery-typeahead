@@ -1,8 +1,7 @@
-var expect = require('chai').expect,
-    $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead request Tests', function () {
+describe('Typeahead request Tests', () => {
     'use strict';
 
     let myTypeahead,
@@ -13,26 +12,26 @@ describe('Typeahead request Tests', function () {
         hasThen = false,
         hasAlways = false;
 
-    describe('$ajax.request as an Object', function () {
+    describe('$ajax.request as an Object', () => {
 
-        before(function (done) {
+        beforeAll(function (done) {
 
-            document.write('<input class="js-typeahead-request-object">');
+            document.body.innerHTML = '<input class="js-typeahead">';
 
             myTypeahead = $.typeahead({
-                input: '.js-typeahead-request-object',
+                input: '.js-typeahead',
                 minLength: 0,
                 generateOnLoad: true,
                 dynamic: true,
                 source: {
                     ajax: {
-                        url: "http://www.gamer-hub.com/tag/list.json",
+                        url: "http://www.gamer-hub.com/category/list.json",
                         dataType: "jsonp",
                         path: "data",
                         beforeSend: function (jqXHR, options) {
                             hasBeforeSend = true;
                         },
-                        complete: function () {
+                        complete: () => {
                             hasComplete = true;
                             setTimeout(function(){
                                 done();
@@ -41,18 +40,18 @@ describe('Typeahead request Tests', function () {
                         callback: {
                             done: function (data) {
                                 hasDone = true;
-                                if (this.query == "q") {
+                                if (this.query == "sp") {
                                     data.data[0].newKey = 'newKey';
                                 }
                                 return data;
                             },
-                            fail: function () {
+                            fail: () => {
                                 hasFail = true;
                             },
-                            then: function () {
+                            then: () => {
                                 hasThen = true;
                             },
-                            always: function () {
+                            always: () => {
                                 hasAlways = true;
                             }
                         }
@@ -61,33 +60,38 @@ describe('Typeahead request Tests', function () {
             });
         });
 
-        it('should merge Typeahead $.ajax object', function () {
-            expect(myTypeahead.source.group.length).to.be.above(100);
-            expect(hasBeforeSend).to.be.true;
-            expect(hasComplete).to.be.true;
-            expect(hasDone).to.be.true;
-            expect(hasFail).to.be.false;
-            expect(hasThen).to.be.true;
-            expect(hasAlways).to.be.true;
-            expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group] = jqXHR;')).to.be.true;
+        it('should merge Typeahead $.ajax object', () => {
+
+            expect(myTypeahead.source.group.length).toBeGreaterThan(15);
+            expect(hasBeforeSend).toBeTruthy();
+            expect(hasComplete).toBeTruthy();
+            expect(hasDone).toBeTruthy();
+            expect(hasFail).toBeFalsy();
+            expect(hasThen).toBeTruthy();
+            expect(hasAlways).toBeTruthy();
+            expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group]')).toBeTruthy();
+
         });
 
-        it('should have modified the data object `from callback.done` if query == q', function () {
-            myTypeahead.node.val('q');
+        it('should have modified the data object `from callback.done` if query == q', (done) => {
+
+            expect(myTypeahead.result[0].newKey).toBeUndefined();
+
+            myTypeahead.node.val('sp');
             myTypeahead.node.trigger('input.typeahead');
-            expect(myTypeahead.result[0].newKey).to.be.defined;
-            expect(myTypeahead.result[0].invalidKey).to.not.be.defined;
+
+            setTimeout(() => {
+                expect(myTypeahead.result[0].newKey).toBeDefined();
+                expect(myTypeahead.result[0].invalidKey).toBeUndefined();
+                done();
+            }, 500)
+
         });
 
-        it('shouldn\'t have modified the data object `from callback.done`', function () {
-            myTypeahead.node.val('test');
-            myTypeahead.node.trigger('input.typeahead');
-            expect(myTypeahead.result[0].newKey).to.not.be.defined;
-        });
     });
 
-    describe('$ajax.request as an Array', function () {
-        before(function (done) {
+    describe('$ajax.request as an Array', () => {
+        beforeAll(function (done) {
 
             hasBeforeSend = false;
             hasComplete = false;
@@ -96,10 +100,10 @@ describe('Typeahead request Tests', function () {
             hasThen = false;
             hasAlways = false;
 
-            document.write('<input class="js-typeahead-request-array">');
+            document.body.innerHTML = '<input class="js-typeahead">';
 
             myTypeahead = $.typeahead({
-                input: '.js-typeahead-request-array',
+                input: '.js-typeahead',
                 minLength: 0,
                 generateOnLoad: true,
                 source: {
@@ -110,7 +114,7 @@ describe('Typeahead request Tests', function () {
                             beforeSend: function (jqXHR, options) {
                                 hasBeforeSend = true;
                             },
-                            complete: function () {
+                            complete: () => {
                                 hasComplete = true;
                                 setTimeout(function(){
                                     done();
@@ -121,13 +125,13 @@ describe('Typeahead request Tests', function () {
                                     hasDone = true;
                                     return data;
                                 },
-                                fail: function () {
+                                fail: () => {
                                     hasFail = true;
                                 },
-                                then: function () {
+                                then: () => {
                                     hasThen = true;
                                 },
-                                always: function () {
+                                always: () => {
                                     hasAlways = true;
                                 }
                             }
@@ -137,31 +141,33 @@ describe('Typeahead request Tests', function () {
             });
         });
 
-        it('should merge Typeahead Array into $.ajax object', function () {
+        it('should merge Typeahead Array into $.ajax object', () => {
+
             myTypeahead.node.val('test');
             myTypeahead.node.trigger('input.typeahead');
             myTypeahead.node.trigger('generate.typeahead');
+            
+            expect(!!~myTypeahead.requests.group.request.url.indexOf('?q=test')).toBeTruthy();
+            expect(myTypeahead.source.group.length).toBeGreaterThan(100);
+            expect(hasBeforeSend).toBeTruthy();
+            expect(hasComplete).toBeTruthy();
+            expect(hasDone).toBeTruthy();
+            expect(hasFail).toBeFalsy();
+            expect(hasThen).toBeTruthy();
+            expect(hasAlways).toBeTruthy();
+            expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group]')).toBeTruthy();
 
-            expect(!!~myTypeahead.requests.group.request.url.indexOf('?q=test')).to.be.true;
-            expect(myTypeahead.source.group.length).to.be.above(100);
-            expect(hasBeforeSend).to.be.true;
-            expect(hasComplete).to.be.true;
-            expect(hasDone).to.be.true;
-            expect(hasFail).to.be.false;
-            expect(hasThen).to.be.true;
-            expect(hasAlways).to.be.true;
-            expect(!!~myTypeahead.requests.group.request.beforeSend.toString().indexOf('scope.xhr[group] = jqXHR;')).to.be.true;
         });
     });
 
     // #271 Data is cached inside the xhrObject
-    describe('$ajax.request should have variable GET data', function () {
-        before(function () {
+    describe('$ajax.request should have variable GET data', () => {
+        beforeAll(() => {
 
-            document.write('<input class="js-typeahead-request-data">');
+            document.body.innerHTML = '<input class="js-typeahead">';
 
             myTypeahead = $.typeahead({
-                input: '.js-typeahead-request-data',
+                input: '.js-typeahead',
                 minLength: 0,
                 generateOnLoad: true,
                 source: {
@@ -188,23 +194,25 @@ describe('Typeahead request Tests', function () {
             });
         });
 
-        it('should merge Typeahead $.ajax.data dynamically when ajax is a function', function () {
+        it('should merge Typeahead $.ajax.data dynamically when ajax is a function', () => {
+
             myTypeahead.node.val('test');
             myTypeahead.node.trigger('input.typeahead');
             myTypeahead.node.trigger('generate.typeahead');
 
-            expect(Object.keys(myTypeahead.requests.group.request.data).length).to.be.equal(2);
+            expect(Object.keys(myTypeahead.requests.group.request.data).length).toEqual(2);
 
             myTypeahead.node.val('q');
             myTypeahead.node.trigger('input.typeahead');
             myTypeahead.node.trigger('generate.typeahead');
-            expect(Object.keys(myTypeahead.requests.group.request.data).length).to.be.equal(3);
+            expect(Object.keys(myTypeahead.requests.group.request.data).length).toEqual(3);
 
             myTypeahead.node.val('test');
             myTypeahead.node.trigger('input.typeahead');
             myTypeahead.node.trigger('generate.typeahead');
 
-            expect(Object.keys(myTypeahead.requests.group.request.data).length).to.be.equal(2);
+            expect(Object.keys(myTypeahead.requests.group.request.data).length).toEqual(2);
+
         });
     });
 

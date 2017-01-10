@@ -1,19 +1,18 @@
-var expect = require('chai').expect,
-    $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead groupTemplate option Tests', function () {
+describe('Typeahead groupTemplate option Tests', () => {
     'use strict';
 
     let myTypeahead;
 
-    describe('Hardcoded template', function () {
-        before(function () {
+    describe('Hardcoded template', () => {
+        beforeAll(() => {
 
-            document.write('<input class="js-typeahead-group-template-hardcoded">');
+            document.body.innerHTML = '<input class="js-typeahead">';
 
             myTypeahead = $.typeahead({
-                input: '.js-typeahead-group-template-hardcoded',
+                input: '.js-typeahead',
                 minLength: 0,
                 generateOnLoad: true,
                 groupTemplate: (`
@@ -38,27 +37,27 @@ describe('Typeahead groupTemplate option Tests', function () {
             });
         });
 
-        it('Should produce 3 \<td>', function () {
+        it('Should produce 3 \<td>', () => {
             myTypeahead.node.val('data_four');
             myTypeahead.node.trigger('input.typeahead');
 
-            expect(myTypeahead.result.length).to.equal(3);
-            expect(myTypeahead.resultHtml.find('td').length).to.equal(3);
-            expect(myTypeahead.resultHtml.find('a').length).to.equal(3);
+            expect(myTypeahead.result.length).toEqual(3);
+            expect(myTypeahead.resultHtml.find('td').length).toEqual(3);
+            expect(myTypeahead.resultHtml.find('a').length).toEqual(3);
         });
 
-        it('Should produce 1 \<td>', function () {
+        it('Should produce 1 \<td>', () => {
             myTypeahead.node.val('data_five');
             myTypeahead.node.trigger('input.typeahead');
 
-            expect(myTypeahead.result.length).to.equal(1);
-            expect(myTypeahead.resultHtml.find('td').length).to.equal(1);
-            expect(myTypeahead.resultHtml.find('a').length).to.equal(1);
+            expect(myTypeahead.result.length).toEqual(1);
+            expect(myTypeahead.resultHtml.find('td').length).toEqual(1);
+            expect(myTypeahead.resultHtml.find('a').length).toEqual(1);
         });
     });
 
-    describe('Dynamic template', function () {
-        before(function () {
+    describe('Dynamic template', () => {
+        beforeAll(() => {
 
             myTypeahead.options.groupOrder = "desc";
             myTypeahead.options.groupTemplate = (`
@@ -71,17 +70,17 @@ describe('Typeahead groupTemplate option Tests', function () {
             myTypeahead.extendOptions();
         });
 
-        it('Should generate \<td> from groups and order them "desc"', function () {
+        it('Should generate \<td> from groups and order them "desc"', () => {
             myTypeahead.node.val('data_four');
             myTypeahead.node.trigger('input.typeahead');
 
-            expect(myTypeahead.result.length).to.equal(3);
-            expect(myTypeahead.resultHtml.find('td').length).to.equal(3);
-            expect(myTypeahead.resultHtml.find('a').length).to.equal(3);
+            expect(myTypeahead.result.length).toEqual(3);
+            expect(myTypeahead.resultHtml.find('td').length).toEqual(3);
+            expect(myTypeahead.resultHtml.find('a').length).toEqual(3);
             // Test groupOrder option mixed with groupTemplate
-            expect(myTypeahead.resultHtml.find('td:eq(0)').attr('data-group-template')).to.equal('group_two');
-            expect(myTypeahead.resultHtml.find('td:eq(1)').attr('data-group-template')).to.equal('group_three');
-            expect(myTypeahead.resultHtml.find('td:eq(2)').attr('data-group-template')).to.equal('group_one');
+            expect(myTypeahead.resultHtml.find('td:eq(0)').attr('data-group-template')).toEqual('group_two');
+            expect(myTypeahead.resultHtml.find('td:eq(1)').attr('data-group-template')).toEqual('group_three');
+            expect(myTypeahead.resultHtml.find('td:eq(2)').attr('data-group-template')).toEqual('group_one');
         });
     });
 

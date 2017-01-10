@@ -1,19 +1,18 @@
-var expect = require('chai').expect,
-    $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead Callback Tests', function () {
+describe('Typeahead Callback Tests', () => {
     'use strict';
 
     let myTypeahead,
         onCancel;
 
-    before(function () {
+    beforeAll(() => {
 
-        document.write('<input class="js-typeahead-callback">');
+        document.body.innerHTML = '<input class="js-typeahead">';
 
         myTypeahead = $.typeahead({
-            input: '.js-typeahead-callback',
+            input: '.js-typeahead',
             minLength: 0,
             generateOnLoad: true,
             display: ['display'],
@@ -41,29 +40,29 @@ describe('Typeahead Callback Tests', function () {
         onCancel = false
     });
 
-    it('Should call onCancel callback when ESC is pressed', function () {
+    it('Should call onCancel callback when ESC is pressed', () => {
         myTypeahead.node.val('test');
         myTypeahead.node.trigger('input.typeahead');
 
         myTypeahead.node.trigger($.Event("keydown", { keyCode: 27 }));
-        expect(onCancel).to.be.true;
+        expect(onCancel).toBeTruthy();
     });
 
-    it('Should call onCancel callback if cancel button is clicked', function () {
+    it('Should call onCancel callback if cancel button is clicked', () => {
         myTypeahead.node.val('test');
         myTypeahead.node.trigger('input.typeahead');
 
         myTypeahead.node.parent().find('.typeahead__cancel-button').trigger('mousedown')
-        expect(onCancel).to.be.true;
+        expect(onCancel).toBeTruthy();
     });
 
-    it('Should call onCancel callback if a character is deleted and the input is empty', function () {
+    it('Should call onCancel callback if a character is deleted and the input is empty', () => {
         myTypeahead.node.val('test');
         myTypeahead.node.trigger('input.typeahead');
 
         myTypeahead.node.val('');
         myTypeahead.node.trigger('input.typeahead');
 
-        expect(onCancel).to.be.true;
+        expect(onCancel).toBeTruthy();
     });
 });

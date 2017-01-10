@@ -1,19 +1,18 @@
-var expect = require('chai').expect,
-    $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead source option Tests', function () {
+describe('Typeahead source option Tests', () => {
     'use strict';
 
     let myTypeahead,
         isValidSource;
 
-    before(function () {
+    beforeAll(() => {
 
-        document.write('<input class="js-typeahead-source">');
+        document.body.innerHTML = '<input class="js-typeahead">';
 
         myTypeahead = $.typeahead({
-            input: '.js-typeahead-source',
+            input: '.js-typeahead',
             minLength: 0,
             display: ['display'],
             source: []
@@ -21,25 +20,25 @@ describe('Typeahead source option Tests', function () {
 
     });
 
-    describe('Typeahead.options.source - Test for an Array Strings', function () {
+    describe('Typeahead.options.source - Test for an Array Strings', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = ['data1', 'data2'];
             isValidSource = myTypeahead.unifySourceFormat();
             myTypeahead.node.trigger('generate.typeahead');
         });
 
-        it('Should format the Source option into an Array of Strings', function () {
-            expect(isValidSource).to.be.true;
-            expect(myTypeahead.options.source).to.deep.equal({
+        it('Should format the Source option into an Array of Strings', () => {
+            expect(isValidSource).toBeTruthy();
+            expect(myTypeahead.options.source).toEqual({
                 group: {
                     data: ['data1', 'data2']
                 }
             });
         });
 
-        it('Should format the Typeahead source into an Array of Objects', function () {
-            expect(myTypeahead.source).to.deep.equal({
+        it('Should format the Typeahead source into an Array of Objects', () => {
+            expect(myTypeahead.source).toEqual({
                 group: [{
                     'display': 'data1',
                     'group': 'group',
@@ -53,16 +52,16 @@ describe('Typeahead source option Tests', function () {
         });
     });
 
-    describe('Typeahead.options.source - Test for a String (url)', function () {
+    describe('Typeahead.options.source - Test for a String (url)', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = "data.json";
             isValidSource = myTypeahead.unifySourceFormat();
         });
 
-        it('Should format the Source option into an Array of Strings', function () {
-            expect(isValidSource).to.be.true;
-            expect(myTypeahead.options.source).to.deep.equal({
+        it('Should format the Source option into an Array of Strings', () => {
+            expect(isValidSource).toBeTruthy();
+            expect(myTypeahead.options.source).toEqual({
                 group: {
                     ajax: {
                         url: 'data.json'
@@ -72,16 +71,16 @@ describe('Typeahead source option Tests', function () {
         });
     });
 
-    describe('Typeahead.options.source - Test for data Array + url String', function () {
+    describe('Typeahead.options.source - Test for data Array + url String', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = {data: ['item1', 'item2'], url: "data.json", display: 'display'};
             isValidSource = myTypeahead.unifySourceFormat();
         });
 
-        it('Should format the Source option into a group with data and ajax keys', function () {
-            expect(isValidSource).to.be.true;
-            expect(myTypeahead.options.source).to.deep.equal({
+        it('Should format the Source option into a group with data and ajax keys', () => {
+            expect(isValidSource).toBeTruthy();
+            expect(myTypeahead.options.source).toEqual({
                 group: {
                     data: ['item1', 'item2'],
                     ajax: {
@@ -93,16 +92,16 @@ describe('Typeahead source option Tests', function () {
         });
     });
 
-    describe('Typeahead.options.source - Test for group with url String', function () {
+    describe('Typeahead.options.source - Test for group with url String', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = {group: "data.json"};
             isValidSource = myTypeahead.unifySourceFormat();
         });
 
-        it('Should format the Source option into a group with ajax key', function () {
-            expect(isValidSource).to.be.true;
-            expect(myTypeahead.options.source).to.deep.equal({
+        it('Should format the Source option into a group with ajax key', () => {
+            expect(isValidSource).toBeTruthy();
+            expect(myTypeahead.options.source).toEqual({
                 group: {
                     ajax: {
                         url: 'data.json'
@@ -112,16 +111,16 @@ describe('Typeahead source option Tests', function () {
         });
     });
 
-    describe('Typeahead.options.source - Test for group with ajax Object', function () {
+    describe('Typeahead.options.source - Test for group with ajax Object', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = {ajax: {url: "data.json", dataType: "jsonp"}};
             isValidSource = myTypeahead.unifySourceFormat();
         });
 
-        it('Should format the Source option into a group with ajax key', function () {
-            expect(isValidSource).to.be.true;
-            expect(myTypeahead.options.source).to.deep.equal({
+        it('Should format the Source option into a group with ajax key', () => {
+            expect(isValidSource).toBeTruthy();
+            expect(myTypeahead.options.source).toEqual({
                 group: {
                     ajax: {
                         url: 'data.json',
@@ -132,16 +131,16 @@ describe('Typeahead source option Tests', function () {
         });
     });
 
-    describe('Typeahead.options.source - Test for group with Array, ajax as String', function () {
+    describe('Typeahead.options.source - Test for group with Array, ajax as String', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = {group: {url: ["data.json", "path"], display: 'display'}};
             isValidSource = myTypeahead.unifySourceFormat();
         });
 
-        it('Should format the Source option into a group with ajax.url and ajax.path keys', function () {
-            expect(isValidSource).to.be.true;
-            expect(myTypeahead.options.source).to.deep.equal({
+        it('Should format the Source option into a group with ajax.url and ajax.path keys', () => {
+            expect(isValidSource).toBeTruthy();
+            expect(myTypeahead.options.source).toEqual({
                 group: {
                     ajax: {
                         url: 'data.json',
@@ -153,16 +152,16 @@ describe('Typeahead source option Tests', function () {
         });
     });
 
-    describe('Typeahead.options.source - Test for group with Array, ajax as Object', function () {
+    describe('Typeahead.options.source - Test for group with Array, ajax as Object', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = {group: {url: [{url: 'data.json', dataType: 'jsonp', path: 'ajax.path'}, "path"], display: 'display'}};
             isValidSource = myTypeahead.unifySourceFormat();
         });
 
-        it('Should format the Source option into a group with ajax.url and ajax.path keys', function () {
-            expect(isValidSource).to.be.true;
-            expect(myTypeahead.options.source).to.deep.equal({
+        it('Should format the Source option into a group with ajax.url and ajax.path keys', () => {
+            expect(isValidSource).toBeTruthy();
+            expect(myTypeahead.options.source).toEqual({
                 group: {
                     ajax: {
                         url: 'data.json',
@@ -175,16 +174,16 @@ describe('Typeahead source option Tests', function () {
         });
     });
 
-    describe('Typeahead.options.source - Test for group with legacy url key', function () {
+    describe('Typeahead.options.source - Test for group with legacy url key', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = {group: {url: {url: "data.json", method: "GET"}, display: 'display'}};
             isValidSource = myTypeahead.unifySourceFormat();
         });
 
-        it('Should format the Source option replacing url key by ajax', function () {
-            expect(isValidSource).to.be.true;
-            expect(myTypeahead.options.source).to.deep.equal({
+        it('Should format the Source option replacing url key by ajax', () => {
+            expect(isValidSource).toBeTruthy();
+            expect(myTypeahead.options.source).toEqual({
                 group: {
                     ajax: {
                         url: 'data.json',
@@ -196,15 +195,15 @@ describe('Typeahead source option Tests', function () {
         });
     });
 
-    describe('Typeahead.options.source - Test for group with legacy url key', function () {
+    describe('Typeahead.options.source - Test for group with legacy url key', () => {
 
-        before(function () {
+        beforeAll(() => {
             myTypeahead.options.source = {group: {test: "blabla"}};
             isValidSource = myTypeahead.unifySourceFormat();
         });
 
-        it('Should format the Source option replacing url key by ajax', function () {
-            expect(isValidSource).to.be.false;
+        it('Should format the Source option replacing url key by ajax', () => {
+            expect(isValidSource).toBeFalsy();
         });
     });
 });
