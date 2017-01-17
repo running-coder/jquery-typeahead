@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-1-4)
+ * @version 2.7.6 (2017-1-17)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1062,7 +1062,9 @@
                 groupSource = this.options.source[group],
                 extraData = groupSource.ajax && groupSource.data;
 
-            data = typeof path === "string" ? this.helper.namespace(path, data) : data;
+            if (path && typeof path === "string") {
+                data = this.helper.namespace.call(this, path, data);
+            }
 
             if (typeof data === 'undefined') {
                 // {debug}
@@ -1208,7 +1210,7 @@
 
                     for (var i = 0, ii = data.length; i < ii; i++) {
                         data[i].compiled = compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
-                                return scope.helper.namespace(index, data[i], 'get', '');
+                                return scope.helper.namespace.call(scope, index, data[i], 'get', '');
                             }
                         ).trim();
                     }
@@ -1530,7 +1532,7 @@
 
                         // #183 Allow searching for deep source object keys
                         displayValue = /\./.test(displayKeys[i]) ?
-                            this.helper.namespace(displayKeys[i], item) :
+                            this.helper.namespace.call(this, displayKeys[i], item) :
                             item[displayKeys[i]];
 
                         // #182 Continue looping if empty or undefined key
@@ -1836,7 +1838,7 @@
                             _groupTemplate = this.options.group.template(_item);
                         } else if (typeof this.options.template === "string") {
                             _groupTemplate = this.options.group.template.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
-                                return scope.helper.namespace(index, _item, 'get', '');
+                                return scope.helper.namespace.call(scope, index, _item, 'get', '');
                             });
                         }
                     }
@@ -1872,7 +1874,7 @@
                                 if (typeof _href === "string") {
                                     _href = _href.replace(/\{\{([^\|}]+)(?:\|([^}]+))*}}/gi, function (match, index, options) {
 
-                                        var value = scope.helper.namespace(index, _item, 'get', '');
+                                        var value = scope.helper.namespace.call(scope, index, _item, 'get', '');
 
                                         // #151 Slugify should be an option, not enforced
                                         options = options && options.split("|") || [];
@@ -1902,7 +1904,7 @@
 
                                 _aHtml = _template.replace(/\{\{([^\|}]+)(?:\|([^}]+))*}}/gi, function (match, index, options) {
 
-                                    var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace(index, _item, 'get', '')));
+                                    var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace.call(scope, index, _item, 'get', '')));
 
                                     // #151 Slugify should be an option, not enforced
                                     options = options && options.split("|") || [];
@@ -1920,7 +1922,7 @@
                             } else {
                                 for (var i = 0, ii = _displayKeys.length; i < ii; i++) {
                                     _displayValue = /\./.test(_displayKeys[i]) ?
-                                        scope.helper.namespace(_displayKeys[i], _item) :
+                                        scope.helper.namespace.call(scope, _displayKeys[i], _item) :
                                         _item[_displayKeys[i]];
 
                                     if (typeof _displayValue === 'undefined' || _displayValue === '') continue;
@@ -2298,7 +2300,7 @@
                 for (var key in this.filters.dynamic) {
                     if (!this.filters.dynamic.hasOwnProperty(key)) continue;
                     if (!!~key.indexOf('.')) {
-                        itemValue = this.helper.namespace(key, item, 'get');
+                        itemValue = this.helper.namespace.call(this, key, item, 'get');
                     } else {
                         itemValue = item[key];
                     }
@@ -2730,7 +2732,7 @@
                         callback = [callback, []];
                     }
 
-                    _callback = this.helper.namespace(callback[0], window);
+                    _callback = this.helper.namespace.call(this, callback[0], window);
 
                     if (typeof _callback !== "function") {
                         // {debug}
@@ -2760,7 +2762,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': _node.selector,
+                            'node': this.options.input || node.selector,
                             'function': 'namespace()',
                             'arguments': namespaceString,
                             'message': 'ERROR - Missing namespaceString"'
