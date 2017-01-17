@@ -1962,7 +1962,8 @@
                             return;
                         }
 
-                        scope.query = scope.rawQuery = item[item.matchedKey].toString();
+                        // #281 Fix for multi level deep data inside the source objects
+                        scope.query = scope.rawQuery = scope.helper.namespace.call(scope, item.matchedKey, item).toString();
 
                         scope.focusOnly = true;
                         scope.node.val(scope.query).focus();
@@ -2772,6 +2773,11 @@
                     }
                     // {/debug}
                     return false;
+                }
+
+                // Exit before looping if the string doesn't contain an object reference
+                if (!~namespaceString.indexOf('.')) {
+                    return objectReference[namespaceString];
                 }
 
                 var parts = namespaceString.split('.'),
