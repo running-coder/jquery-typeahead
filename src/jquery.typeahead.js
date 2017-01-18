@@ -42,64 +42,65 @@
      * @link http://www.runningcoder.org/jquerytypeahead/documentation/
      */
     var _options = {
-        input: null,
-        minLength: 2,           // Modified feature, now accepts 0 to search on focus
-        maxItem: 8,             // Modified feature, now accepts 0 as "Infinity" meaning all the results will be displayed
-        dynamic: false,
-        delay: 300,
-        order: null,            // ONLY sorts the first "display" key
-        offset: false,
-        hint: false,            // -> Improved feature, Added support for excessive "space" characters
-        accent: false,          // -> Improved feature, define a custom replacement object
-        highlight: true,        // -> Added "any" to highlight any word in the template, by default true will only highlight display keys
-        group: false,           // -> Improved feature, Boolean,string,object(key, template (string, function))
-        groupOrder: null,       // -> New feature, order groups "asc", "desc", Array, Function
-        maxItemPerGroup: null,  // -> Renamed option
-        dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
-        dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
-        backdrop: false,
-        backdropOnFocus: false, // -> New feature, display the backdrop option as the Typeahead input is :focused
-        cache: false,           // -> Improved option, true OR 'localStorage' OR 'sessionStorage'
-        ttl: 3600000,
-        compression: false,     // -> Requires LZString library
-        suggestion: false,      // -> *Coming soon* New feature, save last searches and display suggestion on matched characters
-        searchOnFocus: false,   // -> New feature, display search results on input focus
-        resultContainer: null,  // -> New feature, list the results inside any container string or jQuery object
-        generateOnLoad: null,   // -> New feature, forces the source to be generated on page load even if the input is not focused!
-        mustSelectItem: false,  // -> New option, the submit function only gets called if an item is selected
-        href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on link results
-        display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
-        template: null,
-        groupTemplate: null,    // -> New feature, set a custom template for the groups
-        correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
-        emptyTemplate: false,   // -> New feature, display an empty template if no result
-        cancelButton: true,     // -> New feature, if text is detected in the input, a cancel button will be available to reset the input (pressing ESC also cancels)
-        loadingAnimation: true, // -> New feature, will display a loading animation when typeahead is doing request / searching for results
-        filter: true,           // -> New feature, set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
-        matcher: null,          // -> New feature, add an extra filtering function after the typeahead functions
-        source: null,
+        input: null,            // RECOMMENDED, jQuery selector to reach Typeahead's input for initialization
+        minLength: 2,           // Accepts 0 to search on focus
+        maxItem: 8,             // Accepts 0 as "Infinity" meaning all the results will be displayed
+        dynamic: false,         // When true, Typeahead will get a new dataset from the source option on every key press
+        delay: 300,             // delay in ms when dynamic option is set to true
+        order: null,            // "asc" or "desc" to sort results
+        offset: false,          // Set to true to match items starting from their first character
+        hint: false,            // Added support for excessive "space" characters
+        accent: false,          // Will allow to type accent and give letter equivalent results, also can define a custom replacement object
+        highlight: true,        // Added "any" to highlight any word in the template, by default true will only highlight display keys
+        group: false,           // Improved feature, Boolean,string,object(key, template (string, function))
+        groupOrder: null,       // New feature, order groups "asc", "desc", Array, Function
+        maxItemPerGroup: null,  // Maximum number of result per Group
+        dropdownFilter: false,  // Take group options string and create a dropdown filter
+        dynamicFilter: null,    // Filter the typeahead results based on dynamic value, Ex: Players based on TeamID
+        backdrop: false,        // Add a backdrop behind Typeahead results
+        backdropOnFocus: false, // Display the backdrop option as the Typeahead input is :focused
+        cache: false,           // Improved option, true OR 'localStorage' OR 'sessionStorage'
+        ttl: 3600000,           // Cache time to live in ms
+        compression: false,     // Requires LZString library
+        suggestion: false,      // *Coming soon* New feature, save last searches and display suggestion on matched characters
+        searchOnFocus: false,   // Display search results on input focus
+        blurOnTab: true,        // Blur Typeahead when Tab key is pressed, if false Tab will go though search results
+        resultContainer: null,  // List the results inside any container string or jQuery object
+        generateOnLoad: null,   // Forces the source to be generated on page load even if the input is not focused!
+        mustSelectItem: false,  // The submit function only gets called if an item is selected
+        href: null,             // String or Function to format the url for right-click & open in new tab on link results
+        display: ["display"],   // Allows search in multiple item keys ["display1", "display2"]
+        template: null,         // Display template of each of the result list
+        groupTemplate: null,    // Set a custom template for the groups
+        correlativeTemplate: false, // Compile display keys, enables multiple key search from the template string
+        emptyTemplate: false,   // Display an empty template if no result
+        cancelButton: true,     // If text is detected in the input, a cancel button will be available to reset the input (pressing ESC also cancels)
+        loadingAnimation: true, // Display a loading animation when typeahead is doing request / searching for results
+        filter: true,           // Set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
+        matcher: null,          // Add an extra filtering function after the typeahead functions
+        source: null,           // Source of data for Typeahead to filter
         callback: {
-            onInit: null,
-            onReady: null,              // -> New callback, when the Typeahead initial preparation is completed
-            onShowLayout: null,         // -> New callback, called when the layout is shown
-            onHideLayout: null,         // -> New callback, called when the layout is hidden
-            onSearch: null,             // -> New callback, when data is being fetched & analyzed to give search results
-            onResult: null,
-            onLayoutBuiltBefore: null,  // -> New callback, when the result HTML is build, modify it before it get showed
-            onLayoutBuiltAfter: null,   // -> New callback, modify the dom right after the results gets inserted in the result container
-            onNavigateBefore: null,     // -> New callback, when a key is pressed to navigate the results
-            onNavigateAfter: null,      // -> New callback, when a key is pressed to navigate the results
-            onMouseEnter: null,
-            onMouseLeave: null,
-            onClickBefore: null,        // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
-            onClickAfter: null,         // -> New feature, happens after the default clicked behaviors has been executed
-            onDropdownFilter: null,     // -> New feature, when the dropdownFilter is changed, trigger this callback
-            onSendRequest: null,        // -> New callback, gets called when the Ajax request(s) are sent
-            onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
-            onPopulateSource: null,     // -> New callback, Perform operation on the source data before it gets in Typeahead data
-            onCacheSave: null,          // -> New callback, Perform operation on the source data before it gets in Typeahead cache
-            onSubmit: null,
-            onCancel: null              // -> New callback, triggered if the typeahead had text inside and is cleared
+            onInit: null,               // When Typeahead is first initialized (happens only once)
+            onReady: null,              // When the Typeahead initial preparation is completed
+            onShowLayout: null,         // Called when the layout is shown
+            onHideLayout: null,         // Called when the layout is hidden
+            onSearch: null,             // When data is being fetched & analyzed to give search results
+            onResult: null,             // When the result container is displayed
+            onLayoutBuiltBefore: null,  // When the result HTML is build, modify it before it get showed
+            onLayoutBuiltAfter: null,   // Modify the dom right after the results gets inserted in the result container
+            onNavigateBefore: null,     // When a key is pressed to navigate the results, before the navigation happens
+            onNavigateAfter: null,      // When a key is pressed to navigate the results
+            onMouseEnter: null,         // When the mouse enter an item in the result list
+            onMouseLeave: null,         // When the mouse leaves an item in the result list
+            onClickBefore: null,        // Possibility to e.preventDefault() to prevent the Typeahead behaviors
+            onClickAfter: null,         // Happens after the default clicked behaviors has been executed
+            onDropdownFilter: null,     // When the dropdownFilter is changed, trigger this callback
+            onSendRequest: null,        // Gets called when the Ajax request(s) are sent
+            onReceiveRequest: null,     // Gets called when the Ajax request(s) are all received
+            onPopulateSource: null,     // Perform operation on the source data before it gets in Typeahead data
+            onCacheSave: null,          // Perform operation on the source data before it gets in Typeahead cache
+            onSubmit: null,             // When Typeahead form is submitted
+            onCancel: null              // Triggered if the typeahead had text inside and is cleared
         },
         selector: {
             container: "typeahead__container",
@@ -119,7 +120,7 @@
             hint: "typeahead__hint",
             cancelButton: "typeahead__cancel-button"
         },
-        debug: false
+        debug: false                    // Display debug information (RECOMMENDED for dev environment)
     };
 
     /**
@@ -440,7 +441,6 @@
                     }
                 };
             }
-
 
             // source: {data: ['item1', 'item2'], url: "http://www.test.com/url.json"}
             if (this.options.source.url || this.options.source.data) {
@@ -1318,7 +1318,7 @@
 
         /**
          * Key Navigation
-         * tab 9: @TODO, what should tab do?
+         * tab 9: if option is enabled, blur Typeahead
          * Up 38: select previous item, skip "group" item
          * Down 40: select next item, skip "group" item
          * Right 39: change charAt, if last char fill hint (if options is true)
@@ -1342,6 +1342,13 @@
                     this.node.blur();
                     this.hideLayout();
                 }
+                return;
+            }
+
+            // #284 Blur Typeahead when "Tab" key is pressed
+            if (this.options.blurOnTab && e.keyCode === 9) {
+                this.node.blur();
+                this.hideLayout();
                 return;
             }
 
@@ -2414,13 +2421,7 @@
                 return;
             }
 
-            var scope = this;
-
-            $('html').off(this.namespace)
-                .on("click" + this.namespace + " touchend" + this.namespace, function (e) {
-                    if ($(e.target).closest(scope.container)[0] || scope.hasDragged) return;
-                    scope.hideLayout();
-                });
+            _addHtmlListeners.call(this);
 
             this.container.addClass([
                 this.result.length || (this.options.emptyTemplate && this.query.length >= this.options.minLength) ? 'result ' : '',
@@ -2430,6 +2431,27 @@
 
             this.helper.executeCallback.call(this, this.options.callback.onShowLayout, [this.node, this.query]);
 
+            function _addHtmlListeners() {
+                var scope = this;
+
+                // If Typeahead is blured by pressing the "Tab" Key, hide the results
+                $('html').off("keydown" + this.namespace)
+                    .on("keydown" + this.namespace, function (e) {
+                        if (!e.keyCode || e.keyCode !== 9) return;
+                        setTimeout(function () {
+                            if (!$(':focus').closest(scope.container).find(scope.node)[0]) {
+                                scope.hideLayout();
+                            }
+                        }, 0);
+                    });
+
+                // If Typeahead is blured by clicking outside, hide the results
+                $('html').off("click" + this.namespace + " touchend" + this.namespace)
+                    .on("click" + this.namespace + " touchend" + this.namespace, function (e) {
+                        if ($(e.target).closest(scope.container)[0] || scope.hasDragged) return;
+                        scope.hideLayout();
+                    });
+            }
         },
 
         hideLayout: function () {
@@ -2441,7 +2463,7 @@
 
             if (this.options.backdropOnFocus && this.container.hasClass('backdrop')) return;
 
-            // Make sure the event gets cleared in case of "ESC"
+            // Make sure the event HTML gets cleared
             $('html').off(this.namespace);
 
             this.helper.executeCallback.call(this, this.options.callback.onHideLayout, [this.node, this.query]);
