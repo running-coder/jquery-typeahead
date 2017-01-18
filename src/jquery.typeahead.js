@@ -164,7 +164,7 @@
 
         this.rawQuery = node.val() || '';   // Unmodified input query
         this.query = node.val() || '';      // Input query
-        this.namespace = '.' + _namespace; // Every Typeahead instance gets its own namespace for events
+        this.selector = node[0].selector;   // Typeahead instance selector (to reach from window.Typeahead[SELECTOR])
         this.tmpSource = {};                // Temp var to preserve the source order for the searchResult function
         this.source = {};                   // The generated source kept in memory
         this.isGenerated = null;            // Generated results -> null: not generated, false: generating, true generated
@@ -180,8 +180,8 @@
         this.options = options;             // Typeahead options (Merged default & user defined)
         this.node = node;                   // jQuery object of the Typeahead <input>
         this.namespace = '.' +              // Every Typeahead instance gets its own namespace for events
-            this.helper.slugify.call(this, node.selector) +
-            _namespace;
+            this.helper.slugify.call(this, this.selector) +
+            _namespace;                     // Every Typeahead instance gets its own namespace for events
         this.container = null;              // Typeahead container, usually right after <form>
         this.resultContainer = null;        // Typeahead result container (html)
         this.item = null;                   // The selected item
@@ -233,7 +233,7 @@
                         // {debug}
                         if (scope.options.debug) {
                             _debug.log({
-                                'node': scope.node.selector,
+                                'node': scope.selector,
                                 'function': 'extendOptions()',
                                 'message': 'Invalid options.cache, possible options are "localStorage" or "sessionStorage"'
                             });
@@ -262,7 +262,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'extendOptions()',
                             'message': 'Missing LZString Library or options.cache, no compression will occur.'
                         });
@@ -304,7 +304,7 @@
                 else {
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'extendOptions()',
                             'message': 'options.group must be a boolean|string|object as of 2.5.0'
                         });
@@ -341,7 +341,7 @@
                     else {
                         if (this.options.debug) {
                             _debug.log({
-                                'node': this.node.selector,
+                                'node': this.selector,
                                 'function': 'extendOptions()',
                                 'message': 'Invalid "options.accent", from and to must be defined and same length.'
                             });
@@ -368,7 +368,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'extendOptions()',
                             'message': 'Invalid jQuery selector or jQuery Object for "options.resultContainer".'
                         });
@@ -493,7 +493,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'unifySourceFormat()',
                             'arguments': JSON.stringify(this.options.source),
                             'message': 'Undefined "options.source.' + group + '.[data|ajax]" is Missing - Typeahead dropped'
@@ -528,10 +528,10 @@
             // {debug}
             if (this.options.debug) {
                 _debug.log({
-                    'node': this.node.selector,
+                    'node': this.selector,
                     'function': 'init()',
                     //'arguments': JSON.stringify(this.options),
-                    'message': 'OK - Typeahead activated on ' + this.node.selector
+                    'message': 'OK - Typeahead activated on ' + this.selector
                 });
 
                 _debug.print();
@@ -734,7 +734,7 @@
                 // Get group source from Localstorage
                 if (this.options.cache) {
 
-                    dataInStorage = window[this.options.cache].getItem('TYPEAHEAD_' + this.node.selector + ":" + group);
+                    dataInStorage = window[this.options.cache].getItem('TYPEAHEAD_' + this.selector + ":" + group);
 
                     if (dataInStorage) {
                         if (this.options.compression) {
@@ -754,7 +754,7 @@
                                 // {debug}
                                 if (this.options.debug) {
                                     _debug.log({
-                                        'node': this.node.selector,
+                                        'node': this.selector,
                                         'function': 'generateSource()',
                                         'message': 'Source for group "' + group + '" found in ' + this.options.cache
                                     });
@@ -763,7 +763,7 @@
                                 // {/debug}
 
                             } else {
-                                window[this.options.cache].removeItem('TYPEAHEAD_' + this.node.selector + ":" + group);
+                                window[this.options.cache].removeItem('TYPEAHEAD_' + this.selector + ":" + group);
                             }
                         } catch (error) {
                         }
@@ -924,7 +924,7 @@
                             // {debug}
                             if (scope.options.debug) {
                                 _debug.log({
-                                    'node': scope.node.selector,
+                                    'node': scope.selector,
                                     'function': 'handleRequests',
                                     'message': 'Source function must return an object containing ".url" key for group "' + group + '"'
                                 });
@@ -979,7 +979,7 @@
                                 if (!Array.isArray(_data) || typeof _data !== "object") {
                                     if (scope.options.debug) {
                                         _debug.log({
-                                            'node': scope.node.selector,
+                                            'node': scope.selector,
                                             'function': 'Ajax.callback.done()',
                                             'message': 'Invalid returned data has to be an Array'
                                         });
@@ -1000,7 +1000,7 @@
                         // {debug}
                         if (scope.options.debug) {
                             _debug.log({
-                                'node': scope.node.selector,
+                                'node': scope.selector,
                                 'function': 'Ajax.callback.fail()',
                                 'arguments': JSON.stringify(xhrObject.request),
                                 'message': textStatus
@@ -1070,7 +1070,7 @@
                 // {debug}
                 if (this.options.debug) {
                     _debug.log({
-                        'node': this.node.selector,
+                        'node': this.selector,
                         'function': 'populateSource()',
                         'arguments': path,
                         'message': 'Invalid data path.'
@@ -1085,7 +1085,7 @@
                 // {debug}
                 if (this.options.debug) {
                     _debug.log({
-                        'node': this.node.selector,
+                        'node': this.selector,
                         'function': 'populateSource()',
                         'arguments': JSON.stringify({group: group}),
                         'message': 'Invalid data type, must be Array type.'
@@ -1108,7 +1108,7 @@
                 else {
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'populateSource()',
                             'arguments': JSON.stringify(extraData),
                             'message': 'WARNING - this.options.source.' + group + '.data Must be an Array or a function that returns an Array.'
@@ -1130,7 +1130,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'populateSource()',
                             'message': 'WARNING - NULL/BOOLEAN value inside ' + group + '! The data was skipped.'
                         });
@@ -1187,7 +1187,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'populateSource()',
                             'arguments': JSON.stringify(group),
                             'message': 'WARNING - this.options.correlativeTemplate is enabled but no template was found.'
@@ -1233,7 +1233,7 @@
                 if (this.options.debug) {
                     if (!data || !Array.isArray(data)) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'callback.populateSource()',
                             'message': 'callback.onPopulateSource must return the "data" parameter'
                         });
@@ -1247,7 +1247,7 @@
             // Save the data inside a tmpSource var to later have the right order once every request are completed
             this.tmpSource[group] = data;
 
-            if (this.options.cache && !window[this.options.cache].getItem('TYPEAHEAD_' + this.node.selector + ":" + group)) {
+            if (this.options.cache && !window[this.options.cache].getItem('TYPEAHEAD_' + this.selector + ":" + group)) {
 
                 if (this.options.callback.onCacheSave) {
                     data = this.helper.executeCallback.call(this, this.options.callback.onCacheSave, [this.node, data, group, path]);
@@ -1256,7 +1256,7 @@
                     if (this.options.debug) {
                         if (!data || !Array.isArray(data)) {
                             _debug.log({
-                                'node': this.node.selector,
+                                'node': this.selector,
                                 'function': 'callback.populateSource()',
                                 'message': 'callback.onCacheSave must return the "data" parameter'
                             });
@@ -1277,7 +1277,7 @@
                 }
 
                 window[this.options.cache].setItem(
-                    'TYPEAHEAD_' + this.node.selector + ":" + group,
+                    'TYPEAHEAD_' + this.selector + ":" + group,
                     storage
                 );
             }
@@ -1642,7 +1642,7 @@
             if (this.options.debug) {
                 if (!this.helper.isEmpty(missingDisplayKey)) {
                     _debug.log({
-                        'node': this.node.selector,
+                        'node': this.selector,
                         'function': 'searchResult()',
                         'arguments': JSON.stringify(missingDisplayKey),
                         'message': 'Missing keys for display, make sure options.display is set properly.'
@@ -1727,7 +1727,7 @@
                 else {
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'callback.onLayoutBuiltBefore()',
                             'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
                         });
@@ -2369,7 +2369,7 @@
                         // {debug}
                         if (this.options.debug) {
                             _debug.log({
-                                'node': this.node.selector,
+                                'node': this.selector,
                                 'function': 'buildDynamicLayout()',
                                 'message': 'Invalid jQuery selector or jQuery Object for "filter.selector" or missing filter.key'
                             });
@@ -2763,7 +2763,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.options.input || node.selector,
+                            'node': this.options.input || this.selector,
                             'function': 'namespace()',
                             'arguments': namespaceString,
                             'message': 'ERROR - Missing namespaceString"'
@@ -2903,16 +2903,31 @@
                 return;
             }
 
-            // Forcing node.selector... damn you jQuery...
-            if (options.input && !node.selector) {
-                node.selector = options.input;
+            // #270 Forcing node.selector, the property was deleted from jQuery3
+            // In case of multiple init, each of the instances needs it's own selector!
+            if (node.length === 1) {
+                node[0].selector = node.selector || options.input || node[0].nodeName.toLowerCase();
+
+                /*jshint boss:true */
+                return window.Typeahead[node[0].selector] = new Typeahead(node, options);
+            } else {
+
+                var instances = {},
+                    instanceName;
+
+                for (var i = 0, ii = node.length; i < ii; ++i) {
+                    instanceName = node[i].nodeName.toLowerCase();
+                    if (typeof instances[instanceName] !== "undefined") {
+                        instanceName += i;
+                    }
+                    node[i].selector = instanceName;
+
+                    window.Typeahead[instanceName] = instances[instanceName] = new Typeahead(node.eq(i), options);
+                }
+
+                return instances;
             }
-
-            /*jshint boss:true */
-            return window.Typeahead[options.input || node.selector] = new Typeahead(node, options);
-
         }
-
     };
 
 // {debug}

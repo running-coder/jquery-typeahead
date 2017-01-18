@@ -235,7 +235,7 @@ $typeahead-item-hover-background: #f5f5f5 !default;
         font-size: 0;
         position: relative;
         display: table;
-        border-collapse: separate;
+        border-collapse: collapse;
         width: 100%;
         > * {
             display: table-cell;

@@ -56,7 +56,7 @@ describe('Typeahead Config Tests', () => {
 
     it('Should merge callbacks', () => {
         expect(myTypeahead.options.callback.onInit).toBeDefined();
-        expect(myTypeahead.options.callback.onInit.apply(myTypeahead).node.selector).toEqual('.js-typeahead');
+        expect(myTypeahead.options.callback.onInit.apply(myTypeahead).selector).toEqual('.js-typeahead');
         expect(myTypeahead.options.callback.onSearch).toBeDefined();
 
         myTypeahead.node.val('test');

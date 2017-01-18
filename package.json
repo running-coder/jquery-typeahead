@@ -21,6 +21,7 @@
     "type": "git",
     "url": "git://github.com/running-coder/jquery-typeahead.git"
   },
+  "license": "MIT",
   "dependencies": {
     "jquery": ">=1.7.2",
     "lz-string": "^1.4.4"

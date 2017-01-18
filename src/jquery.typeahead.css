@@ -210,7 +210,7 @@
   font-size: 0;
   position: relative;
   display: table;
-  border-collapse: separate;
+  border-collapse: collapse;
   width: 100%;
 }
 
