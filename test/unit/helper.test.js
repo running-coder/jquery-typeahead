@@ -173,12 +173,11 @@ describe('Typeahead Helpers Tests', function() {
                     property: true
                 }
             }
-        }
+        };
 
         // get, set, create, delete
         expect(Typeahead.prototype.helper.namespace).toBeDefined();
         expect(Typeahead.prototype.helper.namespace('property', myObject)).toBeTruthy();
-        expect(Typeahead.prototype.helper.namespace('undefined.property', myObject)).toBeUndefined();
         expect(Typeahead.prototype.helper.namespace('with.deep.property', myObject)).toBeTruthy();
         expect(Typeahead.prototype.helper.namespace('new.property', myObject, 'create', 'newProperty')).toEqual('newProperty');
         expect(Typeahead.prototype.helper.namespace('new.property', myObject)).toEqual('newProperty');
@@ -186,6 +185,12 @@ describe('Typeahead Helpers Tests', function() {
         expect(Typeahead.prototype.helper.namespace('new.property', myObject)).toEqual('updatedProperty');
         expect(Typeahead.prototype.helper.namespace('new.property', myObject, 'delete')).toBeTruthy();
         expect(Typeahead.prototype.helper.namespace('new.property', myObject)).toBeUndefined();
+
+        expect(Typeahead.prototype.helper.namespace('undefined', myObject)).toBeUndefined();
+        expect(Typeahead.prototype.helper.namespace('undefined.property', myObject)).toBeUndefined();
+        expect(Typeahead.prototype.helper.namespace('undefined', myObject, 'get', '')).toEqual('');
+        expect(Typeahead.prototype.helper.namespace('undefined.property', myObject, 'get', '')).toEqual('');
+        expect(Typeahead.prototype.helper.namespace('undefined.property', myObject, 'get', 'test')).toEqual('test');
 
     });
 

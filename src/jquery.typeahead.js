@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-1-17)
+ * @version 2.7.6 (2017-1-18)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1929,7 +1929,7 @@
                             } else {
                                 for (var i = 0, ii = _displayKeys.length; i < ii; i++) {
                                     _displayValue = /\./.test(_displayKeys[i]) ?
-                                        scope.helper.namespace.call(scope, _displayKeys[i], _item) :
+                                        scope.helper.namespace.call(scope, _displayKeys[i], _item, 'get', '') :
                                         _item[_displayKeys[i]];
 
                                     if (typeof _displayValue === 'undefined' || _displayValue === '') continue;
@@ -2779,16 +2779,16 @@
 
             },
 
-            namespace: function (namespaceString, objectReference, method, objectValue) {
+            namespace: function (string, object, method, defaultValue) {
 
-                if (typeof namespaceString !== "string" || namespaceString === "") {
+                if (typeof string !== "string" || string === "") {
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
                             'node': this.options.input || this.selector,
-                            'function': 'namespace()',
-                            'arguments': namespaceString,
-                            'message': 'ERROR - Missing namespaceString"'
+                            'function': 'helper.namespace()',
+                            'arguments': string,
+                            'message': 'ERROR - Missing string"'
                         });
 
                         _debug.print();
@@ -2797,15 +2797,16 @@
                     return false;
                 }
 
+                var value = typeof defaultValue !== "undefined" ? defaultValue : undefined;
+
                 // Exit before looping if the string doesn't contain an object reference
-                if (!~namespaceString.indexOf('.')) {
-                    return objectReference[namespaceString];
+                if (!~string.indexOf('.')) {
+                    return object[string] || value;
                 }
 
-                var parts = namespaceString.split('.'),
-                    parent = objectReference || window,
+                var parts = string.split('.'),
+                    parent = object || window,
                     method = method || 'get',
-                    value = objectValue || {},
                     currentPart = '';
 
                 for (var i = 0, length = parts.length; i < length; i++) {
@@ -2813,7 +2814,7 @@
 
                     if (typeof parent[currentPart] === "undefined") {
                         if (~['get', 'delete'].indexOf(method)) {
-                            return typeof objectValue !== "undefined" ? objectValue : undefined;
+                            return typeof defaultValue !== "undefined" ? defaultValue : undefined;
                         }
                         parent[currentPart] = {};
                     }
