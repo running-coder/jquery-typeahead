@@ -85,3 +85,72 @@ describe('Typeahead groupTemplate option Tests', () => {
     });
 
 });
+
+describe('Typeahead groupTemplate configuration using groups', () => {
+
+    let myTypeahead;
+
+    beforeAll(() => {
+
+        document.body.innerHTML = '<input class="js-typeahead">';
+
+        myTypeahead = $.typeahead({
+            input: '.js-typeahead',
+            display: ['key'],
+            filter: false,
+            dynamic: true,
+            highlight: false,
+            group: true,
+            groupOrder: ['groupname3','groupname2','groupname1'],
+            groupTemplate: '<div class="row"><div class="col-xl-3 col-sm-6">{{group}}</div></div>',
+            template: function () {
+                return "{{id}} {{key}}"
+            },
+            source: {
+                groupname1: {
+                    data: [{
+                        id: 1,
+                        key: 'Test1',
+                    }]
+                },
+                groupname2: {
+                    data: [{
+                        id: 1,
+                        key: 'Test1',
+                    }]
+                },
+                groupname3: {
+                    data: [{
+                        id: 1,
+                        key: 'NO RESULTS',
+                    }]
+                }
+            }
+        });
+    });
+
+    it('Should display the right amount of results', (done) => {
+
+        myTypeahead.node.val('bla');
+        myTypeahead.node.trigger('input.typeahead');
+
+        setTimeout(() => {
+            expect(myTypeahead.result.length).toEqual(3)
+
+            myTypeahead.node.val('blabla');
+            myTypeahead.node.trigger('input.typeahead');
+
+            setTimeout(() => {
+
+                expect(myTypeahead.result.length).toEqual(3)
+                done();
+            }, 500)
+        }, 500);
+
+    });
+
+    afterAll(() => {
+        delete window.Typeahead['.js-typeahead'];
+    });
+
+});

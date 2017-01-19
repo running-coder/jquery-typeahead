@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-1-18)
+ * @version 2.7.6 (2017-1-19)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1537,25 +1537,28 @@
 
                     for (var i = 0, ii = displayKeys.length; i < ii; i++) {
 
-                        // #183 Allow searching for deep source object keys
-                        displayValue = /\./.test(displayKeys[i]) ?
-                            this.helper.namespace.call(this, displayKeys[i], item) :
-                            item[displayKeys[i]];
+                        // #286 option.filter: false shouldn't bother about the option.display keys
+                        if (groupFilter !== false) {
+                            // #183 Allow searching for deep source object keys
+                            displayValue = /\./.test(displayKeys[i]) ?
+                                this.helper.namespace.call(this, displayKeys[i], item) :
+                                item[displayKeys[i]];
 
-                        // #182 Continue looping if empty or undefined key
-                        if (typeof displayValue === 'undefined' || displayValue === '') {
-                            // {debug}
-                            if (this.options.debug) {
-                                missingDisplayKey[i] = {
-                                    display: displayKeys[i],
-                                    data: item
-                                };
+                            // #182 Continue looping if empty or undefined key
+                            if (typeof displayValue === 'undefined' || displayValue === '') {
+                                // {debug}
+                                if (this.options.debug) {
+                                    missingDisplayKey[i] = {
+                                        display: displayKeys[i],
+                                        data: item
+                                    };
+                                }
+                                // {/debug}
+                                continue;
                             }
-                            // {/debug}
-                            continue;
-                        }
 
-                        displayValue = this.helper.cleanStringFromScript(displayValue);
+                            displayValue = this.helper.cleanStringFromScript(displayValue);
+                        }
 
                         if (typeof groupFilter === "function") {
                             groupFilterResult = groupFilter.call(this, item, displayValue);
@@ -1707,7 +1710,8 @@
                 groupOrder = Object.keys(this.result);
             }
 
-            this.groups = groupOrder;
+            // #286 groupTemplate option was deleting group reference Array
+            this.groups = JSON.parse(JSON.stringify(groupOrder));
 
             for (var i = 0, ii = groupOrder.length; i < ii; i++) {
                 concatResults = concatResults.concat(this.result[groupOrder[i]] || []);
