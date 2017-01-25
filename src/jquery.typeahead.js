@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-1-19)
+ * @version 2.7.6 (2017-1-25)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -168,7 +168,10 @@
         this.selector = node[0].selector;   // Typeahead instance selector (to reach from window.Typeahead[SELECTOR])
         this.tmpSource = {};                // Temp var to preserve the source order for the searchResult function
         this.source = {};                   // The generated source kept in memory
+        this.dynamicGroups = [];            // Store the source groups that are defined as dynamic
+        this.hasDynamicGroups = false;      // Boolean if at least one of the groups has a dynamic source
         this.isGenerated = null;            // Generated results -> null: not generated, false: generating, true generated
+        this.isGeneratedOnce = false;       // When the source is generated the first time, this value will become true
         this.generatedGroupCount = 0;       // Number of groups generated, if limit reached the search can be done
         this.groupCount = 0;                // Number of groups, this value gets counted on the initial source unification
         this.groupBy = "group";             // This option will change according to filtering or custom grouping
@@ -212,6 +215,41 @@
 
     Typeahead.prototype = {
 
+        _validateCacheMethod: function (cache) {
+
+            var supportedCache = ['localStorage', 'sessionStorage'],
+                supported;
+
+            if (cache === true) {
+                cache = 'localStorage';
+            } else if (typeof cache === "string" && !~supportedCache.indexOf(cache)) {
+                // {debug}
+                if (this.options.debug) {
+                    _debug.log({
+                        'node': this.selector,
+                        'function': 'extendOptions()',
+                        'message': 'Invalid options.cache, possible options are "localStorage" or "sessionStorage"'
+                    });
+
+                    _debug.print();
+                }
+                // {/debug}
+                return false;
+            }
+
+            supported = typeof window[cache] !== "undefined";
+
+            try {
+                window[cache].setItem("typeahead", "typeahead");
+                window[cache].removeItem("typeahead");
+            } catch (e) {
+                supported = false;
+            }
+
+            return supported && cache || false;
+
+        },
+
         extendOptions: function () {
 
             // If the Typeahead is dynamic, force no cache & no compression
@@ -220,43 +258,7 @@
                 this.options.compression = false;
             }
 
-            var scope = this;
-
-            if (this.options.cache) {
-                this.options.cache = (function (cache) {
-
-                    var supportedCache = ['localStorage', 'sessionStorage'],
-                        supported;
-
-                    if (cache === true) {
-                        cache = 'localStorage';
-                    } else if (typeof cache === "string" && !~supportedCache.indexOf(cache)) {
-                        // {debug}
-                        if (scope.options.debug) {
-                            _debug.log({
-                                'node': scope.selector,
-                                'function': 'extendOptions()',
-                                'message': 'Invalid options.cache, possible options are "localStorage" or "sessionStorage"'
-                            });
-
-                            _debug.print();
-                        }
-                        // {/debug}
-                        return false;
-                    }
-
-                    supported = typeof window[cache] !== "undefined";
-
-                    try {
-                        window[cache].setItem("typeahead", "typeahead");
-                        window[cache].removeItem("typeahead");
-                    } catch (e) {
-                        supported = false;
-                    }
-
-                    return supported && cache || false;
-                }).call(this, this.options.cache);
-            }
+            this.options.cache = this._validateCacheMethod(this.options.cache);
 
             if (this.options.compression) {
                 if (typeof LZString !== 'object' || !this.options.cache) {
@@ -409,8 +411,6 @@
 
         unifySourceFormat: function () {
 
-            this.groupCount = 0;
-
             // source: ['item1', 'item2', 'item3']
             if (Array.isArray(this.options.source)) {
                 this.options.source = {
@@ -418,8 +418,6 @@
                         data: this.options.source
                     }
                 };
-
-                this.groupCount = 1;
                 return true;
             }
 
@@ -471,8 +469,8 @@
                 tmpAjax = groupSource.url || groupSource.ajax;
                 if (Array.isArray(tmpAjax)) {
                     groupSource.ajax = typeof tmpAjax[0] === "string" ? {
-                        url: tmpAjax[0]
-                    } : tmpAjax[0];
+                            url: tmpAjax[0]
+                        } : tmpAjax[0];
                     groupSource.ajax.path = groupSource.ajax.path || tmpAjax[1] || null;
                     delete groupSource.url;
                 } else {
@@ -512,8 +510,13 @@
 
                 this.options.source[group] = groupSource;
 
-                this.groupCount++;
+                if (this.options.source[group].dynamic) {
+                    this.dynamicGroups.push(group);
+                }
+            }
 
+            if (this.options.dynamic || this.dynamicGroups.length) {
+                this.hasDynamicGroups = true;
             }
 
             return true;
@@ -633,7 +636,7 @@
                         }
                         break;
                     case "keyup":
-                        if (scope.isGenerated === null && !scope.options.dynamic) {
+                        if (scope.isGenerated === null && !scope.hasDynamicGroups) {
                             scope.generateSource();
                         }
                         if (_isIE9 && scope.node[0].value.replace(/^\s+/, '').toString().length < scope.query.length) {
@@ -663,7 +666,8 @@
                                 scope.hint.container.val('');
                             }
                         }
-                        if (scope.options.dynamic) {
+
+                        if (scope.hasDynamicGroups) {
                             scope.isGenerated = null;
                             scope.helper.typeWatch(function () {
                                 if (scope.query.length >= scope.options.minLength) {
@@ -702,14 +706,19 @@
         },
 
         generateSource: function () {
-
-            if (this.isGenerated && !this.options.dynamic) {
+            if (this.isGenerated && !this.hasDynamicGroups) {
                 return;
             }
 
-            this.generatedGroupCount = 0;
             this.isGenerated = false;
+            this.generatedGroupCount = 0;
+            this.groupCount = Object.keys(this.options.source).length;
             this.options.loadingAnimation && this.container.addClass('loading');
+
+            // Alter the groupCount only if dynamic groups and on subsequent source generation
+            if (this.dynamicGroups.length && this.isGeneratedOnce) {
+                this.groupCount = this.dynamicGroups.length;
+            }
 
             if (!this.helper.isEmpty(this.xhr)) {
                 for (var i in this.xhr) {
@@ -728,6 +737,10 @@
 
             for (group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
+                if (this.dynamicGroups.length && this.isGeneratedOnce && !~this.dynamicGroups.indexOf(group)) {
+                    delete this.requests[group];
+                    continue;
+                }
 
                 groupSource = this.options.source[group];
 
@@ -809,7 +822,6 @@
             }
 
             this.handleRequests();
-
         },
 
         generateRequestObject: function (group) {
@@ -909,7 +921,6 @@
                 if (this.requests[group].isDuplicated) continue;
 
                 (function (group, xhrObject) {
-
                     if (typeof scope.options.source[group].ajax === "function") {
 
                         var _groupRequest = scope.options.source[group].ajax.call(scope, scope.query);
@@ -968,6 +979,7 @@
 
                     $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
                         _data = null;
+
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
 
                             _request = scope.requests[xhrObject.validForGroup[i]];
@@ -1283,18 +1295,18 @@
             }
 
             this.incrementGeneratedGroup();
-
         },
 
         incrementGeneratedGroup: function () {
 
             this.generatedGroupCount++;
 
-            if (this.groupCount !== this.generatedGroupCount) {
+            if (this.generatedGroupCount !== this.groupCount) {
                 return;
             }
 
             this.isGenerated = true;
+            this.isGeneratedOnce = true;
 
             this.xhr = {};
 
@@ -1303,8 +1315,6 @@
             for (var i = 0, ii = sourceKeys.length; i < ii; i++) {
                 this.source[sourceKeys[i]] = this.tmpSource[sourceKeys[i]];
             }
-
-            this.tmpSource = {};
 
             if (!this.options.dynamic) {
                 this.buildDropdownItemLayout('dynamic');
@@ -1428,7 +1438,7 @@
                     'color',
                     e.preventInputChange ?
                         this.hint.css.color :
-                    newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                        newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
                 );
             }
 
@@ -1482,6 +1492,7 @@
                 match,
                 comparedDisplay,
                 comparedQuery = this.query.toLowerCase(),
+                maxItem = this.options.maxItem,
                 maxItemPerGroup = this.options.maxItemPerGroup,
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
@@ -1510,7 +1521,7 @@
                 groupMatcher = typeof this.options.source[group].matcher === "function" && this.options.source[group].matcher || matcher;
 
                 for (var k = 0, kk = this.source[group].length; k < kk; k++) {
-                    if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
+                    if (this.result.length >= maxItem && !this.options.callback.onResult) break;
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
@@ -1520,7 +1531,7 @@
                     // dropdownFilter by custom groups
                     if (this.filters.dropdown && (item[this.filters.dropdown.key] || "").toLowerCase() !== (this.filters.dropdown.value || "").toLowerCase()) continue;
 
-                    groupReference = groupBy === "group" ? group : item[groupBy];
+                    groupReference = groupBy === "group" ? group : item[groupBy] ? item[groupBy] : item.group;
 
                     if (groupReference && !this.result[groupReference]) {
                         this.result[groupReference] = [];
@@ -1622,7 +1633,7 @@
                         this.resultCount++;
                         this.resultCountPerGroup[groupReference]++;
 
-                        if (this.resultItemCount < this.options.maxItem) {
+                        if (this.resultItemCount < maxItem) {
                             if (maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup) {
                                 break;
                             }
@@ -1636,7 +1647,7 @@
                     }
 
                     if (!this.options.callback.onResult) {
-                        if (this.resultItemCount >= this.options.maxItem) {
+                        if (this.resultItemCount >= maxItem) {
                             break;
                         }
                         if (maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup) {
@@ -1813,7 +1824,7 @@
                     groupTemplate.append(
                         emptyTemplate instanceof $ ?
                             emptyTemplate :
-                        '<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>'
+                            '<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>'
                     );
                 }
             }

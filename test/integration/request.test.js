@@ -146,7 +146,7 @@ describe('Typeahead request Tests', () => {
             myTypeahead.node.val('test');
             myTypeahead.node.trigger('input.typeahead');
             myTypeahead.node.trigger('generate.typeahead');
-            
+
             expect(!!~myTypeahead.requests.group.request.url.indexOf('?q=test')).toBeTruthy();
             expect(myTypeahead.source.group.length).toBeGreaterThan(100);
             expect(hasBeforeSend).toBeTruthy();
