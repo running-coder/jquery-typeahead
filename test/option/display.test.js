@@ -37,7 +37,7 @@ describe('Typeahead display option Tests', () => {
         it('Should resolve a deep key inside the source data', () => {
 
             myTypeahead.node.val('42');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('input');
 
             expect(myTypeahead.result.length).toEqual(1);
 

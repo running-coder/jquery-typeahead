@@ -24,7 +24,7 @@ describe('Typeahead emptyTemplate option Tests', () => {
 
         it('Should output a String', () => {
             myTypeahead.node.val('eMpTy');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('input');
 
             expect(myTypeahead.resultHtml.find('li').length).toEqual(1);
             expect(myTypeahead.resultHtml.text()).toEqual('No result for eMpTy');
@@ -41,7 +41,7 @@ describe('Typeahead emptyTemplate option Tests', () => {
 
         it('Should output a String from a Function', () => {
             myTypeahead.node.val('Empty');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('input');
 
             expect(myTypeahead.resultHtml.find('li').length).toEqual(1);
             expect(myTypeahead.resultHtml.text()).toEqual('No results for "Empty"');
@@ -61,7 +61,7 @@ describe('Typeahead emptyTemplate option Tests', () => {
 
         it('Should output a jQuery object from a Function', () => {
             myTypeahead.node.val('Empty');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('input');
 
             expect(myTypeahead.resultHtml.find('li').length).toEqual(1);
             expect(myTypeahead.resultHtml.text()).toEqual('Just use "Empty"');

@@ -33,7 +33,7 @@ describe('Typeahead Init from one Typeahead selector inside configuration', () =
     it('Should assign the proper Typeahead selector', () => {
 
         myTypeahead.node.val('test');
-        myTypeahead.node.trigger('input.typeahead');
+        myTypeahead.node.trigger('input');
 
         expect(myTypeahead.resultHtml.find('a:eq(0)').html()).toEqual('1 Test1  Test3');
         expect(myTypeahead.resultHtml.find('a:eq(1)').html()).toEqual('2  Test2 ');

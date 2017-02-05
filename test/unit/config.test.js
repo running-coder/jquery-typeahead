@@ -60,7 +60,7 @@ describe('Typeahead Config Tests', () => {
         expect(myTypeahead.options.callback.onSearch).toBeDefined();
 
         myTypeahead.node.val('test');
-        myTypeahead.node.trigger('input.typeahead');
+        myTypeahead.node.trigger('input');
 
         expect(myTypeahead.options.callback.onSearch.apply(myTypeahead).query).toEqual('test')
     });

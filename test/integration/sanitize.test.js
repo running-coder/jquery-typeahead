@@ -34,7 +34,7 @@ describe('Typeahead Sanitize Tests', () => {
 
     it('Should display values', () => {
         myTypeahead.node.val('test');
-        myTypeahead.node.trigger('input.typeahead');
+        myTypeahead.node.trigger('input');
 
         expect(myTypeahead.resultCount).toEqual(2);
         expect(myTypeahead.resultHtml).toBeDefined();
@@ -43,7 +43,7 @@ describe('Typeahead Sanitize Tests', () => {
 
     it('Should display sanitized values', () => {
         myTypeahead.node.val('<script>empty</script>');
-        myTypeahead.node.trigger('input.typeahead');
+        myTypeahead.node.trigger('input');
 
         expect(myTypeahead.resultCount).toEqual(0);
         expect(myTypeahead.resultHtml.text()).toEqual('no result for empty');

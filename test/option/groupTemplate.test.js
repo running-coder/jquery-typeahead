@@ -39,7 +39,7 @@ describe('Typeahead groupTemplate option Tests', () => {
 
         it('Should produce 3 \<td>', () => {
             myTypeahead.node.val('data_four');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('input');
 
             expect(myTypeahead.result.length).toEqual(3);
             expect(myTypeahead.resultHtml.find('td').length).toEqual(3);
@@ -48,7 +48,7 @@ describe('Typeahead groupTemplate option Tests', () => {
 
         it('Should produce 1 \<td>', () => {
             myTypeahead.node.val('data_five');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('input');
 
             expect(myTypeahead.result.length).toEqual(1);
             expect(myTypeahead.resultHtml.find('td').length).toEqual(1);
@@ -72,7 +72,7 @@ describe('Typeahead groupTemplate option Tests', () => {
 
         it('Should generate \<td> from groups and order them "desc"', () => {
             myTypeahead.node.val('data_four');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('input');
 
             expect(myTypeahead.result.length).toEqual(3);
             expect(myTypeahead.resultHtml.find('td').length).toEqual(3);
@@ -132,20 +132,16 @@ describe('Typeahead groupTemplate configuration using groups', () => {
     it('Should display the right amount of results', (done) => {
 
         myTypeahead.node.val('bla');
-        myTypeahead.node.trigger('input.typeahead');
-
-        setTimeout(() => {
-            expect(myTypeahead.result.length).toEqual(3)
+        myTypeahead.node.triggerHandler('input').done(function () {
+            expect(myTypeahead.result.length).toEqual(3);
 
             myTypeahead.node.val('blabla');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.triggerHandler('input').done(function () {
+                expect(myTypeahead.result.length).toEqual(3);
 
-            setTimeout(() => {
-
-                expect(myTypeahead.result.length).toEqual(3)
                 done();
-            }, 500)
-        }, 500);
+            });
+        });
 
     });
 

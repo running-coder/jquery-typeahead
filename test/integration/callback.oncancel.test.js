@@ -1,7 +1,7 @@
 const $ = require("jquery");
 const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead Callback Tests', () => {
+describe('Typeahead onCancel Callback Tests', () => {
     'use strict';
 
     let myTypeahead,
@@ -42,7 +42,7 @@ describe('Typeahead Callback Tests', () => {
 
     it('Should call onCancel callback when ESC is pressed', () => {
         myTypeahead.node.val('test');
-        myTypeahead.node.trigger('input.typeahead');
+        myTypeahead.node.trigger('input');
 
         myTypeahead.node.trigger($.Event("keydown", { keyCode: 27 }));
         expect(onCancel).toBeTruthy();
@@ -50,7 +50,7 @@ describe('Typeahead Callback Tests', () => {
 
     it('Should call onCancel callback if cancel button is clicked', () => {
         myTypeahead.node.val('test');
-        myTypeahead.node.trigger('input.typeahead');
+        myTypeahead.node.trigger('input');
 
         myTypeahead.node.parent().find('.typeahead__cancel-button').trigger('mousedown')
         expect(onCancel).toBeTruthy();
@@ -58,10 +58,10 @@ describe('Typeahead Callback Tests', () => {
 
     it('Should call onCancel callback if a character is deleted and the input is empty', () => {
         myTypeahead.node.val('test');
-        myTypeahead.node.trigger('input.typeahead');
+        myTypeahead.node.trigger('input');
 
         myTypeahead.node.val('');
-        myTypeahead.node.trigger('input.typeahead');
+        myTypeahead.node.trigger('input');
 
         expect(onCancel).toBeTruthy();
     });
