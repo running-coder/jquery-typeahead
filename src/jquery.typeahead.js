@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-2-5)
+ * @version 2.7.6 (2017-2-6)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -613,7 +613,7 @@
             this.node.off(this.namespace).on(events.join(' '), function (e, originalEvent) {
                 switch (e.type) {
                     case "generate":
-                        scope.generateSource();
+                        scope.generateSource(Object.keys(scope.options.source));
                         break;
                     case "focus":
                         if (scope.focusOnly) {
@@ -625,6 +625,7 @@
                             scope.showLayout();
                         }
                         if (scope.options.searchOnFocus) {
+                            scope.deferred = $.Deferred();
                             scope.generateSource();
                         }
                         break;
@@ -666,29 +667,21 @@
                         if (scope.hasDynamicGroups) {
                             scope.helper.typeWatch(function () {
                                 scope.generateSource();
-                                if (!scope.generateGroups.length) {
-                                    scope.node.trigger('search' + scope.namespace);
-                                }
                             }, scope.options.delay);
-                            break;
                         } else {
                             scope.generateSource();
-                            if (scope.generateGroups.length) {
-                                break;
-                            }
                         }
+                        break;
                     case "search":
-                        if (!scope.searchGroups.length) {
-                            break;
-                        }
+                        if (scope.searchGroups.length) {
+                            scope.searchResult();
+                            scope.buildLayout();
 
-                        scope.searchResult();
-                        scope.buildLayout();
-                        
-                        if (scope.result.length > 0 || (scope.options.emptyTemplate && scope.query !== "")) {
-                            scope.showLayout();
-                        } else {
-                            scope.hideLayout();
+                            if (scope.result.length > 0 || (scope.options.emptyTemplate && scope.query !== "")) {
+                                scope.showLayout();
+                            } else {
+                                scope.hideLayout();
+                            }
                         }
 
                         scope.deferred && scope.deferred.resolve();
@@ -704,7 +697,7 @@
 
         },
 
-        filterSourceToGenerate: function () {
+        filterGenerateSource: function () {
             this.searchGroups = [];
             this.generateGroups = [];
 
@@ -731,10 +724,13 @@
             }
         },
 
-        generateSource: function () {
-            this.filterSourceToGenerate();
+        generateSource: function (generateGroups) {
+            this.filterGenerateSource();
 
-            if (!this.generateGroups.length) {
+            if (Array.isArray(generateGroups) && generateGroups.length) {
+                this.generateGroups = generateGroups;
+            } else if (!this.generateGroups.length) {
+                this.node.trigger('search' + this.namespace);
                 return;
             }
 
@@ -1613,8 +1609,6 @@
                                 }
                             }
 
-
-
                             if (match < 0 && !correlativeMatch) continue;
                             // @TODO Deprecate these? use matcher instead?
                             if (this.options.offset && match !== 0) continue;
@@ -1643,9 +1637,7 @@
                                 break;
                             }
 
-                            item.matchedKey = displayKeys[v];
-
-                            this.result[groupReference].push(item);
+                            this.result[groupReference].push($.extend(true, {matchedKey: displayKeys[v]}, item));
                             this.resultItemCount++;
                         }
                         break;
@@ -1994,7 +1986,7 @@
 
                         scope.focusOnly = true;
                         scope.node.val(scope.query).focus();
-                        
+
                         scope.searchResult(true);
                         scope.buildLayout();
                         scope.hideLayout();

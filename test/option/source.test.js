@@ -41,12 +41,10 @@ describe('Typeahead source option Tests', () => {
             expect(myTypeahead.source).toEqual({
                 group: [{
                     'display': 'data1',
-                    'group': 'group',
-                    'matchedKey': 'display'
+                    'group': 'group'
                 }, {
                     'display': 'data2',
-                    'group': 'group',
-                    'matchedKey': 'display'
+                    'group': 'group'
                 }]
             });
         });
