@@ -24,20 +24,21 @@ describe('Typeahead source option Tests', () => {
 
         beforeAll(() => {
             myTypeahead.options.source = ['data1', 'data2'];
-            isValidSource = myTypeahead.unifySourceFormat();
-            myTypeahead.node.trigger('generate.typeahead');
+            myTypeahead.unifySourceFormat();
+            myTypeahead.node.trigger('generate');
         });
 
-        it('Should format the Source option into an Array of Strings', () => {
-            expect(isValidSource).toBeTruthy();
+        it('Should format the Typeahead source into a group.data that contains an Array of Objects', () => {
+
             expect(myTypeahead.options.source).toEqual({
                 group: {
-                    data: ['data1', 'data2']
+                    minLength: 0,
+                    maxLength: Infinity,
+                    dynamic: false,
+                    data:['data1', 'data2']
                 }
             });
-        });
 
-        it('Should format the Typeahead source into an Array of Objects', () => {
             expect(myTypeahead.source).toEqual({
                 group: [{
                     'display': 'data1',
@@ -61,6 +62,9 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    minLength: 0,
+                    maxLength: Infinity,
+                    dynamic: false,
                     ajax: {
                         url: 'data.json'
                     }
@@ -80,6 +84,9 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    minLength: 0,
+                    maxLength: Infinity,
+                    dynamic: false,
                     data: ['item1', 'item2'],
                     ajax: {
                         url: 'data.json'
@@ -101,6 +108,9 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    minLength: 0,
+                    maxLength: Infinity,
+                    dynamic: false,
                     ajax: {
                         url: 'data.json'
                     }
@@ -120,6 +130,9 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    minLength: 0,
+                    maxLength: Infinity,
+                    dynamic: false,
                     ajax: {
                         url: 'data.json',
                         dataType: 'jsonp'
@@ -140,6 +153,9 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    minLength: 0,
+                    maxLength: Infinity,
+                    dynamic: false,
                     ajax: {
                         url: 'data.json',
                         path: 'path'
@@ -161,6 +177,9 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    minLength: 0,
+                    maxLength: Infinity,
+                    dynamic: false,
                     ajax: {
                         url: 'data.json',
                         path: 'ajax.path',
@@ -183,6 +202,9 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    minLength: 0,
+                    maxLength: Infinity,
+                    dynamic: false,
                     ajax: {
                         url: 'data.json',
                         method: 'GET'

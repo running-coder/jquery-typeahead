@@ -1,0 +1,377 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title></title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="stylesheet" href="../src/jquery.typeahead.css">
+
+    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <script src="../src/jquery.typeahead.js"></script>
+
+    <style>
+        .typeahead__suggestion-label {
+            position: absolute;
+            top: 4px;
+            right: 12px;
+            background: #ecf5fc;
+            border:solid 1px #66afe9;
+            padding: 3px;
+            border-radius: 3px;
+        }
+
+        .typeahead__clear-suggestions {
+            margin: 1rem 0;
+            cursor: pointer;
+        }
+    </style>
+
+</head>
+<body>
+
+<div style="width: 100%; max-width: 800px; margin: 0 auto;">
+
+    <h1>Suggestion_v1 Demo</h1>
+
+    <ul>
+        <li>
+            <a href="http://www.runningcoder.org/jquerytypeahead/documentation/">Documentation</a>
+        </li>
+        <li>
+            <a href="http://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
+        </li>
+    </ul>
+
+    <button type="button"
+            class="typeahead__clear-suggestions"
+            onclick="clearSuggestions();">
+        Clear Suggestions
+    </button>
+
+    <form>
+        <div class="typeahead__container">
+            <div class="typeahead__field">
+
+            <span class="typeahead__query">
+                <input class="js-typeahead-input"
+                       name="q"
+                       type="search"
+                       autofocus
+                       autocomplete="off">
+            </span>
+            <span class="typeahead__button">
+                <button type="submit">
+                    <span class="typeahead__search-icon"></span>
+                </button>
+            </span>
+
+            </div>
+        </div>
+    </form>
+
+    <script>
+
+        var data = [{
+            "name": "Ducks",
+            "img": "ducks",
+            "city": "Anaheim",
+            "id": "ANA",
+            "conference": "Western",
+            "division": "Pacific"
+        }, {
+            "name": "Thrashers",
+            "img": "thrashers",
+            "city": "Atlanta",
+            "id": "ATL",
+            "conference": "Eastern",
+            "division": "Southeast"
+        }, {
+            "name": "Bruins",
+            "img": "bruins",
+            "city": "Boston",
+            "id": "BOS",
+            "conference": "Eastern",
+            "division": "Northeast"
+        }, {
+            "name": "Sabres",
+            "img": "sabres",
+            "city": "Buffalo",
+            "id": "BUF",
+            "conference": "Eastern",
+            "division": "Northeast"
+        }, {
+            "name": "Flames",
+            "img": "flames",
+            "city": "Calgary",
+            "id": "CGY",
+            "conference": "Western",
+            "division": "Northwest"
+        }, {
+            "name": "Hurricanes",
+            "img": "hurricanes",
+            "city": "Carolina",
+            "id": "CAR",
+            "conference": "Eastern",
+            "division": "Southeast"
+        }, {
+            "name": "Blackhawks",
+            "img": "blackhawks",
+            "city": "Chicago",
+            "id": "CHI",
+            "conference": "Western",
+            "division": "Central"
+        }, {
+            "name": "Avalanche",
+            "img": "avalanche",
+            "city": "Colorado",
+            "id": "COL",
+            "conference": "Western",
+            "division": "Northwest"
+        }, {
+            "name": "Bluejackets",
+            "img": "bluejackets",
+            "city": "Columbus",
+            "id": "CBJ",
+            "conference": "Western",
+            "division": "Central"
+        }, {
+            "name": "Stars",
+            "img": "stars",
+            "city": "Dallas",
+            "id": "DAL",
+            "conference": "Western",
+            "division": "Pacific"
+        }, {
+            "name": "Red Wings",
+            "img": "redwings",
+            "city": "Detroit",
+            "id": "DET",
+            "conference": "Western",
+            "division": "Central"
+        }, {
+            "name": "Oilers",
+            "img": "oilers",
+            "city": "Edmonton",
+            "id": "EDM",
+            "conference": "Western",
+            "division": "Northwest"
+        }, {
+            "name": "Panthers",
+            "img": "panthers",
+            "city": "Florida",
+            "id": "FLA",
+            "conference": "Eastern",
+            "division": "Southeast"
+        }, {
+            "name": "Kings",
+            "img": "kings",
+            "city": "Los Angeles",
+            "id": "LAK",
+            "conference": "Western",
+            "division": "Pacific"
+        }, {
+            "name": "Wild",
+            "img": "wild",
+            "city": "Minnesota",
+            "id": "MIN",
+            "conference": "Western",
+            "division": "Northwest"
+        }, {
+            "name": "Canadiens",
+            "img": "canadiens",
+            "city": "Montreal",
+            "id": "MTL",
+            "conference": "Eastern",
+            "division": "Northeast"
+        }, {
+            "name": "Predators",
+            "img": "predators",
+            "city": "Nashville",
+            "id": "NSH",
+            "conference": "Western",
+            "division": "Central"
+        }, {
+            "name": "Devils",
+            "img": "devils",
+            "city": "New Jersey",
+            "id": "NJD",
+            "conference": "Eastern",
+            "division": "Atlantic"
+        }, {
+            "name": "Islanders",
+            "img": "islanders",
+            "city": "New York",
+            "id": "NYI",
+            "conference": "Eastern",
+            "division": "Atlantic"
+        }, {
+            "name": "Rangers",
+            "img": "rangers",
+            "city": "New York",
+            "id": "NYR",
+            "conference": "Eastern",
+            "division": "Atlantic"
+        }, {
+            "name": "Senators",
+            "img": "senators",
+            "city": "Ottawa",
+            "id": "OTT",
+            "conference": "Eastern",
+            "division": "Northeast"
+        }, {
+            "name": "Flyers",
+            "img": "flyers",
+            "city": "Philadelphia",
+            "id": "PHI",
+            "conference": "Eastern",
+            "division": "Atlantic"
+        }, {
+            "name": "Coyotes",
+            "img": "coyotes",
+            "city": "Phoenix",
+            "id": "PHX",
+            "conference": "Western",
+            "division": "Pacific"
+        }, {
+            "name": "Penguins",
+            "img": "penguins",
+            "city": "Pittsburgh",
+            "id": "PIT",
+            "conference": "Eastern",
+            "division": "Atlantic"
+        }, {
+            "name": "Sharks",
+            "img": "sharks",
+            "city": "San Jose",
+            "id": "SJS",
+            "conference": "Western",
+            "division": "Pacific"
+        }, {
+            "name": "Blues",
+            "img": "blues",
+            "city": "St. Louis",
+            "id": "STL",
+            "conference": "Western",
+            "division": "Central"
+        }, {
+            "name": "Lightning",
+            "img": "lightning",
+            "city": "Tampa Bay",
+            "id": "TBL",
+            "conference": "Eastern",
+            "division": "Southeast"
+        }, {
+            "name": "Maple Leafs",
+            "img": "mapleleafs",
+            "city": "Toronto",
+            "id": "TOR",
+            "conference": "Eastern",
+            "division": "Northeast"
+        }, {
+            "name": "Canucks",
+            "img": "canucks",
+            "city": "Vancouver",
+            "id": "VAN",
+            "conference": "Western",
+            "division": "Northwest"
+        }, {
+            "name": "Capitals",
+            "img": "capitals",
+            "city": "Washington",
+            "id": "WSH",
+            "conference": "Eastern",
+            "division": "Southeast"
+        }, {
+            "name": "Jets",
+            "img": "jets",
+            "city": "Winnipeg",
+            "id": "WPG",
+            "conference": "Eastern",
+            "division": "Southeast"
+        }];
+
+        var storageKey = 'TYPEAHEAD_SUGGESTIONS',
+            storageData = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+        function clearSuggestions () {
+            localStorage.removeItem(storageKey);
+            storageData = [];
+        }
+
+        typeof $.typeahead === 'function' && $.typeahead({
+            input: ".js-typeahead-input",
+            minLength: 1,
+            maxItem: 8,
+            maxItemPerGroup: 6,
+            order: "asc",
+            hint: true,
+            searchOnFocus: true,
+            display: ["name", "city"],
+            emptyTemplate: 'no result for {{query}}',
+            source: {
+                suggestion: {
+                    template: "{{name}} {{city}} <small class='typeahead__suggestion-label'>Suggestion</small>",
+                    minLength: 0, // Start showing suggestion when the input is focused
+                    maxLength: 3, // when 4 characters are entered, the suggestions will stop showing
+                    dynamic: true,
+                    filter: false, // Always show these suggestion regardless of what is typed
+                    data: function () {
+                        var deferred = $.Deferred();
+
+                        // setTimeout simulates a delay if you are getting the data from
+                        // a call to an API or a backend endpoint to get the user's preferences
+                        setTimeout(function () {
+
+                            deferred.resolve(storageData);
+
+                        }, 250);
+
+                        return deferred;
+                    }
+                },
+                teams: {
+                    data: data,
+                    matcher: function (item, displayKey) {
+                        var isSuggestion;
+                        for (var i = 0, ii = storageData.length; i < ii; ++i) {
+                            if (storageData[i].name === item.name) {
+                                isSuggestion = true;
+                                break;
+                            }
+                        }
+                        return isSuggestion ? undefined : true;
+
+                        // return undefined to skip to next item
+                        // return false to attempt the matching function on the next displayKey
+                        // return true to add the item to the result list
+                        // return item object to modify the item and add it to the result list
+                    }
+                }
+            },
+            callback: {
+                // onClick add the clicked item into the suggestion array inside localStorage
+                // or it could also send a request to store it in database so the user get its last searched terms
+                onClick: function (node, a, item, event) {
+                    var maxSuggestions = 3;
+
+                    if (storageData.length >= maxSuggestions) {
+                        storageData.pop();
+                    }
+                    storageData.unshift(item);
+
+                    localStorage.setItem(storageKey, JSON.stringify(storageData));
+                }
+            },
+            debug: true
+        });
+
+    </script>
+
+</div>
+
+</body>
+</html>

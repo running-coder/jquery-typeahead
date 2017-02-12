@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-2-6)
+ * @version 2.7.6 (2017-2-12)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -415,6 +415,7 @@
         },
 
         unifySourceFormat: function () {
+            this.dynamicGroups = [];
 
             // source: ['item1', 'item2', 'item3']
             if (Array.isArray(this.options.source)) {
@@ -423,7 +424,6 @@
                         data: this.options.source
                     }
                 };
-                return true;
             }
 
             // source: "http://www.test.com/url.json"
@@ -513,6 +513,17 @@
                     groupSource.display = [groupSource.display];
                 }
 
+                groupSource.minLength = typeof groupSource.minLength === "number" ?
+                    groupSource.minLength :
+                    this.options.minLength;
+                groupSource.maxLength = typeof groupSource.maxLength === "number" ?
+                    groupSource.maxLength :
+                    this.options.maxLength;
+                groupSource.dynamic = typeof groupSource.dynamic === "boolean" || this.options.dynamic;
+
+                if (groupSource.minLength > groupSource.maxLength) {
+                    groupSource.minLength = groupSource.maxLength;
+                }
                 this.options.source[group] = groupSource;
 
                 if (this.options.source[group].dynamic) {
@@ -520,9 +531,7 @@
                 }
             }
 
-            if (this.options.dynamic || this.dynamicGroups.length) {
-                this.hasDynamicGroups = true;
-            }
+            this.hasDynamicGroups = this.options.dynamic || !!this.dynamicGroups.length;
 
             return true;
         },
@@ -676,7 +685,6 @@
                         if (scope.searchGroups.length) {
                             scope.searchResult();
                             scope.buildLayout();
-
                             if (scope.result.length > 0 || (scope.options.emptyTemplate && scope.query !== "")) {
                                 scope.showLayout();
                             } else {
@@ -701,22 +709,13 @@
             this.searchGroups = [];
             this.generateGroups = [];
 
-            var minLength,
-                maxLength,
-                dynamic;
-
             for (var group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
+                if (this.query.length >= this.options.source[group].minLength &&
+                    this.query.length <= this.options.source[group].maxLength) {
 
-                minLength = typeof this.options.source[group].minLength === "number" ?
-                    this.options.source[group].minLength :
-                    this.options.minLength;
-                maxLength = this.options.source[group].maxLength || this.options.maxLength;
-                dynamic = this.options.source[group].dynamic || this.options.dynamic;
-
-                if (this.query.length >= minLength && this.query.length <= maxLength) {
                     this.searchGroups.push(group);
-                    if (!dynamic && this.source[group]) {
+                    if (!this.options.source[group].dynamic && this.source[group]) {
                         continue;
                     }
                     this.generateGroups.push(group);
@@ -726,7 +725,6 @@
 
         generateSource: function (generateGroups) {
             this.filterGenerateSource();
-
             if (Array.isArray(generateGroups) && generateGroups.length) {
                 this.generateGroups = generateGroups;
             } else if (!this.generateGroups.length) {
@@ -1307,7 +1305,6 @@
         incrementGeneratedGroup: function () {
 
             this.generatedGroupCount++;
-
             if (this.generatedGroupCount !== this.generateGroups.length) {
                 return;
             }
@@ -1462,7 +1459,7 @@
 
         searchResult: function (preserveItem) {
 
-            // #54 In case the item is being clicked, we want to preserve it for onSubmit callback
+            // #54 In case the item is being clicked, preserve it for onSubmit callback
             if (!preserveItem) {
                 this.item = {};
             }
@@ -1471,9 +1468,7 @@
 
             if (this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]) === false) return;
 
-            if (this.query.length >= this.options.minLength) {
-                this.searchResultData();
-            }
+            this.searchResultData();
 
             this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
 
@@ -2366,8 +2361,7 @@
                 }
 
                 if (this.dynamicFilter.isEnabled) {
-                    this.searchResult();
-                    this.buildLayout();
+                    this.generateSource();
                 }
 
             },
