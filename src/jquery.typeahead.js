@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-2-12)
+ * @version 2.7.6 (2017-2-13)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -682,15 +682,16 @@
                         }
                         break;
                     case "search":
-                        if (scope.searchGroups.length) {
-                            scope.searchResult();
-                            scope.buildLayout();
-                            if (scope.result.length > 0 || (scope.options.emptyTemplate && scope.query !== "")) {
-                                scope.showLayout();
-                            } else {
-                                scope.hideLayout();
-                            }
+                        scope.searchResult();
+                        scope.buildLayout();
+
+                        if (scope.result.length || (scope.searchGroups.length && scope.options.emptyTemplate && scope.query.length)) {
+                            scope.showLayout();
+                        } else {
+                            scope.hideLayout();
                         }
+
+                        //@TODO fix onDropdownFilter + tests
 
                         scope.deferred && scope.deferred.resolve();
                         break;
@@ -1468,7 +1469,9 @@
 
             if (this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]) === false) return;
 
-            this.searchResultData();
+            if (this.searchGroups.length) {
+                this.searchResultData();
+            }
 
             this.helper.executeCallback.call(this, this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
 
@@ -1667,7 +1670,6 @@
             // {/debug}
 
             if (this.options.order) {
-
                 var displayKeys = [],
                     displayKey;
 
@@ -1689,11 +1691,10 @@
                         )
                     );
                 }
-
             }
 
             var concatResults = [],
-                groupOrder;
+                groupOrder = [];
 
             if (typeof this.options.groupOrder === "function") {
                 groupOrder = this.options.groupOrder.apply(this, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
@@ -1713,12 +1714,13 @@
                 groupOrder = Object.keys(this.result);
             }
 
-            // #286 groupTemplate option was deleting group reference Array
-            this.groups = JSON.parse(JSON.stringify(groupOrder));
-
             for (var i = 0, ii = groupOrder.length; i < ii; i++) {
                 concatResults = concatResults.concat(this.result[groupOrder[i]] || []);
             }
+
+
+            // #286 groupTemplate option was deleting group reference Array
+            this.groups = JSON.parse(JSON.stringify(groupOrder));
 
             this.result = concatResults;
         },
@@ -2063,7 +2065,7 @@
 
             this.hintIndex = null;
 
-            if (this.query.length >= this.options.minLength) {
+            if (this.searchGroups.length) {
 
                 if (!this.hint.container) {
 
@@ -2430,8 +2432,8 @@
             _addHtmlListeners.call(this);
 
             this.container.addClass([
-                this.result.length || (this.options.emptyTemplate && this.query.length >= this.options.minLength) ? 'result ' : '',
-                this.options.hint && this.query.length >= this.options.minLength ? 'hint' : '',
+                this.result.length || (this.searchGroups.length && this.options.emptyTemplate && this.query.length) ? 'result ' : '',
+                this.options.hint && this.searchGroups.length ? 'hint' : '',
                 this.options.backdrop || this.options.backdropOnFocus ? 'backdrop' : ''].join(' ')
             );
 
@@ -2479,6 +2481,7 @@
         resetLayout: function () {
 
             this.result = {};
+            this.groups = [];
             this.resultCount = 0;
             this.resultCountPerGroup = {};
             this.resultItemCount = 0;
