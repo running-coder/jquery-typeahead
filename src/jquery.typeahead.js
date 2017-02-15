@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-2-13)
+ * @version 2.7.6 (2017-2-15)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -252,12 +252,6 @@
         },
 
         extendOptions: function () {
-
-            // If the Typeahead is dynamic, force no cache & no compression
-            if (this.options.dynamic) {
-                this.options.cache = false;
-                this.options.compression = false;
-            }
 
             this.options.cache = this._validateCacheMethod(this.options.cache);
 
@@ -532,6 +526,12 @@
             }
 
             this.hasDynamicGroups = this.options.dynamic || !!this.dynamicGroups.length;
+
+            // If the Typeahead is dynamic, force no cache & no compression
+            if (this.hasDynamicGroups) {
+                this.options.cache = false;
+                this.options.compression = false;
+            }
 
             return true;
         },
@@ -1166,7 +1166,7 @@
                 data[i].group = group;
             }
 
-            if (!this.options.dynamic && this.dropdownFilter.dynamic.length) {
+            if (!this.hasDynamicGroups && this.dropdownFilter.dynamic.length) {
 
                 var key,
                     value,
@@ -1316,7 +1316,7 @@
                 this.source[this.generateGroups[i]] = this.tmpSource[this.generateGroups[i]];
             }
 
-            if (!this.options.dynamic) {
+            if (!this.hasDynamicGroups) {
                 this.buildDropdownItemLayout('dynamic');
             }
 
@@ -2148,9 +2148,7 @@
 
         buildDropdownLayout: function () {
 
-            if (!this.options.dropdownFilter) {
-                return;
-            }
+            if (!this.options.dropdownFilter) return;
 
             var scope = this;
 
@@ -2193,6 +2191,8 @@
 
         buildDropdownItemLayout: function (type) {
 
+            if (!this.options.dropdownFilter) return;
+
             var scope = this,
                 template,
                 all = typeof this.options.dropdownFilter === 'string' && this.options.dropdownFilter || 'All',
@@ -2200,7 +2200,7 @@
                 filter;
 
             // Use regular groups defined in options.source
-            if (type === 'static' && this.options.dropdownFilter === true || typeof this.options.dropdownFilter === 'string') {
+            if (type === 'static' && (this.options.dropdownFilter === true || typeof this.options.dropdownFilter === 'string')) {
                 this.dropdownFilter.static.push({
                     key: 'group',
                     template: '{{group}}',
@@ -2534,10 +2534,11 @@
             this.dynamicFilter.init.apply(this);
 
             this.init();
-            this.delegateEvents();
-            this.buildCancelButtonLayout();
             this.buildDropdownLayout();
             this.buildDropdownItemLayout('static');
+
+            this.delegateEvents();
+            this.buildCancelButtonLayout();
 
             this.helper.executeCallback.call(this, this.options.callback.onReady, [this.node]);
         },
