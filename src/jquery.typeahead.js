@@ -1815,6 +1815,7 @@
                 _href,
                 _liHtml,
                 _template,
+                _templateValue,
                 _aHtml,
                 _display,
                 _displayKeys,
@@ -1896,6 +1897,7 @@
                         "html": function () {
 
                             _template = (_item.group && scope.options.source[_item.group].template) || scope.options.template;
+                            _templateValue = (_item.group && scope.options.source[_item.group].templateValue) || scope.options.templateValue;
 
                             if (_template) {
                                 if (typeof _template === "function") {
@@ -1962,7 +1964,18 @@
                             return;
                         }
 
-                        scope.query = scope.rawQuery = item[item.matchedKey].toString();
+                        if(_templateValue) {
+                            scope.query = scope.rawQuery = _templateValue.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
+                                match = match.slice(2,-2);
+                                if(item[match]) {
+                                    return item[match];
+                                }
+                                return '';
+                            });
+                        }
+                        else {
+                            scope.query = scope.rawQuery = item[item.matchedKey].toString();
+                        }
 
                         scope.focusOnly = true;
                         scope.node.val(scope.query).focus();
