@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-2-15)
+ * @version 2.7.6 (2017-2-20)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -523,15 +523,30 @@
                 if (this.options.source[group].dynamic) {
                     this.dynamicGroups.push(group);
                 }
+
+                groupSource.cache = typeof groupSource.cache !== "undefined" ?
+                    this._validateCacheMethod(groupSource.cache) :
+                    this.options.cache;
+
+                if (groupSource.compression) {
+                    if (typeof LZString !== 'object' || !groupSource.cache) {
+                        // {debug}
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': this.selector,
+                                'function': 'unifySourceFormat()',
+                                'message': 'Missing LZString Library or group.cache, no compression will occur on group: ' + group
+                            });
+
+                            _debug.print();
+                        }
+                        // {/debug}
+                        groupSource.compression = false;
+                    }
+                }
             }
 
             this.hasDynamicGroups = this.options.dynamic || !!this.dynamicGroups.length;
-
-            // If the Typeahead is dynamic, force no cache & no compression
-            if (this.hasDynamicGroups) {
-                this.options.cache = false;
-                this.options.compression = false;
-            }
 
             return true;
         },
@@ -749,18 +764,21 @@
                 group,
                 groupData,
                 groupSource,
+                cache,
+                compression,
                 dataInStorage,
                 isValidStorage;
 
             for (var i = 0, ii = this.generateGroups.length; i < ii; ++i) {
                 group = this.generateGroups[i];
                 groupSource = this.options.source[group];
+                cache = groupSource.cache;
+                compression = groupSource.compression;
 
-                if (this.options.cache) {
-
-                    dataInStorage = window[this.options.cache].getItem('TYPEAHEAD_' + this.selector + ":" + group);
+                if (cache) {
+                    dataInStorage = window[cache].getItem('TYPEAHEAD_' + this.selector + ":" + group);
                     if (dataInStorage) {
-                        if (this.options.compression) {
+                        if (compression) {
                             dataInStorage = LZString.decompressFromUTF16(dataInStorage);
                         }
 
@@ -778,14 +796,14 @@
                                     _debug.log({
                                         'node': this.selector,
                                         'function': 'generateSource()',
-                                        'message': 'Source for group "' + group + '" found in ' + this.options.cache
+                                        'message': 'Source for group "' + group + '" found in ' + cache
                                     });
                                     _debug.print();
                                 }
                                 // {/debug}
 
                             } else {
-                                window[this.options.cache].removeItem('TYPEAHEAD_' + this.selector + ":" + group);
+                                window[cache].removeItem('TYPEAHEAD_' + this.selector + ":" + group);
                             }
                         } catch (error) {
                         }
@@ -1265,7 +1283,11 @@
             // Save the data inside tmpSource to re-order once every requests are completed
             this.tmpSource[group] = Array.isArray(data) && data || [];
 
-            if (this.options.cache && !window[this.options.cache].getItem('TYPEAHEAD_' + this.selector + ":" + group)) {
+            var cache = this.options.source[group].cache,
+                compression = this.options.source[group].compression,
+                ttl = this.options.source[group].ttl || this.options.ttl;
+
+            if (cache && !window[cache].getItem('TYPEAHEAD_' + this.selector + ":" + group)) {
 
                 if (this.options.callback.onCacheSave) {
                     data = this.helper.executeCallback.call(this, this.options.callback.onCacheSave, [this.node, data, group, path]);
@@ -1287,14 +1309,14 @@
 
                 var storage = JSON.stringify({
                     data: data,
-                    ttl: new Date().getTime() + this.options.ttl
+                    ttl: new Date().getTime() + ttl
                 });
 
-                if (this.options.compression) {
+                if (compression) {
                     storage = LZString.compressToUTF16(storage);
                 }
 
-                window[this.options.cache].setItem(
+                window[cache].setItem(
                     'TYPEAHEAD_' + this.selector + ":" + group,
                     storage
                 );

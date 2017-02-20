@@ -32,6 +32,7 @@ describe('Typeahead source option Tests', () => {
 
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    cache: false,
                     minLength: 0,
                     maxLength: Infinity,
                     dynamic: false,
@@ -62,6 +63,7 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    cache: false,
                     minLength: 0,
                     maxLength: Infinity,
                     dynamic: false,
@@ -84,6 +86,7 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    cache: false,
                     minLength: 0,
                     maxLength: Infinity,
                     dynamic: false,
@@ -108,6 +111,7 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    cache: false,
                     minLength: 0,
                     maxLength: Infinity,
                     dynamic: false,
@@ -130,6 +134,7 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    cache: false,
                     minLength: 0,
                     maxLength: Infinity,
                     dynamic: false,
@@ -153,6 +158,7 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    cache: false,
                     minLength: 0,
                     maxLength: Infinity,
                     dynamic: false,
@@ -177,6 +183,7 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    cache: false,
                     minLength: 0,
                     maxLength: Infinity,
                     dynamic: false,
@@ -202,6 +209,7 @@ describe('Typeahead source option Tests', () => {
             expect(isValidSource).toBeTruthy();
             expect(myTypeahead.options.source).toEqual({
                 group: {
+                    cache: false,
                     minLength: 0,
                     maxLength: Infinity,
                     dynamic: false,

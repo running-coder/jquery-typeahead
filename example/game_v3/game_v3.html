@@ -156,7 +156,7 @@
                 <div class="typeahead__field">
 
                     <span class="typeahead__query">
-                        <input class="js-typeahead-input"
+                        <input class="js-typeahead"
                                name="game_v3[query]"
                                type="search"
                                placeholder="Search"
@@ -216,7 +216,7 @@
     $(function () {
 
         typeof $.typeahead === 'function' && $.typeahead({
-            input: ".js-typeahead-input",
+            input: ".js-typeahead",
             minLength: 0,
             maxItem: 0,
             order: "asc",
@@ -376,10 +376,10 @@
             $('.champion-filters input[type="radio"]').prop("checked", false).first().prop("checked", true);
 
             // Clear dynamic filters inside Typeahead "game_v3-query" instance, at this point you know what you are doing.
-            Typeahead['.js-typeahead-input'].filters.dynamic = {};
+            Typeahead['.js-typeahead'].filters.dynamic = {};
 
             // Trigger a manual search
-            $('.js-typeahead-input').trigger('input.typeahead');
+            $('.js-typeahead').trigger('input.typeahead');
 
         });
 

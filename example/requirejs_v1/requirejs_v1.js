@@ -63,7 +63,7 @@ define(["jquery-typeahead"], function (Typeahead) {
     };
 
     typeof $.typeahead === 'function' && $.typeahead({
-        input: ".js-typeahead-input",
+        input: ".js-typeahead",
         minLength: 1,
         order: "asc",
         group: true,

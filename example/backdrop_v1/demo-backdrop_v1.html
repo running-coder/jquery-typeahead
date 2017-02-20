@@ -51,7 +51,7 @@
                                 <i class="fa fa-search"></i>
                             </div>
                             <div class="typeahead__query">
-                                <input class="js-typeahead-input"
+                                <input class="js-typeahead"
                                        name="q"
                                        type="search"
                                        autocomplete="off">
@@ -92,7 +92,7 @@
             typeaheadSubmit = $('.js-typeahead-submit');
 
     typeaheadToggle.on('click', function (e) {
-        $('.js-typeahead-input').focus();
+        $('.js-typeahead').focus();
         // Prevent Typeahead hideLayout from being called on the initial request
         e.stopPropagation();
     });
@@ -105,7 +105,7 @@
     });
 
     typeof $.typeahead === 'function' && $.typeahead({
-        input: ".js-typeahead-input",
+        input: ".js-typeahead",
         minLength: 2,
         maxItem: 40,
         order: "asc",
