@@ -1,10 +1,10 @@
 /*!
  * jQuery Typeahead
- * Copyright (C) 2016 RunningCoder.org
+ * Copyright (C) 2017 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2016-12-23)
+ * @version 2.7.6 (2017-2-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -42,64 +42,65 @@
      * @link http://www.runningcoder.org/jquerytypeahead/documentation/
      */
     var _options = {
-        input: null,
-        minLength: 2,           // Modified feature, now accepts 0 to search on focus
-        maxItem: 8,             // Modified feature, now accepts 0 as "Infinity" meaning all the results will be displayed
-        dynamic: false,
-        delay: 300,
-        order: null,            // ONLY sorts the first "display" key
-        offset: false,
-        hint: false,            // -> Improved feature, Added support for excessive "space" characters
-        accent: false,          // -> Improved feature, define a custom replacement object
-        highlight: true,        // -> Added "any" to highlight any word in the template, by default true will only highlight display keys
-        group: false,           // -> Improved feature, Boolean,string,object(key, template (string, function))
-        groupOrder: null,       // -> New feature, order groups "asc", "desc", Array, Function
-        maxItemPerGroup: null,  // -> Renamed option
-        dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
-        dynamicFilter: null,    // -> New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
-        backdrop: false,
-        backdropOnFocus: false, // -> New feature, display the backdrop option as the Typeahead input is :focused
-        cache: false,           // -> Improved option, true OR 'localStorage' OR 'sessionStorage'
-        ttl: 3600000,
-        compression: false,     // -> Requires LZString library
-        suggestion: false,      // -> *Coming soon* New feature, save last searches and display suggestion on matched characters
-        searchOnFocus: false,   // -> New feature, display search results on input focus
-        resultContainer: null,  // -> New feature, list the results inside any container string or jQuery object
-        generateOnLoad: null,   // -> New feature, forces the source to be generated on page load even if the input is not focused!
-        mustSelectItem: false,  // -> New option, the submit function only gets called if an item is selected
-        href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on link results
-        display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
-        template: null,
-        groupTemplate: null,    // -> New feature, set a custom template for the groups
-        correlativeTemplate: false, // -> New feature, compile display keys, enables multiple key search from the template string
-        emptyTemplate: false,   // -> New feature, display an empty template if no result
-        cancelButton: true,     // -> New feature, if text is detected in the input, a cancel button will be available to reset the input (pressing ESC also cancels)
-        loadingAnimation: true, // -> New feature, will display a loading animation when typeahead is doing request / searching for results
-        filter: true,           // -> New feature, set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
-        matcher: null,          // -> New feature, add an extra filtering function after the typeahead functions
-        source: null,
+        input: null,            // RECOMMENDED, jQuery selector to reach Typeahead's input for initialization
+        minLength: 2,           // Accepts 0 to search on focus, minimum character length to perform a search
+        maxLength: false,       // False as "Infinity" will not put character length restriction for searching results
+        maxItem: 8,             // Accepts 0 / false as "Infinity" meaning all the results will be displayed
+        dynamic: false,         // When true, Typeahead will get a new dataset from the source option on every key press
+        delay: 300,             // delay in ms when dynamic option is set to true
+        order: null,            // "asc" or "desc" to sort results
+        offset: false,          // Set to true to match items starting from their first character
+        hint: false,            // Added support for excessive "space" characters
+        accent: false,          // Will allow to type accent and give letter equivalent results, also can define a custom replacement object
+        highlight: true,        // Added "any" to highlight any word in the template, by default true will only highlight display keys
+        group: false,           // Improved feature, Boolean,string,object(key, template (string, function))
+        groupOrder: null,       // New feature, order groups "asc", "desc", Array, Function
+        maxItemPerGroup: null,  // Maximum number of result per Group
+        dropdownFilter: false,  // Take group options string and create a dropdown filter
+        dynamicFilter: null,    // Filter the typeahead results based on dynamic value, Ex: Players based on TeamID
+        backdrop: false,        // Add a backdrop behind Typeahead results
+        backdropOnFocus: false, // Display the backdrop option as the Typeahead input is :focused
+        cache: false,           // Improved option, true OR 'localStorage' OR 'sessionStorage'
+        ttl: 3600000,           // Cache time to live in ms
+        compression: false,     // Requires LZString library
+        searchOnFocus: false,   // Display search results on input focus
+        blurOnTab: true,        // Blur Typeahead when Tab key is pressed, if false Tab will go though search results
+        resultContainer: null,  // List the results inside any container string or jQuery object
+        generateOnLoad: null,   // Forces the source to be generated on page load even if the input is not focused!
+        mustSelectItem: false,  // The submit function only gets called if an item is selected
+        href: null,             // String or Function to format the url for right-click & open in new tab on link results
+        display: ["display"],   // Allows search in multiple item keys ["display1", "display2"]
+        template: null,         // Display template of each of the result list
+        groupTemplate: null,    // Set a custom template for the groups
+        correlativeTemplate: false, // Compile display keys, enables multiple key search from the template string
+        emptyTemplate: false,   // Display an empty template if no result
+        cancelButton: true,     // If text is detected in the input, a cancel button will be available to reset the input (pressing ESC also cancels)
+        loadingAnimation: true, // Display a loading animation when typeahead is doing request / searching for results
+        filter: true,           // Set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
+        matcher: null,          // Add an extra filtering function after the typeahead functions
+        source: null,           // Source of data for Typeahead to filter
         callback: {
-            onInit: null,
-            onReady: null,              // -> New callback, when the Typeahead initial preparation is completed
-            onShowLayout: null,         // -> New callback, called when the layout is shown
-            onHideLayout: null,         // -> New callback, called when the layout is hidden
-            onSearch: null,             // -> New callback, when data is being fetched & analyzed to give search results
-            onResult: null,
-            onLayoutBuiltBefore: null,  // -> New callback, when the result HTML is build, modify it before it get showed
-            onLayoutBuiltAfter: null,   // -> New callback, modify the dom right after the results gets inserted in the result container
-            onNavigateBefore: null,     // -> New callback, when a key is pressed to navigate the results
-            onNavigateAfter: null,      // -> New callback, when a key is pressed to navigate the results
-            onMouseEnter: null,
-            onMouseLeave: null,
-            onClickBefore: null,        // -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
-            onClickAfter: null,         // -> New feature, happens after the default clicked behaviors has been executed
-            onDropdownFilter: null,     // -> New feature, when the dropdownFilter is changed, trigger this callback
-            onSendRequest: null,        // -> New callback, gets called when the Ajax request(s) are sent
-            onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
-            onPopulateSource: null,     // -> New callback, Perform operation on the source data before it gets in Typeahead data
-            onCacheSave: null,          // -> New callback, Perform operation on the source data before it gets in Typeahead cache
-            onSubmit: null,
-            onCancel: null              // -> New callback, triggered if the typeahead had text inside and is cleared
+            onInit: null,               // When Typeahead is first initialized (happens only once)
+            onReady: null,              // When the Typeahead initial preparation is completed
+            onShowLayout: null,         // Called when the layout is shown
+            onHideLayout: null,         // Called when the layout is hidden
+            onSearch: null,             // When data is being fetched & analyzed to give search results
+            onResult: null,             // When the result container is displayed
+            onLayoutBuiltBefore: null,  // When the result HTML is build, modify it before it get showed
+            onLayoutBuiltAfter: null,   // Modify the dom right after the results gets inserted in the result container
+            onNavigateBefore: null,     // When a key is pressed to navigate the results, before the navigation happens
+            onNavigateAfter: null,      // When a key is pressed to navigate the results
+            onMouseEnter: null,         // When the mouse enter an item in the result list
+            onMouseLeave: null,         // When the mouse leaves an item in the result list
+            onClickBefore: null,        // Possibility to e.preventDefault() to prevent the Typeahead behaviors
+            onClickAfter: null,         // Happens after the default clicked behaviors has been executed
+            onDropdownFilter: null,     // When the dropdownFilter is changed, trigger this callback
+            onSendRequest: null,        // Gets called when the Ajax request(s) are sent
+            onReceiveRequest: null,     // Gets called when the Ajax request(s) are all received
+            onPopulateSource: null,     // Perform operation on the source data before it gets in Typeahead data
+            onCacheSave: null,          // Perform operation on the source data before it gets in Typeahead cache
+            onSubmit: null,             // When Typeahead form is submitted
+            onCancel: null              // Triggered if the typeahead had text inside and is cleared
         },
         selector: {
             container: "typeahead__container",
@@ -119,7 +120,7 @@
             hint: "typeahead__hint",
             cancelButton: "typeahead__cancel-button"
         },
-        debug: false
+        debug: false                    // Display debug information (RECOMMENDED for dev environment)
     };
 
     /**
@@ -164,14 +165,18 @@
 
         this.rawQuery = node.val() || '';   // Unmodified input query
         this.query = node.val() || '';      // Input query
-        this.namespace = '.' + _namespace; // Every Typeahead instance gets its own namespace for events
+        this.selector = node[0].selector;   // Typeahead instance selector (to reach from window.Typeahead[SELECTOR])
+        this.deferred = null;               // Promise when "input" event in triggered, this.node.triggerHandler('input').then(() => {})
         this.tmpSource = {};                // Temp var to preserve the source order for the searchResult function
         this.source = {};                   // The generated source kept in memory
-        this.isGenerated = null;            // Generated results -> null: not generated, false: generating, true generated
+        this.dynamicGroups = [];            // Store the source groups that are defined as dynamic
+        this.hasDynamicGroups = false;      // Boolean if at least one of the groups has a dynamic source
         this.generatedGroupCount = 0;       // Number of groups generated, if limit reached the search can be done
-        this.groupCount = 0;                // Number of groups, this value gets counted on the initial source unification
         this.groupBy = "group";             // This option will change according to filtering or custom grouping
         this.groups = [];                   // Array of all the available groups, used to build the groupTemplate
+        this.searchGroups = [];             // Array of groups to generate when Typeahead searches data
+        this.generateGroups = [];           // Array of groups to generate when Typeahead requests data
+        this.requestGroups = [];            // Array of groups to request via Ajax
         this.result = {};                   // Results based on Source-query match (only contains the displayed elements)
         this.groupTemplate = '';            // Result template at the {{group}} level
         this.resultHtml = null;             // HTML Results (displayed elements)
@@ -180,8 +185,8 @@
         this.options = options;             // Typeahead options (Merged default & user defined)
         this.node = node;                   // jQuery object of the Typeahead <input>
         this.namespace = '.' +              // Every Typeahead instance gets its own namespace for events
-            this.helper.slugify.call(this, node.selector) +
-            _namespace;
+            this.helper.slugify.call(this, this.selector) +
+            _namespace;                     // Every Typeahead instance gets its own namespace for events
         this.container = null;              // Typeahead container, usually right after <form>
         this.resultContainer = null;        // Typeahead result container (html)
         this.item = null;                   // The selected item
@@ -211,58 +216,51 @@
 
     Typeahead.prototype = {
 
+        _validateCacheMethod: function (cache) {
+
+            var supportedCache = ['localStorage', 'sessionStorage'],
+                supported;
+
+            if (cache === true) {
+                cache = 'localStorage';
+            } else if (typeof cache === "string" && !~supportedCache.indexOf(cache)) {
+                // {debug}
+                if (this.options.debug) {
+                    _debug.log({
+                        'node': this.selector,
+                        'function': 'extendOptions()',
+                        'message': 'Invalid options.cache, possible options are "localStorage" or "sessionStorage"'
+                    });
+
+                    _debug.print();
+                }
+                // {/debug}
+                return false;
+            }
+
+            supported = typeof window[cache] !== "undefined";
+
+            try {
+                window[cache].setItem("typeahead", "typeahead");
+                window[cache].removeItem("typeahead");
+            } catch (e) {
+                supported = false;
+            }
+
+            return supported && cache || false;
+
+        },
+
         extendOptions: function () {
 
-            // If the Typeahead is dynamic, force no cache & no compression
-            if (this.options.dynamic) {
-                this.options.cache = false;
-                this.options.compression = false;
-            }
-
-            var scope = this;
-
-            if (this.options.cache) {
-                this.options.cache = (function (cache) {
-
-                    var supportedCache = ['localStorage', 'sessionStorage'],
-                        supported;
-
-                    if (cache === true) {
-                        cache = 'localStorage';
-                    } else if (typeof cache === "string" && !~supportedCache.indexOf(cache)) {
-                        // {debug}
-                        if (scope.options.debug) {
-                            _debug.log({
-                                'node': scope.node.selector,
-                                'function': 'extendOptions()',
-                                'message': 'Invalid options.cache, possible options are "localStorage" or "sessionStorage"'
-                            });
-
-                            _debug.print();
-                        }
-                        // {/debug}
-                        return false;
-                    }
-
-                    supported = typeof window[cache] !== "undefined";
-
-                    try {
-                        window[cache].setItem("typeahead", "typeahead");
-                        window[cache].removeItem("typeahead");
-                    } catch (e) {
-                        supported = false;
-                    }
-
-                    return supported && cache || false;
-                }).call(this, this.options.cache);
-            }
+            this.options.cache = this._validateCacheMethod(this.options.cache);
 
             if (this.options.compression) {
                 if (typeof LZString !== 'object' || !this.options.cache) {
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'extendOptions()',
                             'message': 'Missing LZString Library or options.cache, no compression will occur.'
                         });
@@ -274,7 +272,11 @@
                 }
             }
 
-            if (typeof this.options.maxItem !== "undefined" && (!/^\d+$/.test(this.options.maxItem) || this.options.maxItem === 0)) {
+            if (!this.options.maxLength || isNaN(this.options.maxLength)) {
+                this.options.maxLength = Infinity;
+            }
+
+            if (typeof this.options.maxItem !== "undefined" && ~[0, false].indexOf(this.options.maxItem)) {
                 this.options.maxItem = Infinity;
             }
 
@@ -304,7 +306,7 @@
                 else {
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'extendOptions()',
                             'message': 'options.group must be a boolean|string|object as of 2.5.0'
                         });
@@ -341,7 +343,7 @@
                     else {
                         if (this.options.debug) {
                             _debug.log({
-                                'node': this.node.selector,
+                                'node': this.selector,
                                 'function': 'extendOptions()',
                                 'message': 'Invalid "options.accent", from and to must be defined and same length.'
                             });
@@ -368,7 +370,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'extendOptions()',
                             'message': 'Invalid jQuery selector or jQuery Object for "options.resultContainer".'
                         });
@@ -407,8 +409,7 @@
         },
 
         unifySourceFormat: function () {
-
-            this.groupCount = 0;
+            this.dynamicGroups = [];
 
             // source: ['item1', 'item2', 'item3']
             if (Array.isArray(this.options.source)) {
@@ -417,9 +418,6 @@
                         data: this.options.source
                     }
                 };
-
-                this.groupCount = 1;
-                return true;
             }
 
             // source: "http://www.test.com/url.json"
@@ -440,7 +438,6 @@
                     }
                 };
             }
-
 
             // source: {data: ['item1', 'item2'], url: "http://www.test.com/url.json"}
             if (this.options.source.url || this.options.source.data) {
@@ -471,8 +468,8 @@
                 tmpAjax = groupSource.url || groupSource.ajax;
                 if (Array.isArray(tmpAjax)) {
                     groupSource.ajax = typeof tmpAjax[0] === "string" ? {
-                        url: tmpAjax[0]
-                    } : tmpAjax[0];
+                            url: tmpAjax[0]
+                        } : tmpAjax[0];
                     groupSource.ajax.path = groupSource.ajax.path || tmpAjax[1] || null;
                     delete groupSource.url;
                 } else {
@@ -493,7 +490,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'unifySourceFormat()',
                             'arguments': JSON.stringify(this.options.source),
                             'message': 'Undefined "options.source.' + group + '.[data|ajax]" is Missing - Typeahead dropped'
@@ -510,11 +507,46 @@
                     groupSource.display = [groupSource.display];
                 }
 
+                groupSource.minLength = typeof groupSource.minLength === "number" ?
+                    groupSource.minLength :
+                    this.options.minLength;
+                groupSource.maxLength = typeof groupSource.maxLength === "number" ?
+                    groupSource.maxLength :
+                    this.options.maxLength;
+                groupSource.dynamic = typeof groupSource.dynamic === "boolean" || this.options.dynamic;
+
+                if (groupSource.minLength > groupSource.maxLength) {
+                    groupSource.minLength = groupSource.maxLength;
+                }
                 this.options.source[group] = groupSource;
 
-                this.groupCount++;
+                if (this.options.source[group].dynamic) {
+                    this.dynamicGroups.push(group);
+                }
 
+                groupSource.cache = typeof groupSource.cache !== "undefined" ?
+                    this._validateCacheMethod(groupSource.cache) :
+                    this.options.cache;
+
+                if (groupSource.compression) {
+                    if (typeof LZString !== 'object' || !groupSource.cache) {
+                        // {debug}
+                        if (this.options.debug) {
+                            _debug.log({
+                                'node': this.selector,
+                                'function': 'unifySourceFormat()',
+                                'message': 'Missing LZString Library or group.cache, no compression will occur on group: ' + group
+                            });
+
+                            _debug.print();
+                        }
+                        // {/debug}
+                        groupSource.compression = false;
+                    }
+                }
             }
+
+            this.hasDynamicGroups = this.options.dynamic || !!this.dynamicGroups.length;
 
             return true;
         },
@@ -528,10 +560,10 @@
             // {debug}
             if (this.options.debug) {
                 _debug.log({
-                    'node': this.node.selector,
+                    'node': this.selector,
                     'function': 'init()',
                     //'arguments': JSON.stringify(this.options),
-                    'message': 'OK - Typeahead activated on ' + this.node.selector
+                    'message': 'OK - Typeahead activated on ' + this.selector
                 });
 
                 _debug.print();
@@ -549,7 +581,7 @@
                     'propertychange' + this.namespace,  // IE8 Fix
                     'keydown' + this.namespace,
                     'keyup' + this.namespace,           // IE9 Fix
-                    'dynamic' + this.namespace,
+                    'search' + this.namespace,
                     'generate' + this.namespace
                 ];
 
@@ -603,11 +635,9 @@
             }
 
             this.node.off(this.namespace).on(events.join(' '), function (e, originalEvent) {
-
                 switch (e.type) {
                     case "generate":
-                        scope.isGenerated = null;
-                        scope.generateSource();
+                        scope.generateSource(Object.keys(scope.options.source));
                         break;
                     case "focus":
                         if (scope.focusOnly) {
@@ -618,12 +648,9 @@
                             scope.buildBackdropLayout();
                             scope.showLayout();
                         }
-                        if (scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
-                            if (scope.isGenerated) {
-                                scope.showLayout();
-                            } else if (scope.isGenerated === null) {
-                                scope.generateSource();
-                            }
+                        if (scope.options.searchOnFocus) {
+                            scope.deferred = $.Deferred();
+                            scope.generateSource();
                         }
                         break;
                     case "keydown":
@@ -633,9 +660,6 @@
                         }
                         break;
                     case "keyup":
-                        if (scope.isGenerated === null && !scope.options.dynamic) {
-                            scope.generateSource();
-                        }
                         if (_isIE9 && scope.node[0].value.replace(/^\s+/, '').toString().length < scope.query.length) {
                             scope.node.trigger('input' + scope.namespace);
                         }
@@ -646,54 +670,49 @@
                             break;
                         }
                     case "input":
-
+                        scope.deferred = $.Deferred();
                         scope.rawQuery = scope.node[0].value.toString();
+                        scope.query = scope.rawQuery.replace(/^\s+/, '');
 
                         // #195 Trigger an onCancel event if the Typeahead is cleared
-                        if (scope.rawQuery === "" && scope.query !== "") {
+                        if (scope.rawQuery === "" && scope.query === "") {
                             e.originalEvent = originalEvent || {};
                             scope.helper.executeCallback.call(scope, scope.options.callback.onCancel, [scope.node, e]);
                         }
 
-                        scope.query = scope.rawQuery.replace(/^\s+/, '');
-
-                        scope.options.cancelButton && scope.toggleCancelButton();
+                        scope.options.cancelButton && scope.toggleCancelButtonVisibility();
 
                         if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
                             if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
                                 scope.hint.container.val('');
                             }
                         }
-                        if (scope.options.dynamic) {
-                            scope.isGenerated = null;
-                            scope.helper.typeWatch(function () {
-                                if (scope.query.length >= scope.options.minLength) {
-                                    scope.generateSource();
-                                } else {
-                                    scope.hideLayout();
-                                }
-                            }, scope.options.delay);
-                            return;
-                        }
-                    case "dynamic":
-                        if (!scope.isGenerated) {
-                            break;
-                        }
 
+                        if (scope.hasDynamicGroups) {
+                            scope.helper.typeWatch(function () {
+                                scope.generateSource();
+                            }, scope.options.delay);
+                        } else {
+                            scope.generateSource();
+                        }
+                        break;
+                    case "search":
                         scope.searchResult();
                         scope.buildLayout();
 
-                        if ((scope.result.length > 0 || (scope.options.emptyTemplate && scope.query !== "")) &&
-                            scope.query.length >= scope.options.minLength
-                        ) {
+                        if (scope.result.length || (scope.searchGroups.length && scope.options.emptyTemplate && scope.query.length)) {
                             scope.showLayout();
                         } else {
                             scope.hideLayout();
                         }
 
+                        //@TODO fix onDropdownFilter + tests
+
+                        scope.deferred && scope.deferred.resolve();
                         break;
                 }
 
+                return scope.deferred && scope.deferred.promise();
             });
 
             if (this.options.generateOnLoad) {
@@ -702,14 +721,35 @@
 
         },
 
-        generateSource: function () {
+        filterGenerateSource: function () {
+            this.searchGroups = [];
+            this.generateGroups = [];
 
-            if (this.isGenerated && !this.options.dynamic) {
+            for (var group in this.options.source) {
+                if (!this.options.source.hasOwnProperty(group)) continue;
+                if (this.query.length >= this.options.source[group].minLength &&
+                    this.query.length <= this.options.source[group].maxLength) {
+
+                    this.searchGroups.push(group);
+                    if (!this.options.source[group].dynamic && this.source[group]) {
+                        continue;
+                    }
+                    this.generateGroups.push(group);
+                }
+            }
+        },
+
+        generateSource: function (generateGroups) {
+            this.filterGenerateSource();
+            if (Array.isArray(generateGroups) && generateGroups.length) {
+                this.generateGroups = generateGroups;
+            } else if (!this.generateGroups.length) {
+                this.node.trigger('search' + this.namespace);
                 return;
             }
 
+            this.requestGroups = [];
             this.generatedGroupCount = 0;
-            this.isGenerated = false;
             this.options.loadingAnimation && this.container.addClass('loading');
 
             if (!this.helper.isEmpty(this.xhr)) {
@@ -724,25 +764,24 @@
                 group,
                 groupData,
                 groupSource,
+                cache,
+                compression,
                 dataInStorage,
                 isValidStorage;
 
-            for (group in this.options.source) {
-                if (!this.options.source.hasOwnProperty(group)) continue;
-
+            for (var i = 0, ii = this.generateGroups.length; i < ii; ++i) {
+                group = this.generateGroups[i];
                 groupSource = this.options.source[group];
+                cache = groupSource.cache;
+                compression = groupSource.compression;
 
-                // Get group source from Localstorage
-                if (this.options.cache) {
-
-                    dataInStorage = window[this.options.cache].getItem('TYPEAHEAD_' + this.node.selector + ":" + group);
-
+                if (cache) {
+                    dataInStorage = window[cache].getItem('TYPEAHEAD_' + this.selector + ":" + group);
                     if (dataInStorage) {
-                        if (this.options.compression) {
+                        if (compression) {
                             dataInStorage = LZString.decompressFromUTF16(dataInStorage);
                         }
 
-                        // In case the storage key:value are not readable anymore
                         isValidStorage = false;
                         try {
                             dataInStorage = JSON.parse(dataInStorage + "");
@@ -755,16 +794,16 @@
                                 // {debug}
                                 if (this.options.debug) {
                                     _debug.log({
-                                        'node': this.node.selector,
+                                        'node': this.selector,
                                         'function': 'generateSource()',
-                                        'message': 'Source for group "' + group + '" found in ' + this.options.cache
+                                        'message': 'Source for group "' + group + '" found in ' + cache
                                     });
                                     _debug.print();
                                 }
                                 // {/debug}
 
                             } else {
-                                window[this.options.cache].removeItem('TYPEAHEAD_' + this.node.selector + ":" + group);
+                                window[cache].removeItem('TYPEAHEAD_' + this.selector + ":" + group);
                             }
                         } catch (error) {
                         }
@@ -773,12 +812,9 @@
                     }
                 }
 
-                // Get group source from data
                 if (groupSource.data && !groupSource.ajax) {
-
                     // #198 Add support for async data source
                     if (typeof groupSource.data === "function") {
-
                         groupData = groupSource.data.call(this);
                         if (Array.isArray(groupData)) {
                             scope.populateSource(groupData, group);
@@ -797,20 +833,22 @@
                             group
                         );
                     }
-
                     continue;
                 }
 
-                // Get group source from Ajax / JsonP
                 if (groupSource.ajax) {
                     if (!this.requests[group]) {
                         this.requests[group] = this.generateRequestObject(group);
                     }
+                    this.requestGroups.push(group);
                 }
             }
 
-            this.handleRequests();
+            if (this.requestGroups.length) {
+                this.handleRequests();
+            }
 
+            return !!this.generateGroups.length;
         },
 
         generateRequestObject: function (group) {
@@ -896,21 +934,19 @@
         },
 
         handleRequests: function () {
-
             var scope = this,
-                requestsCount = Object.keys(this.requests).length;
+                group,
+                requestsCount = this.requestGroups.length;
 
             if (this.helper.executeCallback.call(this, this.options.callback.onSendRequest, [this.node, this.query]) === false) {
-                this.isGenerated = null;
                 return;
             }
 
-            for (var group in this.requests) {
-                if (!this.requests.hasOwnProperty(group)) continue;
+            for (var i = 0, ii = this.requestGroups.length; i < ii; ++i) {
+                group = this.requestGroups[i];
                 if (this.requests[group].isDuplicated) continue;
 
                 (function (group, xhrObject) {
-
                     if (typeof scope.options.source[group].ajax === "function") {
 
                         var _groupRequest = scope.options.source[group].ajax.call(scope, scope.query);
@@ -925,7 +961,7 @@
                             // {debug}
                             if (scope.options.debug) {
                                 _debug.log({
-                                    'node': scope.node.selector,
+                                    'node': scope.selector,
                                     'function': 'handleRequests',
                                     'message': 'Source function must return an object containing ".url" key for group "' + group + '"'
                                 });
@@ -935,7 +971,6 @@
                             scope.populateSource([], group);
                             return;
                         }
-
                         scope.requests[group] = xhrObject;
                     }
 
@@ -969,19 +1004,19 @@
 
                     $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
                         _data = null;
+
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
 
                             _request = scope.requests[xhrObject.validForGroup[i]];
 
                             if (_request.callback.done instanceof Function) {
-
-                                _data = _request.callback.done(data, textStatus, jqXHR);
+                                _data = _request.callback.done.call(scope, data, textStatus, jqXHR);
 
                                 // {debug}
                                 if (!Array.isArray(_data) || typeof _data !== "object") {
                                     if (scope.options.debug) {
                                         _debug.log({
-                                            'node': scope.node.selector,
+                                            'node': scope.selector,
                                             'function': 'Ajax.callback.done()',
                                             'message': 'Invalid returned data has to be an Array'
                                         });
@@ -996,13 +1031,13 @@
 
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.callback.fail instanceof Function && _request.callback.fail(jqXHR, textStatus, errorThrown);
+                            _request.callback.fail instanceof Function && _request.callback.fail.call(scope, jqXHR, textStatus, errorThrown);
                         }
 
                         // {debug}
                         if (scope.options.debug) {
                             _debug.log({
-                                'node': scope.node.selector,
+                                'node': scope.selector,
                                 'function': 'Ajax.callback.fail()',
                                 'arguments': JSON.stringify(xhrObject.request),
                                 'message': textStatus
@@ -1018,9 +1053,11 @@
 
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.callback.always instanceof Function && _request.callback.always(data, textStatus, jqXHR);
+                            _request.callback.always instanceof Function && _request.callback.always.call(scope, data, textStatus, jqXHR);
 
-                            // #248 Aborted requests would call populate with invalid data
+                            // #248, #303 Aborted requests would call populate with invalid data
+                            if (typeof jqXHR !== "object") return;
+
                             // #265 Modified data from ajax.callback.done is not being registred (use of _data)
                             scope.populateSource(
                                 typeof data.promise === "function" && [] || _data || data,
@@ -1039,7 +1076,7 @@
 
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
                             _request = scope.requests[xhrObject.validForGroup[i]];
-                            _request.callback.then instanceof Function && _request.callback.then(jqXHR, textStatus);
+                            _request.callback.then instanceof Function && _request.callback.then.call(scope, jqXHR, textStatus);
                         }
 
                     });
@@ -1059,18 +1096,19 @@
          * @return {*}
          */
         populateSource: function (data, group, path) {
-
             var scope = this,
                 groupSource = this.options.source[group],
                 extraData = groupSource.ajax && groupSource.data;
 
-            data = typeof path === "string" ? this.helper.namespace(path, data) : data;
+            if (path && typeof path === "string") {
+                data = this.helper.namespace.call(this, path, data);
+            }
 
             if (typeof data === 'undefined') {
                 // {debug}
                 if (this.options.debug) {
                     _debug.log({
-                        'node': this.node.selector,
+                        'node': this.selector,
                         'function': 'populateSource()',
                         'arguments': path,
                         'message': 'Invalid data path.'
@@ -1085,7 +1123,7 @@
                 // {debug}
                 if (this.options.debug) {
                     _debug.log({
-                        'node': this.node.selector,
+                        'node': this.selector,
                         'function': 'populateSource()',
                         'arguments': JSON.stringify({group: group}),
                         'message': 'Invalid data type, must be Array type.'
@@ -1108,7 +1146,7 @@
                 else {
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'populateSource()',
                             'arguments': JSON.stringify(extraData),
                             'message': 'WARNING - this.options.source.' + group + '.data Must be an Array or a function that returns an Array.'
@@ -1130,7 +1168,7 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'populateSource()',
                             'message': 'WARNING - NULL/BOOLEAN value inside ' + group + '! The data was skipped.'
                         });
@@ -1148,7 +1186,7 @@
                 data[i].group = group;
             }
 
-            if (!this.options.dynamic && this.dropdownFilter.dynamic.length) {
+            if (!this.hasDynamicGroups && this.dropdownFilter.dynamic.length) {
 
                 var key,
                     value,
@@ -1187,9 +1225,9 @@
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'populateSource()',
-                            'arguments': JSON.stringify(group),
+                            'arguments': String(group),
                             'message': 'WARNING - this.options.correlativeTemplate is enabled but no template was found.'
                         });
 
@@ -1210,7 +1248,7 @@
 
                     for (var i = 0, ii = data.length; i < ii; i++) {
                         data[i].compiled = compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
-                                return scope.helper.namespace(index, data[i], 'get', '');
+                                return scope.helper.namespace.call(scope, index, data[i], 'get', '');
                             }
                         ).trim();
                     }
@@ -1233,7 +1271,7 @@
                 if (this.options.debug) {
                     if (!data || !Array.isArray(data)) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'callback.populateSource()',
                             'message': 'callback.onPopulateSource must return the "data" parameter'
                         });
@@ -1244,10 +1282,14 @@
                 // {/debug}
             }
 
-            // Save the data inside a tmpSource var to later have the right order once every request are completed
-            this.tmpSource[group] = data;
+            // Save the data inside tmpSource to re-order once every requests are completed
+            this.tmpSource[group] = Array.isArray(data) && data || [];
 
-            if (this.options.cache && !window[this.options.cache].getItem('TYPEAHEAD_' + this.node.selector + ":" + group)) {
+            var cache = this.options.source[group].cache,
+                compression = this.options.source[group].compression,
+                ttl = this.options.source[group].ttl || this.options.ttl;
+
+            if (cache && !window[cache].getItem('TYPEAHEAD_' + this.selector + ":" + group)) {
 
                 if (this.options.callback.onCacheSave) {
                     data = this.helper.executeCallback.call(this, this.options.callback.onCacheSave, [this.node, data, group, path]);
@@ -1256,7 +1298,7 @@
                     if (this.options.debug) {
                         if (!data || !Array.isArray(data)) {
                             _debug.log({
-                                'node': this.node.selector,
+                                'node': this.selector,
                                 'function': 'callback.populateSource()',
                                 'message': 'callback.onCacheSave must return the "data" parameter'
                             });
@@ -1269,56 +1311,47 @@
 
                 var storage = JSON.stringify({
                     data: data,
-                    ttl: new Date().getTime() + this.options.ttl
+                    ttl: new Date().getTime() + ttl
                 });
 
-                if (this.options.compression) {
+                if (compression) {
                     storage = LZString.compressToUTF16(storage);
                 }
 
-                window[this.options.cache].setItem(
-                    'TYPEAHEAD_' + this.node.selector + ":" + group,
+                window[cache].setItem(
+                    'TYPEAHEAD_' + this.selector + ":" + group,
                     storage
                 );
             }
 
             this.incrementGeneratedGroup();
-
         },
 
         incrementGeneratedGroup: function () {
 
             this.generatedGroupCount++;
-
-            if (this.groupCount !== this.generatedGroupCount) {
+            if (this.generatedGroupCount !== this.generateGroups.length) {
                 return;
             }
 
-            this.isGenerated = true;
-
             this.xhr = {};
 
-            var sourceKeys = Object.keys(this.options.source);
-
-            for (var i = 0, ii = sourceKeys.length; i < ii; i++) {
-                this.source[sourceKeys[i]] = this.tmpSource[sourceKeys[i]];
+            for (var i = 0, ii = this.generateGroups.length; i < ii; i++) {
+                this.source[this.generateGroups[i]] = this.tmpSource[this.generateGroups[i]];
             }
 
-            this.tmpSource = {};
-
-            if (!this.options.dynamic) {
+            if (!this.hasDynamicGroups) {
                 this.buildDropdownItemLayout('dynamic');
             }
 
             this.options.loadingAnimation && this.container.removeClass('loading');
 
-            this.node.trigger('dynamic' + this.namespace);
-
+            this.node.trigger('search' + this.namespace);
         },
 
         /**
          * Key Navigation
-         * tab 9: @TODO, what should tab do?
+         * tab 9: if option is enabled, blur Typeahead
          * Up 38: select previous item, skip "group" item
          * Down 40: select next item, skip "group" item
          * Right 39: change charAt, if last char fill hint (if options is true)
@@ -1345,7 +1378,14 @@
                 return;
             }
 
-            if (!this.isGenerated || !this.result.length) return;
+            // #284 Blur Typeahead when "Tab" key is pressed
+            if (this.options.blurOnTab && e.keyCode === 9) {
+                this.node.blur();
+                this.hideLayout();
+                return;
+            }
+
+            if (!this.result.length) return;
 
             var itemList = this.resultContainer.find('.' + this.options.selector.item),
                 activeItem = itemList.filter('.active'),
@@ -1421,7 +1461,7 @@
                     'color',
                     e.preventInputChange ?
                         this.hint.css.color :
-                    newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                        newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
                 );
             }
 
@@ -1444,7 +1484,7 @@
 
         searchResult: function (preserveItem) {
 
-            // #54 In case the item is being clicked, we want to preserve it for onSubmit callback
+            // #54 In case the item is being clicked, preserve it for onSubmit callback
             if (!preserveItem) {
                 this.item = {};
             }
@@ -1453,7 +1493,7 @@
 
             if (this.helper.executeCallback.call(this, this.options.callback.onSearch, [this.node, this.query]) === false) return;
 
-            if (this.query.length >= this.options.minLength) {
+            if (this.searchGroups.length) {
                 this.searchResultData();
             }
 
@@ -1475,6 +1515,7 @@
                 match,
                 comparedDisplay,
                 comparedQuery = this.query.toLowerCase(),
+                maxItem = this.options.maxItem,
                 maxItemPerGroup = this.options.maxItemPerGroup,
                 hasDynamicFilters = this.filters.dynamic && !this.helper.isEmpty(this.filters.dynamic),
                 displayKeys,
@@ -1493,17 +1534,16 @@
                 comparedQuery = this.helper.removeAccent.call(this, comparedQuery);
             }
 
-            for (group in this.source) {
+            for (var i = 0, ii = this.searchGroups.length; i < ii; ++i) {
+                group = this.searchGroups[i];
 
-                if (!this.source.hasOwnProperty(group)) continue;
-                // dropdownFilter by source groups
                 if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue;
 
                 groupFilter = typeof this.options.source[group].filter !== "undefined" ? this.options.source[group].filter : this.options.filter;
                 groupMatcher = typeof this.options.source[group].matcher === "function" && this.options.source[group].matcher || matcher;
 
                 for (var k = 0, kk = this.source[group].length; k < kk; k++) {
-                    if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
+                    if (this.resultItemCount >= maxItem && !this.options.callback.onResult) break;
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
@@ -1513,7 +1553,7 @@
                     // dropdownFilter by custom groups
                     if (this.filters.dropdown && (item[this.filters.dropdown.key] || "").toLowerCase() !== (this.filters.dropdown.value || "").toLowerCase()) continue;
 
-                    groupReference = groupBy === "group" ? group : item[groupBy];
+                    groupReference = groupBy === "group" ? group : item[groupBy] ? item[groupBy] : item.group;
 
                     if (groupReference && !this.result[groupReference]) {
                         this.result[groupReference] = [];
@@ -1527,28 +1567,30 @@
                     }
 
                     displayKeys = this.options.source[group].display || this.options.display;
+                    for (var v = 0, vv = displayKeys.length; v < vv; ++v) {
 
-                    for (var i = 0, ii = displayKeys.length; i < ii; i++) {
+                        // #286 option.filter: false shouldn't bother about the option.display keys
+                        if (groupFilter !== false) {
+                            // #183 Allow searching for deep source object keys
+                            displayValue = /\./.test(displayKeys[v]) ?
+                                this.helper.namespace.call(this, displayKeys[v], item) :
+                                item[displayKeys[v]];
 
-                        // #183 Allow searching for deep source object keys
-                        displayValue = /\./.test(displayKeys[i]) ?
-                            this.helper.namespace(displayKeys[i], item) :
-                            item[displayKeys[i]];
-
-                        // #182 Continue looping if empty or undefined key
-                        if (typeof displayValue === 'undefined' || displayValue === '') {
-                            // {debug}
-                            if (this.options.debug) {
-                                missingDisplayKey[i] = {
-                                    display: displayKeys[i],
-                                    data: item
-                                };
+                            // #182 Continue looping if empty or undefined key
+                            if (typeof displayValue === 'undefined' || displayValue === '') {
+                                // {debug}
+                                if (this.options.debug) {
+                                    missingDisplayKey[v] = {
+                                        display: displayKeys[v],
+                                        data: item
+                                    };
+                                }
+                                // {/debug}
+                                continue;
                             }
-                            // {/debug}
-                            continue;
-                        }
 
-                        displayValue = this.helper.cleanStringFromScript(displayValue);
+                            displayValue = this.helper.cleanStringFromScript(displayValue);
+                        }
 
                         if (typeof groupFilter === "function") {
                             groupFilterResult = groupFilter.call(this, item, displayValue);
@@ -1575,7 +1617,7 @@
 
                             match = comparedDisplay.indexOf(comparedQuery);
 
-                            if (this.options.correlativeTemplate && displayKeys[i] === 'compiled' && match < 0 && /\s/.test(comparedQuery)) {
+                            if (this.options.correlativeTemplate && displayKeys[v] === 'compiled' && match < 0 && /\s/.test(comparedQuery)) {
                                 correlativeMatch = true;
                                 correlativeQuery = comparedQuery.split(' ');
                                 correlativeDisplay = comparedDisplay;
@@ -1612,21 +1654,19 @@
                         this.resultCount++;
                         this.resultCountPerGroup[groupReference]++;
 
-                        if (this.resultItemCount < this.options.maxItem) {
+                        if (this.resultItemCount < maxItem) {
                             if (maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup) {
                                 break;
                             }
 
-                            item.matchedKey = displayKeys[i];
-
-                            this.result[groupReference].push(item);
+                            this.result[groupReference].push($.extend(true, {matchedKey: displayKeys[v]}, item));
                             this.resultItemCount++;
                         }
                         break;
                     }
 
                     if (!this.options.callback.onResult) {
-                        if (this.resultItemCount >= this.options.maxItem) {
+                        if (this.resultItemCount >= maxItem) {
                             break;
                         }
                         if (maxItemPerGroup && this.result[groupReference].length >= maxItemPerGroup) {
@@ -1642,7 +1682,7 @@
             if (this.options.debug) {
                 if (!this.helper.isEmpty(missingDisplayKey)) {
                     _debug.log({
-                        'node': this.node.selector,
+                        'node': this.selector,
                         'function': 'searchResult()',
                         'arguments': JSON.stringify(missingDisplayKey),
                         'message': 'Missing keys for display, make sure options.display is set properly.'
@@ -1654,7 +1694,6 @@
             // {/debug}
 
             if (this.options.order) {
-
                 var displayKeys = [],
                     displayKey;
 
@@ -1676,11 +1715,10 @@
                         )
                     );
                 }
-
             }
 
             var concatResults = [],
-                groupOrder;
+                groupOrder = [];
 
             if (typeof this.options.groupOrder === "function") {
                 groupOrder = this.options.groupOrder.apply(this, [this.node, this.query, this.result, this.resultCount, this.resultCountPerGroup]);
@@ -1700,11 +1738,13 @@
                 groupOrder = Object.keys(this.result);
             }
 
-            this.groups = groupOrder;
-
             for (var i = 0, ii = groupOrder.length; i < ii; i++) {
                 concatResults = concatResults.concat(this.result[groupOrder[i]] || []);
             }
+
+
+            // #286 groupTemplate option was deleting group reference Array
+            this.groups = JSON.parse(JSON.stringify(groupOrder));
 
             this.result = concatResults;
         },
@@ -1727,7 +1767,7 @@
                 else {
                     if (this.options.debug) {
                         _debug.log({
-                            'node': this.node.selector,
+                            'node': this.selector,
                             'function': 'callback.onLayoutBuiltBefore()',
                             'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
                         });
@@ -1802,7 +1842,7 @@
                     groupTemplate.append(
                         emptyTemplate instanceof $ ?
                             emptyTemplate :
-                        '<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>'
+                            '<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>'
                     );
                 }
             }
@@ -1839,7 +1879,7 @@
                             _groupTemplate = this.options.group.template(_item);
                         } else if (typeof this.options.template === "string") {
                             _groupTemplate = this.options.group.template.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
-                                return scope.helper.namespace(index, _item, 'get', '');
+                                return scope.helper.namespace.call(scope, index, _item, 'get', '');
                             });
                         }
                     }
@@ -1875,7 +1915,7 @@
                                 if (typeof _href === "string") {
                                     _href = _href.replace(/\{\{([^\|}]+)(?:\|([^}]+))*}}/gi, function (match, index, options) {
 
-                                        var value = scope.helper.namespace(index, _item, 'get', '');
+                                        var value = scope.helper.namespace.call(scope, index, _item, 'get', '');
 
                                         // #151 Slugify should be an option, not enforced
                                         options = options && options.split("|") || [];
@@ -1906,7 +1946,7 @@
 
                                 _aHtml = _template.replace(/\{\{([^\|}]+)(?:\|([^}]+))*}}/gi, function (match, index, options) {
 
-                                    var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace(index, _item, 'get', '')));
+                                    var value = scope.helper.cleanStringFromScript(String(scope.helper.namespace.call(scope, index, _item, 'get', '')));
 
                                     // #151 Slugify should be an option, not enforced
                                     options = options && options.split("|") || [];
@@ -1924,7 +1964,7 @@
                             } else {
                                 for (var i = 0, ii = _displayKeys.length; i < ii; i++) {
                                     _displayValue = /\./.test(_displayKeys[i]) ?
-                                        scope.helper.namespace(_displayKeys[i], _item) :
+                                        scope.helper.namespace.call(scope, _displayKeys[i], _item, 'get', '') :
                                         _item[_displayKeys[i]];
 
                                     if (typeof _displayValue === 'undefined' || _displayValue === '') continue;
@@ -1974,7 +2014,8 @@
                             });
                         }
                         else {
-                            scope.query = scope.rawQuery = item[item.matchedKey].toString();
+                            // #281 Fix for multi level deep data inside the source objects
+                            scope.query = scope.rawQuery = scope.helper.namespace.call(scope, item.matchedKey, item).toString();
                         }
 
                         scope.focusOnly = true;
@@ -2061,7 +2102,7 @@
 
             this.hintIndex = null;
 
-            if (this.query.length >= this.options.minLength) {
+            if (this.searchGroups.length) {
 
                 if (!this.hint.container) {
 
@@ -2144,9 +2185,7 @@
 
         buildDropdownLayout: function () {
 
-            if (!this.options.dropdownFilter) {
-                return;
-            }
+            if (!this.options.dropdownFilter) return;
 
             var scope = this;
 
@@ -2189,6 +2228,8 @@
 
         buildDropdownItemLayout: function (type) {
 
+            if (!this.options.dropdownFilter) return;
+
             var scope = this,
                 template,
                 all = typeof this.options.dropdownFilter === 'string' && this.options.dropdownFilter || 'All',
@@ -2196,7 +2237,7 @@
                 filter;
 
             // Use regular groups defined in options.source
-            if (type === 'static' && this.options.dropdownFilter === true || typeof this.options.dropdownFilter === 'string') {
+            if (type === 'static' && (this.options.dropdownFilter === true || typeof this.options.dropdownFilter === 'string')) {
                 this.dropdownFilter.static.push({
                     key: 'group',
                     template: '{{group}}',
@@ -2286,7 +2327,7 @@
                     .html(item.template);
 
                 this.isDropdownEvent = true;
-                this.node.trigger('dynamic' + this.namespace);
+                this.node.trigger('search' + this.namespace);
 
                 this.node.focus();
             }
@@ -2313,7 +2354,7 @@
                 for (var key in this.filters.dynamic) {
                     if (!this.filters.dynamic.hasOwnProperty(key)) continue;
                     if (!!~key.indexOf('.')) {
-                        itemValue = this.helper.namespace(key, item, 'get');
+                        itemValue = this.helper.namespace.call(this, key, item, 'get');
                     } else {
                         itemValue = item[key];
                     }
@@ -2359,8 +2400,7 @@
                 }
 
                 if (this.dynamicFilter.isEnabled) {
-                    this.searchResult();
-                    this.buildLayout();
+                    this.generateSource();
                 }
 
             },
@@ -2381,7 +2421,7 @@
                         // {debug}
                         if (this.options.debug) {
                             _debug.log({
-                                'node': this.node.selector,
+                                'node': this.selector,
                                 'function': 'buildDynamicLayout()',
                                 'message': 'Invalid jQuery selector or jQuery Object for "filter.selector" or missing filter.key'
                             });
@@ -2426,22 +2466,37 @@
                 return;
             }
 
-            var scope = this;
-
-            $('html').off(this.namespace)
-                .on("click" + this.namespace + " touchend" + this.namespace, function (e) {
-                    if ($(e.target).closest(scope.container)[0] || scope.hasDragged) return;
-                    scope.hideLayout();
-                });
+            _addHtmlListeners.call(this);
 
             this.container.addClass([
-                this.result.length || (this.options.emptyTemplate && this.query.length >= this.options.minLength) ? 'result ' : '',
-                this.options.hint && this.query.length >= this.options.minLength ? 'hint' : '',
+                this.result.length || (this.searchGroups.length && this.options.emptyTemplate && this.query.length) ? 'result ' : '',
+                this.options.hint && this.searchGroups.length ? 'hint' : '',
                 this.options.backdrop || this.options.backdropOnFocus ? 'backdrop' : ''].join(' ')
             );
 
             this.helper.executeCallback.call(this, this.options.callback.onShowLayout, [this.node, this.query]);
 
+            function _addHtmlListeners() {
+                var scope = this;
+
+                // If Typeahead is blured by pressing the "Tab" Key, hide the results
+                $('html').off("keydown" + this.namespace)
+                    .on("keydown" + this.namespace, function (e) {
+                        if (!e.keyCode || e.keyCode !== 9) return;
+                        setTimeout(function () {
+                            if (!$(':focus').closest(scope.container).find(scope.node)[0]) {
+                                scope.hideLayout();
+                            }
+                        }, 0);
+                    });
+
+                // If Typeahead is blured by clicking outside, hide the results
+                $('html').off("click" + this.namespace + " touchend" + this.namespace)
+                    .on("click" + this.namespace + " touchend" + this.namespace, function (e) {
+                        if ($(e.target).closest(scope.container)[0] || scope.hasDragged) return;
+                        scope.hideLayout();
+                    });
+            }
         },
 
         hideLayout: function () {
@@ -2453,7 +2508,7 @@
 
             if (this.options.backdropOnFocus && this.container.hasClass('backdrop')) return;
 
-            // Make sure the event gets cleared in case of "ESC"
+            // Make sure the event HTML gets cleared
             $('html').off(this.namespace);
 
             this.helper.executeCallback.call(this, this.options.callback.onHideLayout, [this.node, this.query]);
@@ -2463,6 +2518,7 @@
         resetLayout: function () {
 
             this.result = {};
+            this.groups = [];
             this.resultCount = 0;
             this.resultCountPerGroup = {};
             this.resultItemCount = 0;
@@ -2501,7 +2557,7 @@
 
         },
 
-        toggleCancelButton: function () {
+        toggleCancelButtonVisibility: function () {
             this.container.toggleClass('cancel', !!this.query.length);
         },
 
@@ -2515,10 +2571,11 @@
             this.dynamicFilter.init.apply(this);
 
             this.init();
-            this.delegateEvents();
-            this.buildCancelButtonLayout();
             this.buildDropdownLayout();
             this.buildDropdownItemLayout('static');
+
+            this.delegateEvents();
+            this.buildCancelButtonLayout();
 
             this.helper.executeCallback.call(this, this.options.callback.onReady, [this.node]);
         },
@@ -2745,7 +2802,7 @@
                         callback = [callback, []];
                     }
 
-                    _callback = this.helper.namespace(callback[0], window);
+                    _callback = this.helper.namespace.call(this, callback[0], window);
 
                     if (typeof _callback !== "function") {
                         // {debug}
@@ -2769,16 +2826,16 @@
 
             },
 
-            namespace: function (namespaceString, objectReference, method, objectValue) {
+            namespace: function (string, object, method, defaultValue) {
 
-                if (typeof namespaceString !== "string" || namespaceString === "") {
+                if (typeof string !== "string" || string === "") {
                     // {debug}
                     if (this.options.debug) {
                         _debug.log({
-                            'node': _node.selector,
-                            'function': 'namespace()',
-                            'arguments': namespaceString,
-                            'message': 'ERROR - Missing namespaceString"'
+                            'node': this.options.input || this.selector,
+                            'function': 'helper.namespace()',
+                            'arguments': string,
+                            'message': 'ERROR - Missing string"'
                         });
 
                         _debug.print();
@@ -2787,10 +2844,16 @@
                     return false;
                 }
 
-                var parts = namespaceString.split('.'),
-                    parent = objectReference || window,
+                var value = typeof defaultValue !== "undefined" ? defaultValue : undefined;
+
+                // Exit before looping if the string doesn't contain an object reference
+                if (!~string.indexOf('.')) {
+                    return object[string] || value;
+                }
+
+                var parts = string.split('.'),
+                    parent = object || window,
                     method = method || 'get',
-                    value = objectValue || {},
                     currentPart = '';
 
                 for (var i = 0, length = parts.length; i < length; i++) {
@@ -2798,7 +2861,7 @@
 
                     if (typeof parent[currentPart] === "undefined") {
                         if (~['get', 'delete'].indexOf(method)) {
-                            return typeof objectValue !== "undefined" ? objectValue : undefined;
+                            return typeof defaultValue !== "undefined" ? defaultValue : undefined;
                         }
                         parent[currentPart] = {};
                     }
@@ -2910,16 +2973,31 @@
                 return;
             }
 
-            // Forcing node.selector... damn you jQuery...
-            if (options.input && !node.selector) {
-                node.selector = options.input;
+            // #270 Forcing node.selector, the property was deleted from jQuery3
+            // In case of multiple init, each of the instances needs it's own selector!
+            if (node.length === 1) {
+                node[0].selector = node.selector || options.input || node[0].nodeName.toLowerCase();
+
+                /*jshint boss:true */
+                return window.Typeahead[node[0].selector] = new Typeahead(node, options);
+            } else {
+
+                var instances = {},
+                    instanceName;
+
+                for (var i = 0, ii = node.length; i < ii; ++i) {
+                    instanceName = node[i].nodeName.toLowerCase();
+                    if (typeof instances[instanceName] !== "undefined") {
+                        instanceName += i;
+                    }
+                    node[i].selector = instanceName;
+
+                    window.Typeahead[instanceName] = instances[instanceName] = new Typeahead(node.eq(i), options);
+                }
+
+                return instances;
             }
-
-            /*jshint boss:true */
-            return window.Typeahead[options.input || node.selector] = new Typeahead(node, options);
-
         }
-
     };
 
 // {debug}

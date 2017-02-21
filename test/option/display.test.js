@@ -1,20 +1,19 @@
-var expect = require('chai').expect,
-    $ = require("jquery"),
-    Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require('../../src/jquery.typeahead');
 
-describe('Typeahead display option Tests', function () {
+describe('Typeahead display option Tests', () => {
     'use strict';
 
     let myTypeahead;
 
-    describe('Search for a deep key', function () {
+    describe('Search for a deep key', () => {
         
-        before(function () {
+        beforeAll(() => {
 
-            document.write('<input class="js-typeahead-display">');
+            document.body.innerHTML = '<input class="js-typeahead">';
 
             myTypeahead = $.typeahead({
-                input: '.js-typeahead-display',
+                input: '.js-typeahead',
                 minLength: 0,
                 generateOnLoad: true,
                 display: ['string','numeric', 'booleanT', 'booleanF', 'undefined', 'deeper.key.level'],
@@ -35,12 +34,12 @@ describe('Typeahead display option Tests', function () {
 
         });
 
-        it('Should resolve a deep key inside the source data', function () {
+        it('Should resolve a deep key inside the source data', () => {
 
             myTypeahead.node.val('42');
-            myTypeahead.node.trigger('input.typeahead');
+            myTypeahead.node.trigger('input');
 
-            expect(myTypeahead.result.length).to.equal(1);
+            expect(myTypeahead.result.length).toEqual(1);
 
         });
 
