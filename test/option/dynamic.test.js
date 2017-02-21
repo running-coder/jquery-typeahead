@@ -158,3 +158,61 @@ describe('Typeahead dynamic option Tests as a group option', () => {
     });
 
 });
+
+describe('Typeahead dynamic option Tests - Abort dynamic requests', () => {
+    'use strict';
+
+    let myTypeahead;
+
+    beforeAll(() => {
+
+        document.body.innerHTML = '<input class="js-typeahead">';
+
+        myTypeahead = $.typeahead({
+            input: '.js-typeahead',
+            minLength: 0,
+            dynamic: true,
+            delay: 10,
+            source: {
+                game: {
+                    ajax: {
+                        url: "http://www.gamer-hub.com/game/list.json",
+                        dataType: "jsonp",
+                        path: "data"
+                    }
+                },
+                category: {
+                    ajax: {
+                        url: "http://www.gamer-hub.com/category/list.json",
+                        dataType: "jsonp",
+                        path: "data"
+                    }
+                },
+                tag: {
+                    ajax: {
+                        url: "http://www.gamer-hub.com/tag/list.json",
+                        dataType: "jsonp",
+                        path: "data"
+                    }
+                }
+            }
+        });
+    });
+
+    it('Should abort previous requests and display the results for the second request', (done) => {
+
+        myTypeahead.node.val('zom').trigger('input');
+
+        // Simulate a request Abort
+        setTimeout(() => {
+            myTypeahead.node.val('zo').triggerHandler('input').done(function () {
+                expect(myTypeahead.result.length).toBeGreaterThan(0);
+                expect(myTypeahead.generatedGroupCount).toEqual(myTypeahead.generateGroups.length);
+
+                done();
+            });
+        }, 20);
+
+    });
+
+});
