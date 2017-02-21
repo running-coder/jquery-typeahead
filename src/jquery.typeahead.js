@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.7.6 (2017-2-21)
+ * @version 2.7.6 (2017-3-1)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -42,7 +42,7 @@
      * @link http://www.runningcoder.org/jquerytypeahead/documentation/
      */
     var _options = {
-        input: null,            // RECOMMENDED, jQuery selector to reach Typeahead's input for initialization
+        input: null,            // *RECOMMENDED*, jQuery selector to reach Typeahead's input for initialization
         minLength: 2,           // Accepts 0 to search on focus, minimum character length to perform a search
         maxLength: false,       // False as "Infinity" will not put character length restriction for searching results
         maxItem: 8,             // Accepts 0 / false as "Infinity" meaning all the results will be displayed
@@ -71,6 +71,7 @@
         href: null,             // String or Function to format the url for right-click & open in new tab on link results
         display: ["display"],   // Allows search in multiple item keys ["display1", "display2"]
         template: null,         // Display template of each of the result list
+        templateValue: null,    // Set the input value template when an item is clicked
         groupTemplate: null,    // Set a custom template for the groups
         correlativeTemplate: false, // Compile display keys, enables multiple key search from the template string
         emptyTemplate: false,   // Display an empty template if no result
@@ -1855,6 +1856,7 @@
                 _href,
                 _liHtml,
                 _template,
+                _templateValue,
                 _aHtml,
                 _display,
                 _displayKeys,
@@ -2002,8 +2004,15 @@
                             return;
                         }
 
-                        // #281 Fix for multi level deep data inside the source objects
-                        scope.query = scope.rawQuery = scope.helper.namespace.call(scope, item.matchedKey, item).toString();
+                        _templateValue = (item.group && scope.options.source[item.group].templateValue) || scope.options.templateValue;
+                        if (typeof _templateValue === "function") {
+                            _templateValue = _templateValue.call(scope);
+                        }
+
+                        scope.query = scope.rawQuery = _templateValue ?
+                            _templateValue.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
+                                return scope.helper.namespace.call(scope, index, item, 'get', '');
+                            }) : scope.helper.namespace.call(scope, item.matchedKey, item).toString();
 
                         scope.focusOnly = true;
                         scope.node.val(scope.query).focus();
