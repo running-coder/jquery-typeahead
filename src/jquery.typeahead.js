@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.8.0 (2017-3-1)
+ * @version 2.8.0 (2017-3-20)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1397,7 +1397,13 @@
                 if (activeItem.length > 0) {
                     // Prevent form submit if an element is selected
                     e.preventDefault();
-                    activeItem.find('a:first').trigger('click', e);
+
+                    // #311 When href is defined and "enter" is pressed, it needs to act as a "clicked" link
+                    if (activeItem.find('a:first')[0].href === "javascript:;") {
+                        activeItem.find('a:first').trigger('click', e);
+                    } else {
+                        activeItem.find('a:first')[0].click();
+                    }
                 }
                 return;
             }
@@ -1410,7 +1416,6 @@
                     this.helper.getCaret(this.node[0]) >= this.query.length) {
 
                     itemList.find('a[data-index="' + this.hintIndex + '"]')[0].click();
-
                 }
                 return;
             }
