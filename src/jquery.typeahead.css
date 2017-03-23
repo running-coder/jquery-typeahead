@@ -393,7 +393,7 @@
   display: block;
   padding: 6px 12px;
   clear: both;
-  color: #333333;
+  color: #333;
   text-decoration: none;
 }
 
@@ -407,14 +407,9 @@
   color: #3c3c3c;
 }
 
-.typeahead__list.empty > li > a {
-  cursor: default;
-}
-
-.typeahead__list.empty > li > a:hover,
-.typeahead__list.empty > li > a:focus,
-.typeahead__list.empty > li.active > a {
-  background-color: transparent;
+.typeahead__list.empty > li {
+  padding: 6px 12px;
+  color: #333;
 }
 
 .typeahead__list > li.typeahead__group {

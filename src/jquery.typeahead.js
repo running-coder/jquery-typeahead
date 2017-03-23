@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.8.0 (2017-3-20)
+ * @version 2.8.0 (2017-3-23)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1764,27 +1764,12 @@
             this.buildHintLayout();
 
             if (this.options.callback.onLayoutBuiltBefore) {
-                var tmpResultHtml = this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, this.resultHtml]);
-
-                if (tmpResultHtml instanceof $) {
-                    this.resultHtml = tmpResultHtml;
-                }
-                // {debug}
-                else {
-                    if (this.options.debug) {
-                        _debug.log({
-                            'node': this.selector,
-                            'function': 'callback.onLayoutBuiltBefore()',
-                            'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
-                        });
-
-                        _debug.print();
-                    }
-                }
-                // {/debug}
+                this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, this.resultHtml]);
             }
 
-            this.resultHtml && this.resultContainer.html(this.resultHtml);
+            if (this.resultHtml instanceof $) {
+                this.resultContainer.html(this.resultHtml);
+            }
 
             if (this.options.callback.onLayoutBuiltAfter) {
                 this.helper.executeCallback.call(this, this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
@@ -1833,7 +1818,7 @@
                         if (hasEmptyTemplate === true) return '';
                         hasEmptyTemplate = true;
 
-                        return '<' + tag + ' class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></' + tag + '>';
+                        return '<' + tag + ' class="' + scope.options.selector.empty + '">' + emptyTemplate + '</' + tag + '>';
                     }
 
                     for (var i = 0, ii = groups.length; i < ii; ++i) {
@@ -1848,7 +1833,7 @@
                     groupTemplate.append(
                         emptyTemplate instanceof $ ?
                             emptyTemplate :
-                            '<li class="' + scope.options.selector.empty + '"><a href="javascript:;">' + emptyTemplate + '</a></li>'
+                            '<li class="' + scope.options.selector.empty + '">' + emptyTemplate + '</li>'
                     );
                 }
             }
