@@ -1,0 +1,92 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title></title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="stylesheet" href="../src/jquery.typeahead.css">
+
+    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <script src="../src/jquery.typeahead.js"></script>
+
+</head>
+<body>
+
+<div style="width: 100%; max-width: 800px; margin: 0 auto;">
+
+    <h1>Newitem_v1 Demo</h1>
+
+    <ul>
+        <li>
+            <a href="http://www.runningcoder.org/jquerytypeahead/documentation/">Documentation</a>
+        </li>
+        <li>
+            <a href="http://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
+        </li>
+    </ul>
+
+    <form>
+        <div class="typeahead__container">
+            <div class="typeahead__field">
+
+            <span class="typeahead__query">
+                <input class="js-typeahead"
+                       name="q"
+                       type="search"
+                       autofocus
+                       autocomplete="off">
+            </span>
+                <span class="typeahead__button">
+                <button type="submit">
+                    <span class="typeahead__search-icon"></span>
+                </button>
+            </span>
+
+            </div>
+        </div>
+    </form>
+
+    <script>
+        $.typeahead({
+            input: ".js-typeahead",
+            minLength: 0,
+            order: "asc",
+            searchOnFocus: true,
+            source: {
+                groupName: {
+                    data: ['one', 'two', 'tree']
+                }
+            },
+            template: function (query, item) {
+                var template = '{{display}}';
+                if (item.addNewItem) {
+                    template = 'New Item';
+                }
+                return template;
+            },
+            callback: {
+                onResult: function (node, query, result, resultCount, resultCountPerGroup) {
+                    result.push({
+                        addNewItem: true,
+                        group: 'groupName'
+                    });
+                },
+                onClick: function (node, a, item, event) {
+                    if (item.addNewItem) {
+                        event.preventDefault();
+                        alert('Create new item!')
+                    }
+                }
+            },
+            debug: true
+        });
+    </script>
+
+</div>
+
+</body>
+</html>

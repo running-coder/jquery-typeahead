@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.8.0 (2017-3-23)
+ * @version 2.8.0 (2017-3-27)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -91,8 +91,8 @@
             onLayoutBuiltAfter: null,   // Modify the dom right after the results gets inserted in the result container
             onNavigateBefore: null,     // When a key is pressed to navigate the results, before the navigation happens
             onNavigateAfter: null,      // When a key is pressed to navigate the results
-            onMouseEnter: null,         // When the mouse enter an item in the result list
-            onMouseLeave: null,         // When the mouse leaves an item in the result list
+            onEnter: null,              // When an item in the result list is focused
+            onLeave: null,              // When an item in the result list is blurred
             onClickBefore: null,        // Possibility to e.preventDefault() to prevent the Typeahead behaviors
             onClickAfter: null,         // Happens after the default clicked behaviors has been executed
             onDropdownFilter: null,     // When the dropdownFilter is changed, trigger this callback
@@ -1379,19 +1379,21 @@
                 return;
             }
 
-            // #284 Blur Typeahead when "Tab" key is pressed
-            if (this.options.blurOnTab && e.keyCode === 9) {
-                this.node.blur();
-                this.hideLayout();
-                return;
-            }
-
             if (!this.result.length) return;
 
             var itemList = this.resultContainer.find('.' + this.options.selector.item),
                 activeItem = itemList.filter('.active'),
-                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null,
+                activeItemIndex = activeItem[0] ? itemList.index(activeItem) : null,
                 newActiveItemIndex = null;
+
+            this.clearActiveItem();
+
+            this.helper.executeCallback.call(this, this.options.callback.onLeave, [
+                this.node,
+                activeItemIndex !== null && itemList.eq(activeItemIndex) || undefined,
+                activeItemIndex !== null && this.result[activeItemIndex] || undefined,
+                e
+            ]);
 
             if (e.keyCode === 13) {
                 if (activeItem.length > 0) {
@@ -1409,7 +1411,7 @@
             }
 
             if (e.keyCode === 39) {
-                if (activeItemIndex) {
+                if (activeItemIndex !== null) {
                     itemList.eq(activeItemIndex).find('a:first')[0].click();
                 } else if (this.options.hint &&
                     this.hint.container.val() !== "" &&
@@ -1420,22 +1422,40 @@
                 return;
             }
 
-            if (itemList.length > 0) {
-                activeItem.removeClass('active');
-            }
-
-            if (e.keyCode === 38) {
+            // #284 Blur Typeahead when "Tab" key is pressed
+            // #326 Improve Up / Down / Tab navigation to have only 1 "selected" item
+            if (e.keyCode === 9) {
+                if (this.options.blurOnTab) {
+                    this.node.blur();
+                    this.hideLayout();
+                } else {
+                    if (activeItem.length > 0) {
+                        if (activeItemIndex + 1 < itemList.length) {
+                            e.preventDefault();
+                            newActiveItemIndex = activeItemIndex + 1;
+                            this.addActiveItem(itemList.eq(newActiveItemIndex));
+                        } else {
+                            this.node.blur();
+                            this.hideLayout();
+                        }
+                    } else {
+                        e.preventDefault();
+                        newActiveItemIndex = 0;
+                        this.addActiveItem(itemList.first());
+                    }
+                }
+            } else if (e.keyCode === 38) {
 
                 e.preventDefault();
 
                 if (activeItem.length > 0) {
                     if (activeItemIndex - 1 >= 0) {
                         newActiveItemIndex = activeItemIndex - 1;
-                        itemList.eq(newActiveItemIndex).addClass('active');
+                        this.addActiveItem(itemList.eq(newActiveItemIndex));
                     }
                 } else {
                     newActiveItemIndex = itemList.length - 1;
-                    itemList.last().addClass('active');
+                    this.addActiveItem(itemList.last());
                 }
 
             } else if (e.keyCode === 40) {
@@ -1445,13 +1465,20 @@
                 if (activeItem.length > 0) {
                     if (activeItemIndex + 1 < itemList.length) {
                         newActiveItemIndex = activeItemIndex + 1;
-                        itemList.eq(newActiveItemIndex).addClass('active');
+                        this.addActiveItem(itemList.eq(newActiveItemIndex));
                     }
                 } else {
                     newActiveItemIndex = 0;
-                    itemList.first().addClass('active');
+                    this.addActiveItem(itemList.first());
                 }
             }
+
+            this.helper.executeCallback.call(this, this.options.callback.onEnter, [
+                this.node,
+                newActiveItemIndex !== null && itemList.eq(newActiveItemIndex) || undefined,
+                newActiveItemIndex !== null && this.result[newActiveItemIndex] || undefined,
+                e
+            ]);
 
             // #115 Prevent the input from changing when navigating (arrow up / down) the results
             if (e.preventInputChange && ~[38, 40].indexOf(e.keyCode)) {
@@ -1486,6 +1513,14 @@
                 e
             ]);
 
+        },
+
+        clearActiveItem: function () {
+            this.resultContainer.find('.' + this.options.selector.item).removeClass('active');
+        },
+
+        addActiveItem: function (item) {
+            item.addClass('active');
         },
 
         searchResult: function (preserveItem) {
@@ -2014,10 +2049,13 @@
                         scope.helper.executeCallback.call(scope, scope.options.callback.onClickAfter, [scope.node, $(this), item, e]);
                     });
                     liHtml.on('mouseenter', function (e) {
-                        scope.helper.executeCallback.call(scope, scope.options.callback.onMouseEnter, [scope.node, $(this), item, e]);
+                        scope.clearActiveItem();
+                        scope.addActiveItem($(this));
+                        scope.helper.executeCallback.call(scope, scope.options.callback.onEnter, [scope.node, $(this), item, e]);
                     });
                     liHtml.on('mouseleave', function (e) {
-                        scope.helper.executeCallback.call(scope, scope.options.callback.onMouseLeave, [scope.node, $(this), item, e]);
+                        scope.clearActiveItem();
+                        scope.helper.executeCallback.call(scope, scope.options.callback.onLeave, [scope.node, $(this), item, e]);
                     });
                 }(i, _item, _liHtml));
 

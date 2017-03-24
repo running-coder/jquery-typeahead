@@ -397,10 +397,8 @@
   text-decoration: none;
 }
 
-.typeahead__list > li > a:hover,
 .typeahead__list > li > a:focus,
 .typeahead__list > li.active > a,
-.typeahead__dropdown > li > a:hover,
 .typeahead__dropdown > li > a:focus,
 .typeahead__dropdown > li.active > a {
   background-color: #f5f5f5;
