@@ -45,9 +45,8 @@ describe('Typeahead dynamic option Tests as a global option', () => {
                 },
                 group3: {
                     ajax: {
-                        url: `http://www.gamer-hub.com/category/list.json`,
+                        url: `http://test.com/category.json`,
                         path: "data",
-                        dataType: "jsonp",
                         callback: {
                             always: () => {
                                 group3Counter++;
@@ -124,9 +123,8 @@ describe('Typeahead dynamic option Tests as a group option', () => {
                 },
                 group3: {
                     ajax: {
-                        url: `http://www.gamer-hub.com/category/list.json`,
+                        url: `http://test.com/category.json`,
                         path: "data",
-                        dataType: "jsonp",
                         callback: {
                             always: () => {
                                 group3Counter++;
@@ -176,22 +174,19 @@ describe('Typeahead dynamic option Tests - Abort dynamic requests', () => {
             source: {
                 game: {
                     ajax: {
-                        url: "http://www.gamer-hub.com/game/list.json",
-                        dataType: "jsonp",
+                        url: "http://test.com/game.json",
                         path: "data"
                     }
                 },
                 category: {
                     ajax: {
-                        url: "http://www.gamer-hub.com/category/list.json",
-                        dataType: "jsonp",
+                        url: "http://test.com/category.json",
                         path: "data"
                     }
                 },
                 tag: {
                     ajax: {
-                        url: "http://www.gamer-hub.com/tag/list.json",
-                        dataType: "jsonp",
+                        url: "http://test.com/tag.json",
                         path: "data"
                     }
                 }

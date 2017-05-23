@@ -24,8 +24,7 @@ describe('Typeahead request Tests', () => {
                 dynamic: true,
                 source: {
                     ajax: {
-                        url: "http://www.gamer-hub.com/category/list.json",
-                        dataType: "jsonp",
+                        url: "http://test.com/category.json",
                         path: "data",
                         beforeSend: function (jqXHR, options) {
                             hasBeforeSend = true;
@@ -63,7 +62,7 @@ describe('Typeahead request Tests', () => {
                 // Always is called first, let some time for the other
                 // callbacks to complete and assign their variables
                 setTimeout(() => {
-                    expect(myTypeahead.source.group.length).toBeGreaterThan(15);
+                    expect(myTypeahead.source.group.length).toBeGreaterThan(10);
                     expect(hasBeforeSend).toBeTruthy();
                     expect(hasComplete).toBeTruthy();
                     expect(hasDone).toBeTruthy();
@@ -114,8 +113,7 @@ describe('Typeahead request Tests', () => {
                 source: {
                     ajax: function (query) {
                         return {
-                            url: `http://www.gamer-hub.com/tag/list.json?q=${query}`,
-                            dataType: "jsonp",
+                            url: `http://test.com/tag.json?q=${query}`,
                             path: "data",
                             beforeSend: function (jqXHR, options) {
                                 hasBeforeSend = true;
@@ -153,7 +151,7 @@ describe('Typeahead request Tests', () => {
                 // callbacks to complete and assign their variables
                 setTimeout(() => {
                     expect(!!~myTypeahead.requests.group.request.url.indexOf('?q=test')).toBeTruthy();
-                    expect(myTypeahead.source.group.length).toBeGreaterThan(100);
+                    expect(myTypeahead.source.group.length).toBeGreaterThan(10);
                     expect(hasBeforeSend && hasComplete && hasDone && hasThen && hasAlways).toBeTruthy();
                     expect(hasComplete).toBeTruthy();
                     expect(hasDone).toBeTruthy();
@@ -192,10 +190,9 @@ describe('Typeahead request Tests', () => {
                         }
 
                         return {
-                            url: `http://www.gamer-hub.com/tag/list.json?q=${query}`,
+                            url: `http://test.com/tag.json?q=${query}`,
                             data: data,
                             path: "data",
-                            dataType: "jsonp"
                         }
                     }
 
