@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.8.0 (2017-3-27)
+ * @version 2.8.0 (2017-6-6)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1243,15 +1243,19 @@
                             compiledTemplate += "{{" + this.options.correlativeTemplate[i] + "}} ";
                         }
                     } else {
+                        // Strip down the html tags, #351 if the template needs "<>" use html entities instead &#60;{{email}}&#62;
                         compiledTemplate = template
-                            .replace(/<.+?>/g, '');
+                            .replace(/<.+?>/g, ' ')
+                            .replace(/\s{2,}/, ' ')
+                            .trim();
                     }
 
                     for (var i = 0, ii = data.length; i < ii; i++) {
-                        data[i].compiled = compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
+                        // Fix #351, convert htmlEntities from the template string
+                        data[i].compiled = $('<textarea />').html(compiledTemplate.replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match, index) {
                                 return scope.helper.namespace.call(scope, index, data[i], 'get', '');
                             }
-                        ).trim();
+                        ).trim()).text();
                     }
 
                     if (groupSource.display) {
