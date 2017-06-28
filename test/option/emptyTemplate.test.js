@@ -8,9 +8,7 @@ describe('Typeahead emptyTemplate option Tests', () => {
 
     describe('String', () => {
         beforeAll(() => {
-
             document.body.innerHTML = '<input class="js-typeahead">';
-
             myTypeahead = $.typeahead({
                 input: '.js-typeahead',
                 minLength: 0,
@@ -33,7 +31,6 @@ describe('Typeahead emptyTemplate option Tests', () => {
 
     describe('Function that returns a String', () => {
         beforeAll(() => {
-
             myTypeahead.options.emptyTemplate = function (query) {
                 return 'No results for "' + query + '"';
             };
@@ -50,7 +47,6 @@ describe('Typeahead emptyTemplate option Tests', () => {
 
     describe('Function that returns a jQuery Object', () => {
         beforeAll(() => {
-
             myTypeahead.options.emptyTemplate = function (query) {
                 return $('<li>', {
                     "text": "Just use \"" + query + "\"",
@@ -65,6 +61,19 @@ describe('Typeahead emptyTemplate option Tests', () => {
 
             expect(myTypeahead.resultHtml.find('li').length).toEqual(1);
             expect(myTypeahead.resultHtml.text()).toEqual('Just use "Empty"');
+        });
+    });
+
+    describe('The emptyTemplate is sanitized', () => {
+        beforeAll(() => {
+            myTypeahead.options.emptyTemplate = '<div>No result for {{query}}</div>';
+        });
+
+        it('Should preserve the div tag and sanitize the "query"', () => {
+            myTypeahead.node.val('<img src="" onerror="alert(\'bad code\')">');
+            myTypeahead.node.trigger('input');
+
+            expect(myTypeahead.resultHtml.html()).toEqual('<li class="typeahead__empty"><div>No result for &lt;img src="" onerror="alert(\'bad code\')"&gt;</div></li>')
         });
     });
 

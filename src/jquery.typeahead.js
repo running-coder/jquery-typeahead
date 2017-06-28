@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.8.0 (2017-6-6)
+ * @version 2.8.0 (2017-6-28)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1832,8 +1832,12 @@
                 if (this.options.emptyTemplate && this.query !== "") {
                     emptyTemplate = typeof this.options.emptyTemplate === "function" ?
                         this.options.emptyTemplate.call(this, this.query) :
-                        this.options.emptyTemplate.replace(/\{\{query}}/gi, this.helper.cleanStringFromScript(this.query));
-
+                        this.options.emptyTemplate.replace(
+                            /\{\{query}}/gi,
+                            $("<div>").text(
+                                this.helper.cleanStringFromScript(this.query)
+                            ).html()
+                        );
                 } else {
                     return;
                 }
