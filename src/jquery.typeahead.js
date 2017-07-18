@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.8.0 (2017-6-28)
+ * @version 2.8.0 (2017-7-18)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1430,7 +1430,6 @@
             // #326 Improve Up / Down / Tab navigation to have only 1 "selected" item
             if (e.keyCode === 9) {
                 if (this.options.blurOnTab) {
-                    this.node.blur();
                     this.hideLayout();
                 } else {
                     if (activeItem.length > 0) {
@@ -1439,7 +1438,6 @@
                             newActiveItemIndex = activeItemIndex + 1;
                             this.addActiveItem(itemList.eq(newActiveItemIndex));
                         } else {
-                            this.node.blur();
                             this.hideLayout();
                         }
                     } else {
