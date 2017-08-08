@@ -72,6 +72,7 @@ describe('Typeahead templateValue option Tests', () => {
                 generateOnLoad: true,
                 display: ['id', 'key1', 'key2', 'key3'],
                 highlight: false,
+                blurOnTab: false,
                 template: function () {
                     return '{{id}} {{key1}} {{key2}} {{key3}}'
                 },
@@ -107,6 +108,27 @@ describe('Typeahead templateValue option Tests', () => {
             });
         });
 
+        it('Should populate Typeahead input with the templateValue when a navigation key is pressed', () => {
+
+            var arrowDownEvent = $.Event("keydown");
+            arrowDownEvent.keyCode = 40;
+            var tabEvent = $.Event("keydown");
+            tabEvent.keyCode = 9;
+
+            myTypeahead.node.focus();
+            $(".js-typeahead").trigger(arrowDownEvent);
+            expect(myTypeahead.node.val()).toEqual('group1-data1-key2');
+            $(".js-typeahead").trigger(arrowDownEvent);
+            expect(myTypeahead.node.val()).toEqual('1 group2-data1-key1');
+            $(".js-typeahead").trigger(arrowDownEvent);
+            expect(myTypeahead.node.val()).toEqual('group3-data1-key3 test');
+            $(".js-typeahead").trigger(arrowDownEvent);
+            expect(myTypeahead.node.val()).toEqual(myTypeahead.rawQuery);
+            $(".js-typeahead").trigger(tabEvent);
+            expect(myTypeahead.node.val()).toEqual('group1-data1-key2');
+
+        });
+
         it('Should populate Typeahead input with the templateValue when an item is clicked', (done) => {
 
             expect(myTypeahead.result.length).toEqual(3);
@@ -121,7 +143,6 @@ describe('Typeahead templateValue option Tests', () => {
                 myTypeahead.node.val('').triggerHandler('input').done(() => {
                     myTypeahead.resultContainer.find('li:eq(2) a').trigger('click');
                     expect(myTypeahead.query).toEqual('group3-data1-key3 test');
-
 
                     done();
                 });

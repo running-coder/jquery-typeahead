@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.8.0 (2017-7-18)
+ * @version 2.8.0 (2017-8-8)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1501,9 +1501,11 @@
             }
 
             this.node.val(
-                newActiveItemIndex !== null && !e.preventInputChange ?
-                    this.result[newActiveItemIndex][this.result[newActiveItemIndex].matchedKey] :
-                    this.rawQuery
+                newActiveItemIndex === null || e.preventInputChange
+                    ? this.rawQuery
+                    : this.getTemplateValue.call(this,
+                        this.result[newActiveItemIndex]
+                    )
             );
 
             this.helper.executeCallback.call(this, this.options.callback.onNavigateAfter, [
@@ -1515,6 +1517,22 @@
                 e
             ]);
 
+        },
+
+        getTemplateValue: function (item) {
+            if (!item) return;
+            var templateValue = item.group && this.options.source[item.group].templateValue || this.options.templateValue;
+            if (typeof templateValue === "function") {
+                templateValue = templateValue.call(this);
+            }
+            if (!templateValue) {
+                return this.helper.namespace.call(this, item.matchedKey, item).toString();;
+            }
+            var scope = this;
+
+            return templateValue.replace(/\{\{([\w\-.]+)}}/gi, function (match, index) {
+                return scope.helper.namespace.call(scope, index, item, 'get', '');
+            });
         },
 
         clearActiveItem: function () {
@@ -1887,7 +1905,6 @@
                 _href,
                 _liHtml,
                 _template,
-                _templateValue,
                 _aHtml,
                 _display,
                 _displayKeys,
@@ -2035,15 +2052,7 @@
                             return;
                         }
 
-                        _templateValue = (item.group && scope.options.source[item.group].templateValue) || scope.options.templateValue;
-                        if (typeof _templateValue === "function") {
-                            _templateValue = _templateValue.call(scope);
-                        }
-
-                        scope.query = scope.rawQuery = _templateValue ?
-                            _templateValue.replace(/\{\{([\w\-\.]+)}}/gi, function (match, index) {
-                                return scope.helper.namespace.call(scope, index, item, 'get', '');
-                            }) : scope.helper.namespace.call(scope, item.matchedKey, item).toString();
+                        scope.query = scope.rawQuery = scope.getTemplateValue.call(scope, item);
 
                         scope.focusOnly = true;
                         scope.node.val(scope.query).focus();
