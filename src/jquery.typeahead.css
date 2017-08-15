@@ -227,7 +227,7 @@
   position: relative;
   font-size: 0;
   width: 1%;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .typeahead__button button {
@@ -239,7 +239,10 @@
   color: #555;
 }
 
-.typeahead__field input {
+.typeahead__field input,
+.typeahead__field textarea,
+.typeahead__field [contenteditable],
+.typeahead__field .typeahead__hint {
   display: block;
   width: 100%;
   height: 32px;
@@ -254,7 +257,13 @@
   box-sizing: border-box;
 }
 
-.typeahead__field input:focus, .typeahead__field input:active {
+.typeahead__field input:focus, .typeahead__field input:active,
+.typeahead__field textarea:focus,
+.typeahead__field textarea:active,
+.typeahead__field [contenteditable]:focus,
+.typeahead__field [contenteditable]:active,
+.typeahead__field .typeahead__hint:focus,
+.typeahead__field .typeahead__hint:active {
   border-color: #66afe9;
 }
 
@@ -270,11 +279,13 @@
   height: 0;
 }
 
-.typeahead__container.hint .typeahead__field input {
+.typeahead__container.hint .typeahead__field input,
+.typeahead__container.hint .typeahead__field textarea,
+.typeahead__container.hint .typeahead__field [contenteditable] {
   background: transparent;
 }
 
-.typeahead__container.hint .typeahead__field input:last-child, .typeahead__hint {
+.typeahead__container.hint .typeahead__query > :last-child, .typeahead__hint {
   background: #fff;
 }
 
@@ -282,7 +293,6 @@
   display: inline-block;
   margin-bottom: 0;
   text-align: center;
-  vertical-align: middle;
   -ms-touch-action: manipulation;
   touch-action: manipulation;
   cursor: pointer;
@@ -351,7 +361,6 @@
 
 .typeahead__list, .typeahead__dropdown {
   position: absolute;
-  top: 100%;
   left: 0;
   z-index: 1000;
   width: 100%;
@@ -397,8 +406,10 @@
   text-decoration: none;
 }
 
+.typeahead__list > li > a:hover,
 .typeahead__list > li > a:focus,
 .typeahead__list > li.active > a,
+.typeahead__dropdown > li > a:hover,
 .typeahead__dropdown > li > a:focus,
 .typeahead__dropdown > li.active > a {
   background-color: #f5f5f5;

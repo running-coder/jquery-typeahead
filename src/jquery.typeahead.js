@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.8.0 (2017-8-8)
+ * @version 2.8.0 (2017-8-15)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -672,7 +672,11 @@
                         }
                     case "input":
                         scope.deferred = $.Deferred();
-                        scope.rawQuery = scope.node[0].value.toString();
+                        if (scope.node[0].isContentEditable) {
+                            scope.rawQuery = scope.node.text();
+                        } else {
+                            scope.rawQuery = scope.node.val().toString();
+                        }
                         scope.query = scope.rawQuery.replace(/^\s+/, '');
 
                         // #195 Trigger an onCancel event if the Typeahead is cleared
@@ -686,6 +690,9 @@
                         if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
                             if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
                                 scope.hint.container.val('');
+                                if (scope.node[0].isContentEditable) {
+                                    scope.hint.container.text('');
+                                }
                             }
                         }
 
@@ -1500,13 +1507,16 @@
                 );
             }
 
-            this.node.val(
-                newActiveItemIndex === null || e.preventInputChange
-                    ? this.rawQuery
-                    : this.getTemplateValue.call(this,
-                        this.result[newActiveItemIndex]
-                    )
-            );
+            var nodeValue = newActiveItemIndex === null || e.preventInputChange ?
+                this.rawQuery :
+                this.getTemplateValue.call(this,
+                    this.result[newActiveItemIndex]
+                );
+
+            this.node.val(nodeValue);
+            if (this.node[0].isContentEditable) {
+                this.node.text(nodeValue);
+            }
 
             this.helper.executeCallback.call(this, this.options.callback.onNavigateAfter, [
                 this.node,
@@ -1526,7 +1536,7 @@
                 templateValue = templateValue.call(this);
             }
             if (!templateValue) {
-                return this.helper.namespace.call(this, item.matchedKey, item).toString();;
+                return this.helper.namespace.call(this, item.matchedKey, item).toString();
             }
             var scope = this;
 
@@ -2057,6 +2067,11 @@
                         scope.focusOnly = true;
                         scope.node.val(scope.query).focus();
 
+                        if (scope.node[0].isContentEditable) {
+                            scope.node.text(scope.query);
+                            scope.helper.setCaretAtEnd(scope.node[0]);
+                        }
+
                         scope.searchResult(true);
                         scope.buildLayout();
                         scope.hideLayout();
@@ -2163,7 +2178,7 @@
                         this.options.hint
                     );
 
-                    this.hint.container = $('<input/>', {
+                    this.hint.container = $('<' + this.node[0].nodeName + '/>', {
                         'type': this.node.attr('type'),
                         'class': this.node.attr('class'),
                         'readonly': true,
@@ -2215,15 +2230,17 @@
                     }
                 }
 
-                this.hint.container
-                    .val(hint.length > 0 && this.rawQuery + hint.substring(this.query.length) || "");
+                var hintValue = hint.length > 0 && this.rawQuery + hint.substring(this.query.length) || "";
+                this.hint.container.val(hintValue);
 
+                if (this.node[0].isContentEditable) {
+                    this.hint.container.text(hintValue);
+                }
             }
 
         },
 
         buildDropdownLayout: function () {
-
             if (!this.options.dropdownFilter) return;
 
             var scope = this;
@@ -2237,8 +2254,7 @@
                             "type": "button",
                             "class": scope.options.selector.filterButton,
                             "style": "display: none;",
-                            "click": function (e) {
-                                e.stopPropagation();
+                            "click": function () {
                                 scope.container.toggleClass('filter');
 
                                 var _ns = scope.namespace + '-dropdown-filter';
@@ -2247,8 +2263,10 @@
 
                                 if (scope.container.hasClass('filter')) {
                                     $('html').on("click" + _ns + " touchend" + _ns, function (e) {
-                                        if ($(e.target).closest('.' + scope.options.selector.filter)[0] || scope.hasDragged) return;
+                                        if (($(e.target).closest('.' + scope.options.selector.filter)[0] && $(e.target).closest(scope.container)[0]) || scope.hasDragged) return;
                                         scope.container.removeClass('filter');
+
+                                        $('html').off(_ns);
                                     });
                                 }
                             }
@@ -2565,6 +2583,9 @@
 
             if (this.options.hint && this.hint.container) {
                 this.hint.container.val('');
+                if (this.node[0].isContentEditable) {
+                    this.hint.container.text('');
+                }
             }
 
         },
@@ -2572,6 +2593,9 @@
         resetInput: function () {
 
             this.node.val('');
+            if (this.node[0].isContentEditable) {
+                this.node.text('');
+            }
             this.item = null;
             this.query = '';
             this.rawQuery = '';
@@ -2765,19 +2789,21 @@
             },
 
             /**
-             * Get carret position, mainly used for right arrow navigation
-             * @param element
-             * @returns {*}
+             * Get caret position, used for right arrow navigation
+             * when hint option is enabled
+             * @param {Node} element
+             * @returns {Number} Caret position
              */
             getCaret: function (element) {
+                var caretPos = 0;
+
                 if (element.selectionStart) {
+                    // Input & Textarea
                     return element.selectionStart;
                 } else if (document.selection) {
-                    element.focus();
-
                     var r = document.selection.createRange();
                     if (r === null) {
-                        return 0;
+                        return caretPos;
                     }
 
                     var re = element.createTextRange(),
@@ -2785,9 +2811,39 @@
                     re.moveToBookmark(r.getBookmark());
                     rc.setEndPoint('EndToStart', re);
 
-                    return rc.text.length;
+                    caretPos = rc.text.length;
+                } else if (window.getSelection) {
+                    // Contenteditable
+                    var sel = window.getSelection();
+                    if (sel.rangeCount) {
+                        var range = sel.getRangeAt(0);
+                        if (range.commonAncestorContainer.parentNode == element) {
+                            caretPos = range.endOffset;
+                        }
+                    }
                 }
-                return 0;
+                return caretPos;
+            },
+
+            /**
+             * For [contenteditable] typeahead node only,
+             * when an item is clicked set the cursor at the end
+             * @param {Node} element
+             */
+            setCaretAtEnd: function (element) {
+                if (typeof window.getSelection !== "undefined" && typeof document.createRange !== "undefined") {
+                    var range = document.createRange();
+                    range.selectNodeContents(element);
+                    range.collapse(false);
+                    var sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                } else if (typeof document.body.createTextRange !== "undefined") {
+                    var textRange = document.body.createTextRange();
+                    textRange.moveToElementText(element);
+                    textRange.collapse(false);
+                    textRange.select();
+                }
             },
 
             /**
@@ -2995,8 +3051,10 @@
 
                 node = $(options.input);
             }
-
-            if (!node.length || node[0].nodeName !== "INPUT") {
+            if (typeof node[0].value === 'undefined') {
+                node[0].value = node.text();
+            }
+            if (!node.length) {
 
                 // {debug}
                 _debug.log({

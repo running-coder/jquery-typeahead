@@ -253,7 +253,7 @@ $typeahead-item-hover-background: #f5f5f5 !default;
         position: relative;
         font-size: 0;
         width: 1%;
-        vertical-align: middle;
+        vertical-align: top;
     }
 
     &button button {
@@ -264,7 +264,10 @@ $typeahead-item-hover-background: #f5f5f5 !default;
     &field {
         // #193 If applied to input, it overrides the placeholder color on IE10/11
         color: $typeahead-color;
-        input {
+        input,
+        textarea,
+        [contenteditable],
+        .typeahead__hint {
             display: block;
             width: 100%;
             height: $typeahead-height;
@@ -298,11 +301,15 @@ $typeahead-item-hover-background: #f5f5f5 !default;
         height: 0;
     }
 
-    &container.hint .typeahead__field input {
-        background: transparent;
+    &container.hint .typeahead__field {
+        input,
+        textarea,
+        [contenteditable] {
+            background: transparent;
+        }
     }
 
-    &container.hint .typeahead__field input:last-child,
+    &container.hint .typeahead__query > :last-child,
     &hint {
         background: #fff;
     }
@@ -311,7 +318,7 @@ $typeahead-item-hover-background: #f5f5f5 !default;
         display: inline-block;
         margin-bottom: 0;
         text-align: center;
-        vertical-align: middle;
+        //vertical-align: middle;
         touch-action: manipulation;
         cursor: pointer;
         background-color: #fff;
@@ -394,7 +401,7 @@ $typeahead-item-hover-background: #f5f5f5 !default;
     &list,
     &dropdown {
         position: absolute;
-        top: 100%;
+        //top: 100%;
         left: 0;
         z-index: 1000;
         width: 100%;
@@ -443,13 +450,13 @@ $typeahead-item-hover-background: #f5f5f5 !default;
             text-decoration: none;
         }
 
+        > a:hover,
         > a:focus,
         &.active > a {
             background-color: $typeahead-item-hover-background;
             color: darken($typeahead-color, 10%);
         }
     }
-
 
     &list.empty {
         > li {
