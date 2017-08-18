@@ -31,4 +31,16 @@ fakeServer.respondWith('GET', /\/tag\.json/, [
     }),
 ]);
 
+fakeServer.respondWith('GET', /\/null\.json/, [
+    200,
+    { 'Content-Type': 'application/json' },
+    JSON.stringify(null),
+]);
+
+fakeServer.respondWith('GET', /\/empty\.json/, [
+    200,
+    { 'Content-Type': 'application/json' },
+    JSON.stringify([]),
+]);
+
 fakeServer.autoRespond = true;

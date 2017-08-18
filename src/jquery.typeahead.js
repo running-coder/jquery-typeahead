@@ -178,7 +178,7 @@
         this.searchGroups = [];             // Array of groups to generate when Typeahead searches data
         this.generateGroups = [];           // Array of groups to generate when Typeahead requests data
         this.requestGroups = [];            // Array of groups to request via Ajax
-        this.result = {};                   // Results based on Source-query match (only contains the displayed elements)
+        this.result = [];                   // Results based on Source-query match (only contains the displayed elements)
         this.groupTemplate = '';            // Result template at the {{group}} level
         this.resultHtml = null;             // HTML Results (displayed elements)
         this.resultCount = 0;               // Total results based on Source-query match
@@ -1066,9 +1066,9 @@
                             // #248, #303 Aborted requests would call populate with invalid data
                             if (typeof jqXHR !== "object") return;
 
-                            // #265 Modified data from ajax.callback.done is not being registred (use of _data)
+                            // #265 Modified data from ajax.callback.done is not being registered (use of _data)
                             scope.populateSource(
-                                typeof data.promise === "function" && [] || _data || data,
+                                data !== null && typeof data.promise === "function" && [] || _data || data,
                                 _request.extra.group,
                                 _request.extra.path || _request.request.path
                             );

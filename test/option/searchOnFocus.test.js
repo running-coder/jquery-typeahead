@@ -25,7 +25,7 @@ describe('Typeahead searchOnFocus option Tests', () => {
 
         it('Should display results when the Typeahead input is focused', (done) => {
 
-            expect(myTypeahead.result).toEqual({});
+            expect(myTypeahead.result).toEqual([]);
 
             myTypeahead.node.triggerHandler('focus').done(() => {
                 expect(myTypeahead.source).toEqual({
@@ -61,7 +61,7 @@ describe('Typeahead searchOnFocus option Tests', () => {
 
         it('Should not display results when the Typeahead input is focused', (done) => {
 
-            expect(myTypeahead.result).toEqual({});
+            expect(myTypeahead.result).toEqual([]);
 
             myTypeahead.node.triggerHandler('focus').done(() => {
                 expect(myTypeahead.result).toEqual({});
