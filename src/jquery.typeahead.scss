@@ -189,8 +189,11 @@ $typeahead-group-color: darken($typeahead-primary-color, 30%) !default;
 $typeahead-group-background: lighten($typeahead-primary-color, 30%) !default;
 $typeahead-group-border-color: lighten($typeahead-primary-color, 20%) !default;
 
+$typeahead-item-color: #333 !default;
 $typeahead-item-background: #fff !default;
 $typeahead-item-hover-background: #f5f5f5 !default;
+$typeahead-item-disabled-color: #bababa !default;
+$typeahead-item-disabled-background: #fafafa !default;
 
 // TYPEAHEAD -----------------------------------------------------------------------------------------------------------
 
@@ -442,26 +445,36 @@ $typeahead-item-hover-background: #f5f5f5 !default;
 
     &list > li,
     &dropdown > li {
+        &[disabled] {
+            > a {
+                cursor: not-allowed;
+                color: $typeahead-item-disabled-color;
+                background-color: $typeahead-item-disabled-background;
+            }
+        }
+
         > a {
             display: block;
             padding: $typeahead-padding;
             clear: both;
-            color: #333;
+            color: $typeahead-item-color;
             text-decoration: none;
         }
 
-        > a:hover,
-        > a:focus,
-        &.active > a {
-            background-color: $typeahead-item-hover-background;
-            color: darken($typeahead-color, 10%);
+        &:not([disabled]) {
+            > a:hover,
+            > a:focus,
+            &.active > a {
+                background-color: $typeahead-item-hover-background;
+                color: darken($typeahead-color, 10%);
+            }
         }
     }
 
     &list.empty {
         > li {
             padding: $typeahead-padding;
-            color: #333;
+            color: $typeahead-item-color;
         }
     }
 

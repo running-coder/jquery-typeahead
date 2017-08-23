@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.9.0 (2017-8-18)
+ * @version 2.9.0 (2017-8-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -1392,17 +1392,19 @@
 
             if (!this.result.length) return;
 
-            var itemList = this.resultContainer.find('.' + this.options.selector.item),
+            var itemList = this.resultContainer.find('.' + this.options.selector.item).not('[disabled]'),
                 activeItem = itemList.filter('.active'),
                 activeItemIndex = activeItem[0] ? itemList.index(activeItem) : null,
-                newActiveItemIndex = null;
+                activeDataIndex = activeItem[0] ? activeItem.attr('data-index') : null,
+                newActiveItemIndex = null,
+                newActiveDataIndex = null;
 
             this.clearActiveItem();
 
             this.helper.executeCallback.call(this, this.options.callback.onLeave, [
                 this.node,
                 activeItemIndex !== null && itemList.eq(activeItemIndex) || undefined,
-                activeItemIndex !== null && this.result[activeItemIndex] || undefined,
+                activeDataIndex !== null && this.result[activeDataIndex] || undefined,
                 e
             ]);
 
@@ -1428,7 +1430,7 @@
                     this.hint.container.val() !== "" &&
                     this.helper.getCaret(this.node[0]) >= this.query.length) {
 
-                    itemList.find('a[data-index="' + this.hintIndex + '"]')[0].click();
+                    itemList.filter('[data-index="' + this.hintIndex + '"]').find('a:first')[0].click();
                 }
                 return;
             }
@@ -1448,9 +1450,13 @@
                             this.hideLayout();
                         }
                     } else {
-                        e.preventDefault();
-                        newActiveItemIndex = 0;
-                        this.addActiveItem(itemList.first());
+                        if (itemList.length) {
+                            e.preventDefault();
+                            newActiveItemIndex = 0;
+                            this.addActiveItem(itemList.first());
+                        } else {
+                            this.hideLayout();
+                        }
                     }
                 }
             } else if (e.keyCode === 38) {
@@ -1462,7 +1468,7 @@
                         newActiveItemIndex = activeItemIndex - 1;
                         this.addActiveItem(itemList.eq(newActiveItemIndex));
                     }
-                } else {
+                } else if (itemList.length) {
                     newActiveItemIndex = itemList.length - 1;
                     this.addActiveItem(itemList.last());
                 }
@@ -1476,24 +1482,28 @@
                         newActiveItemIndex = activeItemIndex + 1;
                         this.addActiveItem(itemList.eq(newActiveItemIndex));
                     }
-                } else {
+                } else if (itemList.length) {
                     newActiveItemIndex = 0;
                     this.addActiveItem(itemList.first());
                 }
             }
 
+            newActiveDataIndex = newActiveItemIndex !== null ?
+                itemList.eq(newActiveItemIndex).attr('data-index') :
+                null;
+
             this.helper.executeCallback.call(this, this.options.callback.onEnter, [
                 this.node,
                 newActiveItemIndex !== null && itemList.eq(newActiveItemIndex) || undefined,
-                newActiveItemIndex !== null && this.result[newActiveItemIndex] || undefined,
+                newActiveDataIndex !== null && this.result[newActiveDataIndex] || undefined,
                 e
             ]);
 
             // #115 Prevent the input from changing when navigating (arrow up / down) the results
             if (e.preventInputChange && ~[38, 40].indexOf(e.keyCode)) {
                 this.buildHintLayout(
-                    newActiveItemIndex !== null && newActiveItemIndex < this.result.length ?
-                        [this.result[newActiveItemIndex]] :
+                    newActiveDataIndex !== null && newActiveDataIndex < this.result.length ?
+                        [this.result[newActiveDataIndex]] :
                         null
                 );
             }
@@ -1503,14 +1513,14 @@
                     'color',
                     e.preventInputChange ?
                         this.hint.css.color :
-                        newActiveItemIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
+                        newActiveDataIndex === null && this.hint.css.color || this.hint.container.css('background-color') || 'fff'
                 );
             }
 
-            var nodeValue = newActiveItemIndex === null || e.preventInputChange ?
+            var nodeValue = newActiveDataIndex === null || e.preventInputChange ?
                 this.rawQuery :
                 this.getTemplateValue.call(this,
-                    this.result[newActiveItemIndex]
+                    this.result[newActiveDataIndex]
                 );
 
             this.node.val(nodeValue);
@@ -1522,7 +1532,7 @@
                 this.node,
                 itemList,
                 newActiveItemIndex !== null && itemList.eq(newActiveItemIndex).find('a:first') || undefined,
-                newActiveItemIndex !== null && this.result[newActiveItemIndex] || undefined,
+                newActiveDataIndex !== null && this.result[newActiveDataIndex] || undefined,
                 this.query,
                 e
             ]);
@@ -1813,7 +1823,6 @@
                 concatResults = concatResults.concat(this.result[groupOrder[i]] || []);
             }
 
-
             // #286 groupTemplate option was deleting group reference Array
             this.groups = JSON.parse(JSON.stringify(groupOrder));
 
@@ -1967,6 +1976,9 @@
 
                 _liHtml = $("<li/>", {
                     "class": scope.options.selector.item + " " + scope.options.selector.group + '-' + this.helper.slugify.call(this, _group),
+                    "disabled": _item.disabled ? true : false,
+                    "data-group": _group,
+                    "data-index": i,
                     "html": $("<a/>", {
                         // #190 Strange JS-code fragment in href attribute using jQuery version below 1.10
                         "href": (function () {
@@ -1989,10 +2001,8 @@
                                 }
                                 _item.href = _href;
                             }
-                            return _href || "javascript:;";
+                            return !_item.disabled && _href || "javascript:;";
                         }()),
-                        "data-group": _group,
-                        "data-index": i,
                         "html": function () {
 
                             _template = (_item.group && scope.options.source[_item.group].template) || scope.options.template;
@@ -2045,6 +2055,11 @@
 
                 (function (i, item, liHtml) {
                     liHtml.on('click', function (e, originalEvent) {
+                        if (item.disabled) {
+                            e.preventDefault();
+                            return;
+                        }
+
                         // #208 - Attach "keyboard Enter" original event
                         if (originalEvent && typeof originalEvent === "object") {
                             e.originalEvent = originalEvent;
@@ -2079,12 +2094,16 @@
                         scope.helper.executeCallback.call(scope, scope.options.callback.onClickAfter, [scope.node, $(this), item, e]);
                     });
                     liHtml.on('mouseenter', function (e) {
-                        scope.clearActiveItem();
-                        scope.addActiveItem($(this));
+                        if (!item.disabled) {
+                            scope.clearActiveItem();
+                            scope.addActiveItem($(this));
+                        }
                         scope.helper.executeCallback.call(scope, scope.options.callback.onEnter, [scope.node, $(this), item, e]);
                     });
                     liHtml.on('mouseleave', function (e) {
-                        scope.clearActiveItem();
+                        if (!item.disabled) {
+                            scope.clearActiveItem();
+                        }
                         scope.helper.executeCallback.call(scope, scope.options.callback.onLeave, [scope.node, $(this), item, e]);
                     });
                 }(i, _item, _liHtml));
@@ -2207,6 +2226,7 @@
                         _comparedValue;
 
                     for (var i = 0, ii = result.length; i < ii; i++) {
+                        if (result[i].disabled) continue;
 
                         _group = result[i].group;
                         _displayKeys = this.options.source[_group].display || this.options.display;
