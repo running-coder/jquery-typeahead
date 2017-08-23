@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.9.0 (2017-8-22)
+ * @version 2.9.0 (2017-8-23)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 ;(function (factory) {
@@ -984,7 +984,7 @@
 
                     var _request,
                         _isExtended = false, // Prevent the main request from being changed
-                        _data; // New data array in case it is modified inside callback.done
+                        _groupData = {};
 
                     if (~xhrObject.request.url.indexOf('{{query}}')) {
                         if (!_isExtended) {
@@ -1011,17 +1011,17 @@
                     }
 
                     $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
-                        _data = null;
+                        var _group;
 
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
-
-                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _group = xhrObject.validForGroup[i];
+                            _request = scope.requests[_group];
 
                             if (_request.callback.done instanceof Function) {
-                                _data = _request.callback.done.call(scope, data, textStatus, jqXHR);
+                                _groupData[_group] = _request.callback.done.call(scope, data, textStatus, jqXHR);
 
                                 // {debug}
-                                if (!Array.isArray(_data) || typeof _data !== "object") {
+                                if (!Array.isArray(_groupData[_group]) || typeof _groupData[_group] !== "object") {
                                     if (scope.options.debug) {
                                         _debug.log({
                                             'node': scope.selector,
@@ -1058,17 +1058,18 @@
                         // {/debug}
 
                     }).always(function (data, textStatus, jqXHR) {
-
+                        var _group;
                         for (var i = 0, ii = xhrObject.validForGroup.length; i < ii; i++) {
-                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _group = xhrObject.validForGroup[i];
+                            _request = scope.requests[_group];
                             _request.callback.always instanceof Function && _request.callback.always.call(scope, data, textStatus, jqXHR);
 
                             // #248, #303 Aborted requests would call populate with invalid data
                             if (typeof jqXHR !== "object") return;
 
-                            // #265 Modified data from ajax.callback.done is not being registered (use of _data)
+                            // #265 Modified data from ajax.callback.done is not being registered (use of _groupData[_group])
                             scope.populateSource(
-                                data !== null && typeof data.promise === "function" && [] || _data || data,
+                                data !== null && typeof data.promise === "function" && [] || _groupData[_group] || data,
                                 _request.extra.group,
                                 _request.extra.path || _request.request.path
                             );
@@ -1077,7 +1078,6 @@
                             if (requestsCount === 0) {
                                 scope.helper.executeCallback.call(scope, scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
                             }
-
                         }
 
                     }).then(function (jqXHR, textStatus) {

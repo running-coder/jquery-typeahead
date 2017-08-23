@@ -43,4 +43,26 @@ fakeServer.respondWith('GET', /\/empty\.json/, [
     JSON.stringify([]),
 ]);
 
+fakeServer.respondWith('POST', /\/groups\.json/, [
+    200,
+    { 'Content-Type': 'application/json' },
+    JSON.stringify({
+        "group1": [
+            "group1-test1",
+            "group1-test2",
+            "group1-test3"
+        ],
+        "group2": [
+            "group2-test1",
+            "group2-test2",
+            "group2-test3"
+        ],
+        "group3": [
+            "group3-test1",
+            "group3-test2",
+            "group3-test3"
+        ]
+    }),
+]);
+
 fakeServer.autoRespond = true;
