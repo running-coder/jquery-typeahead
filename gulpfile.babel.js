@@ -82,5 +82,5 @@ gulp.task('watch', function () {
     });
 });
 
-gulp.task('default', gulp.parallel('scss', 'jshint', 'js'));
+gulp.task('default', gulp.parallel('scss', /*'jshint',*/ 'js'));
 

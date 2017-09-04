@@ -13,29 +13,12 @@
     <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
     <script src="../src/jquery.typeahead.js"></script>
 
-    <style>
-        .typeahead__suggestion-label {
-            position: absolute;
-            top: 4px;
-            right: 12px;
-            background: #ecf5fc;
-            border:solid 1px #66afe9;
-            padding: 3px;
-            border-radius: 3px;
-        }
-
-        .typeahead__clear-suggestions {
-            margin: 1rem 0;
-            cursor: pointer;
-        }
-    </style>
-
 </head>
 <body>
 
 <div style="width: 100%; max-width: 800px; margin: 0 auto;">
 
-    <h1>Suggestion_v1 Demo</h1>
+    <h1>Hockey_v2 Demo</h1>
 
     <ul>
         <li>
@@ -45,12 +28,6 @@
             <a href="http://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
         </li>
     </ul>
-
-    <button type="button"
-            class="typeahead__clear-suggestions"
-            onclick="clearSuggestions();">
-        Clear Suggestions
-    </button>
 
     <form>
         <div class="typeahead__container">
@@ -63,7 +40,7 @@
                        autofocus
                        autocomplete="off">
             </span>
-            <span class="typeahead__button">
+                <span class="typeahead__button">
                 <button type="submit">
                     <span class="typeahead__search-icon"></span>
                 </button>
@@ -294,14 +271,6 @@
             "division": "Southeast"
         }];
 
-        var storageKey = 'TYPEAHEAD_SUGGESTIONS',
-            storageData = JSON.parse(localStorage.getItem(storageKey)) || [];
-
-        function clearSuggestions () {
-            localStorage.removeItem(storageKey);
-            storageData = [];
-        }
-
         typeof $.typeahead === 'function' && $.typeahead({
             input: ".js-typeahead",
             minLength: 1,
@@ -310,60 +279,42 @@
             order: "asc",
             hint: true,
             searchOnFocus: true,
-            display: ["name", "city"],
-            emptyTemplate: 'no result for {{query}}',
-            source: {
-                suggestion: {
-                    template: "{{name}} {{city}} <small class='typeahead__suggestion-label'>Suggestion</small>",
-                    minLength: 0, // Start showing suggestion when the input is focused
-                    maxLength: 3, // when 4 characters are entered, the suggestions will stop showing
-                    dynamic: true,
-                    filter: false, // Always show these suggestion regardless of what is typed
-                    data: function () {
-                        var deferred = $.Deferred();
-
-                        // setTimeout simulates a delay if you are getting the data from
-                        // a call to an API or a backend endpoint to get the user's preferences
-                        setTimeout(function () {
-
-                            deferred.resolve(storageData);
-
-                        }, 250);
-
-                        return deferred;
-                    }
-                },
-                teams: {
-                    data: data,
-                    matcher: function (item, displayKey) {
-                        var isSuggestion;
-                        for (var i = 0, ii = storageData.length; i < ii; ++i) {
-                            if (storageData[i].name === item.name) {
-                                isSuggestion = true;
-                                break;
-                            }
-                        }
-                        return isSuggestion ? undefined : true;
-
-                        // return undefined to skip to next item
-                        // return false to attempt the matching function on the next displayKey
-                        // return true to add the item to the result list
-                        // return item object to modify the item and add it to the result list
+            multiselect: {
+                limit: 2,
+//                limitTemplate: 'You can\'t select more than 2 teams',
+                matchOn: ["id", "name"],
+//                href: '/{{name}}.html',
+                items: [{
+                    "matchedKey": "name",
+                    "name": "Canadiens",
+                    "img": "canadiens",
+                    "city": "Montreal",
+                    "id": "MTL",
+                    "conference": "Eastern",
+                    "division": "Northeast",
+                    "group": "teams"
+                }],
+                callback: {
+                    onClick: function (node, item, templateValue, event) {
+                        event.preventDefault();
+                        console.log(item);
+                        alert(item.name + ' Clicked!');
                     }
                 }
             },
+            templateValue: "{{name}}",
+            display: ["name", "city"],
+            emptyTemplate: 'no result for {{query}}',
+            source: {
+                teams: {
+                    data: data
+                }
+            },
             callback: {
-                // onClick add the clicked item into the suggestion array inside localStorage
-                // or it could also send a request to store it in database so the user get its last searched terms
-                onClick: function (node, a, item, event) {
-                    var maxSuggestions = 3;
+                onSubmit: function (node, form, items, event) {
+                    event.preventDefault();
 
-                    if (storageData.length >= maxSuggestions) {
-                        storageData.pop();
-                    }
-                    storageData.unshift(item);
-
-                    localStorage.setItem(storageKey, JSON.stringify(storageData));
+                    alert(JSON.stringify(items))
                 }
             },
             debug: true

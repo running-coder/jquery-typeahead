@@ -171,15 +171,17 @@
 // VARIABLES -----------------------------------------------------------------------------------------------------------
 
 $typeahead-font-size: 14px !default;
+$typeahead-line-height: 1.6 !default;
 $typeahead-font-family: Lato, 'Helvetica Neue', Arial, Helvetica, sans-serif !default;
 $typeahead-primary-color: #66afe9 !default;
+$typeahead-cancel-color: #d0021b !default;
 $typeahead-radius: 2px !default;
 $typeahead-shadow: false !default; // true / false
 $typeahead-dropdown-spacing: 5px !default;
 $typeahead-outline-color: $typeahead-primary-color !default;
 $typeahead-loading-size: 21px !default;
 
-$typeahead-height: 32px !default;
+$typeahead-height: 36px !default;
 $typeahead-padding: 6px 12px !default;
 
 $typeahead-color: #555 !default;
@@ -189,11 +191,17 @@ $typeahead-group-color: darken($typeahead-primary-color, 30%) !default;
 $typeahead-group-background: lighten($typeahead-primary-color, 30%) !default;
 $typeahead-group-border-color: lighten($typeahead-primary-color, 20%) !default;
 
+
 $typeahead-item-color: #333 !default;
 $typeahead-item-background: #fff !default;
 $typeahead-item-hover-background: #f5f5f5 !default;
 $typeahead-item-disabled-color: #bababa !default;
 $typeahead-item-disabled-background: #fafafa !default;
+
+$typeahead-label-color: #3a99fc !default;
+$typeahead-label-font-size: 12px !default;
+$typeahead-label-border-color: #c2e0ff !default;
+$typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
 
 // TYPEAHEAD -----------------------------------------------------------------------------------------------------------
 
@@ -273,14 +281,13 @@ $typeahead-item-disabled-background: #fafafa !default;
         .typeahead__hint {
             display: block;
             width: 100%;
-            height: $typeahead-height;
+            line-height: $typeahead-line-height;
             padding: $typeahead-padding;
             background: #fff;
             border: 1px solid $typeahead-border-color;
             border-radius: $typeahead-radius 0 0 $typeahead-radius;
-            transition: all ease-in-out .15s;
             appearance: none;
-            box-sizing: border-box; // Bootstrap 4 override
+            box-sizing: border-box;
             @if ($typeahead-shadow) {
                 box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
             }
@@ -289,6 +296,9 @@ $typeahead-item-disabled-background: #fafafa !default;
             &:active {
                 border-color: $typeahead-outline-color;
             }
+
+            //border-color: #007eff;
+            //box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1);
         }
     }
 
@@ -321,7 +331,6 @@ $typeahead-item-disabled-background: #fafafa !default;
         display: inline-block;
         margin-bottom: 0;
         text-align: center;
-        //vertical-align: middle;
         touch-action: manipulation;
         cursor: pointer;
         background-color: #fff;
@@ -349,6 +358,7 @@ $typeahead-item-disabled-background: #fafafa !default;
             }
         }
 
+
         &:focus,
         &:active {
             border-color: $typeahead-outline-color;
@@ -367,6 +377,20 @@ $typeahead-item-disabled-background: #fafafa !default;
             background-color: #fff;
             border-color: $typeahead-border-color;
         }
+
+        //&.multiselect,
+        //&.loading,
+        //&.cancel {
+            .typeahead__field {
+                input,
+                textarea,
+                [contenteditable],
+                .typeahead__hint,
+                .typeahead__label-container {
+                    padding-right: 32px;
+                }
+            }
+        //}
     }
 
     &filter,
@@ -525,24 +549,27 @@ $typeahead-item-disabled-background: #fafafa !default;
     }
 
     &cancel-button {
-        visibility: hidden;
         user-select: none;
-        border-radius: 50%;
-        width: 16px;
-        height: 16px;
         position: absolute;
-        top: 8px;
-        right: .8em;
+        right: 0;
         cursor: pointer;
-        // Reference: http://www.flaticon.com/free-icon/cross-mark-on-a-black-circle-background_25364
-        background: url(data:image/svg+xml;charset=utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjE2cHgiIGhlaWdodD0iMTZweCIgdmlld0JveD0iMCAwIDQzOC41MzMgNDM4LjUzMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNDM4LjUzMyA0MzguNTMzOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxnPgoJPHBhdGggZD0iTTQwOS4xMzMsMTA5LjIwM2MtMTkuNjA4LTMzLjU5Mi00Ni4yMDUtNjAuMTg5LTc5Ljc5OC03OS43OTZDMjk1LjczNiw5LjgwMSwyNTkuMDU4LDAsMjE5LjI3MywwICAgYy0zOS43ODEsMC03Ni40Nyw5LjgwMS0xMTAuMDYzLDI5LjQwN2MtMzMuNTk1LDE5LjYwNC02MC4xOTIsNDYuMjAxLTc5LjgsNzkuNzk2QzkuODAxLDE0Mi44LDAsMTc5LjQ4OSwwLDIxOS4yNjcgICBjMCwzOS43OCw5LjgwNCw3Ni40NjMsMjkuNDA3LDExMC4wNjJjMTkuNjA3LDMzLjU5Miw0Ni4yMDQsNjAuMTg5LDc5Ljc5OSw3OS43OThjMzMuNTk3LDE5LjYwNSw3MC4yODMsMjkuNDA3LDExMC4wNjMsMjkuNDA3ICAgczc2LjQ3LTkuODAyLDExMC4wNjUtMjkuNDA3YzMzLjU5My0xOS42MDIsNjAuMTg5LTQ2LjIwNiw3OS43OTUtNzkuNzk4YzE5LjYwMy0zMy41OTYsMjkuNDAzLTcwLjI4NCwyOS40MDMtMTEwLjA2MiAgIEM0MzguNTMzLDE3OS40ODUsNDI4LjczMiwxNDIuNzk1LDQwOS4xMzMsMTA5LjIwM3ogTTMyMi42MjEsMjcwLjkzOWMzLjYxNywzLjYxMyw1LjQyOCw3LjkwNSw1LjQyOCwxMi44NTQgICBjMCw1LjEzMy0xLjgxMSw5LjUxNC01LjQyOCwxMy4xMjdsLTI1LjY5MywyNS43MDFjLTMuNjE0LDMuNjEzLTcuOTk0LDUuNDItMTMuMTM1LDUuNDJjLTQuOTQ4LDAtOS4yMzYtMS44MDctMTIuODQ3LTUuNDIgICBsLTUxLjY3Ni01MS42ODJsLTUxLjY3OCw1MS42ODJjLTMuNjE2LDMuNjEzLTcuODk4LDUuNDItMTIuODQ3LDUuNDJjLTUuMTQsMC05LjUxNy0xLjgwNy0xMy4xMzQtNS40MmwtMjUuNjk3LTI1LjcwMSAgIGMtMy42MTYtMy42MTMtNS40MjQtNy45OTQtNS40MjQtMTMuMTI3YzAtNC45NDgsMS44MDktOS4yNCw1LjQyNC0xMi44NTRsNTEuNjc4LTUxLjY3M2wtNTEuNjc4LTUxLjY3OCAgIGMtMy42MTYtMy42MTItNS40MjQtNy44OTgtNS40MjQtMTIuODQ3YzAtNS4xNCwxLjgwOS05LjUxNyw1LjQyNC0xMy4xMzRsMjUuNjk3LTI1LjY5M2MzLjYxNy0zLjYxNiw3Ljk5NC01LjQyNCwxMy4xMzQtNS40MjQgICBjNC45NDksMCw5LjIzMSwxLjgwOSwxMi44NDcsNS40MjRsNTEuNjc4LDUxLjY3NGw1MS42NzYtNTEuNjc0YzMuNjEtMy42MTYsNy44OTgtNS40MjQsMTIuODQ3LTUuNDI0ICAgYzUuMTQxLDAsOS41MjEsMS44MDksMTMuMTM1LDUuNDI0bDI1LjY5MywyNS42OTNjMy42MTcsMy42MTcsNS40MjgsNy45OTQsNS40MjgsMTMuMTM0YzAsNC45NDgtMS44MTEsOS4yMzUtNS40MjgsMTIuODQ3ICAgbC01MS42NzUsNTEuNjc4TDMyMi42MjEsMjcwLjkzOXoiIGZpbGw9IiM1NTU1NTUiLz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K) no-repeat scroll center center transparent;
+        //color: #333;
+        font-size: 18px;
+        padding: 5px 10px;
+        visibility: hidden;
+        .typeahead__label & {
+            visibility: visible;
+            right: 4px;
+        }
     }
 
-    &container.cancel:not(.loading) .typeahead__cancel-button {
-        visibility: visible;
-        opacity: .25;
-        &:hover {
-            opacity: .4;
+    &container.cancel:not(.loading),
+    &label {
+        .typeahead__cancel-button {
+            visibility: visible;
+            &:hover {
+                color: $typeahead-cancel-color;
+            }
         }
     }
 
@@ -550,7 +577,8 @@ $typeahead-item-disabled-background: #fafafa !default;
         padding: 0 1.25rem;
         width: 16px;
         height: 16px;
-        display: block;
+        text-align: center;
+        display: inline-block;
         // Reference: http://www.flaticon.com/free-icon/musica-searcher_70376
         background: url(data:image/svg+xml;charset=utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTguMS4xLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDI1MC4zMTMgMjUwLjMxMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMjUwLjMxMyAyNTAuMzEzOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjE2cHgiIGhlaWdodD0iMTZweCI+CjxnIGlkPSJTZWFyY2giPgoJPHBhdGggc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkOyIgZD0iTTI0NC4xODYsMjE0LjYwNGwtNTQuMzc5LTU0LjM3OGMtMC4yODktMC4yODktMC42MjgtMC40OTEtMC45My0wLjc2ICAgYzEwLjctMTYuMjMxLDE2Ljk0NS0zNS42NiwxNi45NDUtNTYuNTU0QzIwNS44MjIsNDYuMDc1LDE1OS43NDcsMCwxMDIuOTExLDBTMCw0Ni4wNzUsMCwxMDIuOTExICAgYzAsNTYuODM1LDQ2LjA3NCwxMDIuOTExLDEwMi45MSwxMDIuOTExYzIwLjg5NSwwLDQwLjMyMy02LjI0NSw1Ni41NTQtMTYuOTQ1YzAuMjY5LDAuMzAxLDAuNDcsMC42NCwwLjc1OSwwLjkyOWw1NC4zOCw1NC4zOCAgIGM4LjE2OSw4LjE2OCwyMS40MTMsOC4xNjgsMjkuNTgzLDBDMjUyLjM1NCwyMzYuMDE3LDI1Mi4zNTQsMjIyLjc3MywyNDQuMTg2LDIxNC42MDR6IE0xMDIuOTExLDE3MC4xNDYgICBjLTM3LjEzNCwwLTY3LjIzNi0zMC4xMDItNjcuMjM2LTY3LjIzNWMwLTM3LjEzNCwzMC4xMDMtNjcuMjM2LDY3LjIzNi02Ny4yMzZjMzcuMTMyLDAsNjcuMjM1LDMwLjEwMyw2Ny4yMzUsNjcuMjM2ICAgQzE3MC4xNDYsMTQwLjA0NCwxNDAuMDQzLDE3MC4xNDYsMTAyLjkxMSwxNzAuMTQ2eiIgZmlsbD0iIzU1NTU1NSIvPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo=) no-repeat scroll center center transparent;
     }
@@ -590,6 +618,40 @@ $typeahead-item-disabled-background: #fafafa !default;
             }
             to {
                 transform: rotate(360deg);
+            }
+        }
+    }
+
+    &label-container {
+        list-style: none;
+        position: absolute;
+        padding-top: 6px;
+        padding-left: 6px;
+    }
+
+    &label {
+        font-size: $typeahead-label-font-size;
+        position: relative;
+        display: inline-block;
+        background: $typeahead-label-background;
+        border:solid 1px $typeahead-label-border-color;
+        padding-left: 4px;
+        border-radius: $typeahead-radius;
+        margin-right: 4px;
+        margin-bottom: 6px;
+
+        > * {
+            display: inline-block;
+        }
+
+        .typeahead__cancel-button {
+            position: static;
+            padding: 4px 6px;
+            margin-left: 4px;
+            font-size: $typeahead-label-font-size;
+            border-left: solid 1px $typeahead-label-border-color;
+            &:hover {
+                background-color: darken($typeahead-label-background, 5%);
             }
         }
     }
