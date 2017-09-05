@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.9.0 (2017-9-4)
+ * @version 2.9.0 (2017-9-5)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -2243,13 +2243,12 @@
                 _displayKeys =
                     this.options.source[_item.group].display || this.options.display;
 
-                // @TODO Optimize this, shouldn't occur on every looped item?
                 if (this.options.group) {
                     _group = _item[this.options.group.key];
                     if (this.options.group.template) {
                         if (typeof this.options.group.template === "function") {
-                            _groupTemplate = this.options.group.template(_item);
-                        } else if (typeof this.options.template === "string") {
+                            _groupTemplate = this.options.group.template.call(this, _item);
+                        } else if (typeof this.options.group.template === "string") {
                             _groupTemplate = this.options.group.template.replace(
                                 /\{\{([\w\-\.]+)}}/gi,
                                 function (match, index) {
@@ -3745,10 +3744,7 @@
                     node.selector || options.input || node[0].nodeName.toLowerCase();
 
                 /*jshint boss:true */
-                return (window.Typeahead[node[0].selector] = new Typeahead(
-                    node,
-                    options
-                ));
+                return (window.Typeahead[node[0].selector] = new Typeahead(node, options));
             } else {
                 var instances = {},
                     instanceName;
@@ -3760,9 +3756,7 @@
                     }
                     node[i].selector = instanceName;
 
-                    window.Typeahead[instanceName] = instances[
-                        instanceName
-                        ] = new Typeahead(node.eq(i), options);
+                    window.Typeahead[instanceName] = instances[instanceName] = new Typeahead(node.eq(i), options);
                 }
 
                 return instances;
