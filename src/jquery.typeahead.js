@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.9.0 (2017-9-5)
+ * @version 2.9.0 (2017-9-6)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -190,6 +190,8 @@
             "." +
             this.helper.slugify.call(this, this.selector) +
             _namespace;                     // Every Typeahead instance gets its own namespace for events
+        this.isContentEditable = typeof this.node.attr('contenteditable') !== "undefined"
+            && this.node.attr('contenteditable') !== "false";
         this.container = null;              // Typeahead container, usually right after <form>
         this.resultContainer = null;        // Typeahead result container (html)
         this.item = null;                   // Selected item
@@ -715,7 +717,7 @@
                             }
                         case "input":
                             scope.deferred = $.Deferred();
-                            if (scope.node[0].isContentEditable) {
+                            if (scope.isContentEditable) {
                                 scope.rawQuery = scope.node.text();
                             } else {
                                 scope.rawQuery = scope.node.val().toString();
@@ -742,7 +744,7 @@
                             ) {
                                 if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
                                     scope.hint.container.val("");
-                                    if (scope.node[0].isContentEditable) {
+                                    if (scope.isContentEditable) {
                                         scope.hint.container.text("");
                                     }
                                 }
@@ -1681,7 +1683,7 @@
                     : this.getTemplateValue.call(this, this.result[newActiveDataIndex]);
 
             this.node.val(nodeValue);
-            if (this.node[0].isContentEditable) {
+            if (this.isContentEditable) {
                 this.node.text(nodeValue);
             }
 
@@ -2186,7 +2188,7 @@
                                 hasEmptyTemplate = true;
 
                                 return (
-                                    "<" + tag + ' class="' + scope.options.selector.empty + '">' + emptyTemplate + "</" +  tag +  ">"
+                                    "<" + tag + ' class="' + scope.options.selector.empty + '">' + emptyTemplate + "</" + tag + ">"
                                 );
                             }
 
@@ -2442,7 +2444,7 @@
                             scope.addMultiselectItemLayout(templateValue);
                         } else {
                             scope.query = scope.rawQuery = templateValue;
-                            if (scope.node[0].isContentEditable) {
+                            if (scope.isContentEditable) {
                                 scope.node.text(scope.query);
                                 scope.helper.setCaretAtEnd(scope.node[0]);
                             }
@@ -2687,7 +2689,7 @@
                     "";
                 this.hint.container.val(hintValue);
 
-                if (this.node[0].isContentEditable) {
+                if (this.isContentEditable) {
                     this.hint.container.text(hintValue);
                 }
             }
@@ -3244,7 +3246,7 @@
 
             if (this.options.hint && this.hint.container) {
                 this.hint.container.val("");
-                if (this.node[0].isContentEditable) {
+                if (this.isContentEditable) {
                     this.hint.container.text("");
                 }
             }
@@ -3252,7 +3254,7 @@
 
         resetInput: function () {
             this.node.val("");
-            if (this.node[0].isContentEditable) {
+            if (this.isContentEditable) {
                 this.node.text("");
             }
             this.item = null;
