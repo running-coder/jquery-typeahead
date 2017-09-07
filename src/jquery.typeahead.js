@@ -676,7 +676,7 @@
 
             this.node
                 .off(this.namespace)
-                .on(events.join(" "), function (e, originalEvent) {
+                .on(events.join(" "), function (e, data) {
                     switch (e.type) {
                         case "generate":
                             scope.generateSource(Object.keys(scope.options.source));
@@ -726,7 +726,7 @@
 
                             // #195 Trigger an onCancel event if the Typeahead is cleared
                             if (scope.rawQuery === "" && scope.query === "") {
-                                e.originalEvent = originalEvent || {};
+                                e.originalEvent = data || {};
                                 scope.helper.executeCallback.call(
                                     scope,
                                     scope.options.callback.onCancel,
@@ -1827,26 +1827,22 @@
                     matcher;
 
                 for (var k = 0, kk = this.source[group].length; k < kk; k++) {
-                    if (
-                        this.resultItemCount >= maxItem && !this.options.callback.onResult
-                    )
-                        break;
-                    if (
-                        hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])
-                    )
-                        continue;
+                    if (this.resultItemCount >= maxItem && !this.options.callback.onResult) break;
+                    if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
 
                     item = this.source[group][k];
                     // Validation over null item
                     if (item === null || typeof item === "boolean") continue;
+                    if (this.options.multiselect && !this.isMultiselectUniqueData(item)) continue;
 
                     // dropdownFilter by custom groups
                     if (
                         this.filters.dropdown &&
                         (item[this.filters.dropdown.key] || "").toLowerCase() !==
                         (this.filters.dropdown.value || "").toLowerCase()
-                    )
+                    ) {
                         continue;
+                    }
 
                     groupReference =
                         groupBy === "group"
@@ -1964,20 +1960,6 @@
                                 }
                             }
                         }
-
-                        var isItemMultiselected = false;
-                        if (this.options.multiselect && this.comparedItems.length) {
-                            for (var x = 0, xx = this.comparedItems.length; x < xx; ++x) {
-                                if (
-                                    this.comparedItems[x] ===
-                                    this.getMultiselectComparedItem(item)
-                                ) {
-                                    isItemMultiselected = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (isItemMultiselected) continue;
 
                         this.resultCount++;
                         this.resultCountPerGroup[groupReference]++;
@@ -2417,7 +2399,7 @@
 
                         if (scope.options.multiselect) {
                             scope.items.push(item);
-                            scope.comparedItems.push(scope.getMultiselectComparedItem(item));
+                            scope.comparedItems.push(scope.getMultiselectComparedData(item));
                         } else {
                             scope.item = item;
                         }
@@ -2533,7 +2515,7 @@
             return href;
         },
 
-        getMultiselectComparedItem: function (item) {
+        getMultiselectComparedData: function (item) {
             var uniqueComparedItem = "";
             if (Array.isArray(this.options.multiselect.matchOn)) {
                 for (
@@ -2994,6 +2976,7 @@
         buildMultiselectLayout: function () {
             if (!this.options.multiselect) return;
             var scope = this;
+            var multiselectData;
 
             this.label.container = $("<span/>", {
                 class: this.options.selector.labelContainer,
@@ -3011,24 +2994,51 @@
                 .closest("." + this.options.selector.query)
                 .prepend(this.label.container);
 
-            if (
-                this.options.multiselect.items &&
-                this.options.multiselect.items.length
-            ) {
-                for (
-                    var i = 0, ii = this.options.multiselect.items.length;
-                    i < ii;
-                    ++i
-                ) {
-                    this.items.push(this.options.multiselect.items[i]);
-                    this.comparedItems.push(
-                        this.getMultiselectComparedItem(this.options.multiselect.items[i])
-                    );
-                    this.addMultiselectItemLayout(
-                        this.getTemplateValue(this.options.multiselect.items[i])
-                    );
+            if (!this.options.multiselect.data) return;
+
+            if (Array.isArray(this.options.multiselect.data)) {
+                this.populateMultiselectData(this.options.multiselect.data);
+            } else if (typeof this.options.multiselect.data === 'function') {
+                multiselectData = this.options.multiselect.data.call(this);
+                if (Array.isArray(multiselectData)) {
+                    this.populateMultiselectData(multiselectData);
+                } else if (typeof multiselectData.promise === "function") {
+                    $.when(multiselectData).then(function (deferredData) {
+                        if (deferredData && Array.isArray(deferredData)) {
+                            scope.populateMultiselectData(deferredData);
+                        }
+                    });
                 }
             }
+        },
+
+        isMultiselectUniqueData: function (data) {
+            var isUniqueData = true;
+            for (var x = 0, xx = this.comparedItems.length; x < xx; ++x) {
+                if (
+                    this.comparedItems[x] ===
+                    this.getMultiselectComparedData(data)
+                ) {
+                    isUniqueData = false;
+                    break;
+                }
+            }
+            return isUniqueData;
+        },
+
+        populateMultiselectData: function (data) {
+            for (var i = 0, ii = data.length; i < ii; ++i) {
+                if (!this.isMultiselectUniqueData(data[i])) continue;
+
+                this.items.push(data[i]);
+                this.comparedItems.push(
+                    this.getMultiselectComparedData(data[i])
+                );
+                this.addMultiselectItemLayout(
+                    this.getTemplateValue(data[i])
+                );
+            }
+            this.node.trigger("search" + this.namespace, {origin: 'populateMultiselectData'});
         },
 
         addMultiselectItemLayout: function (templateValue) {
@@ -3047,10 +3057,10 @@
                                 .find("." + scope.options.selector.label)
                                 .index(currentLabel);
 
-                        scope.helper.executeCallback.call(
+                        scope.options.multiselect.callback && scope.helper.executeCallback.call(
                             scope,
                             scope.options.multiselect.callback.onClick,
-                            [scope.node, scope.items[index], templateValue, e]
+                            [scope.node, scope.items[index], e]
                         );
                     },
                     href: this.options.multiselect.href
@@ -3069,20 +3079,27 @@
                 $("<span/>", {
                     class: this.options.selector.cancelButton,
                     html: "×",
-                    click: function () {
+                    click: function (e) {
                         var currentLabel = $(this).closest(
                                 "." + scope.options.selector.label
                             ),
                             index = scope.label.container
                                 .find("." + scope.options.selector.label)
-                                .index(currentLabel);
+                                .index(currentLabel),
+                            item = scope.items[index];
 
                         currentLabel.remove();
                         scope.items.splice(index, 1);
                         scope.comparedItems.splice(index, 1);
 
+                        scope.options.multiselect.callback && scope.helper.executeCallback.call(
+                            scope,
+                            scope.options.multiselect.callback.onCancel,
+                            [scope.node, item, e]
+                        );
+
                         scope.adjustInputSize();
-                        scope.node.trigger("input" + scope.namespace).focus();
+                        scope.node.focus();
                     }
                 })
             );
@@ -3149,15 +3166,11 @@
         },
 
         showLayout: function () {
-            // Means the container is already visible
-            if (this.container.hasClass("result")) return;
-
-            // Do not add display classes if there are no results
-            if (
-                !this.result.length && !this.options.emptyTemplate && !this.options.backdropOnFocus
-            ) {
-                return;
-            }
+            if (this.container.hasClass("result") ||
+                (
+                    !this.result.length && !this.options.emptyTemplate && !this.options.backdropOnFocus
+                )
+            ) return;
 
             _addHtmlListeners.call(this);
 
@@ -3205,8 +3218,12 @@
                 $("html")
                     .off("click" + this.namespace + " touchend" + this.namespace)
                     .on("click" + this.namespace + " touchend" + this.namespace, function (e) {
-                        if ($(e.target).closest(scope.container)[0] || scope.hasDragged)
+                        if ($(e.target).closest(scope.container)[0] ||
+                            e.target.className === scope.options.selector.cancelButton ||
+                            scope.hasDragged
+                        ) {
                             return;
+                        }
                         scope.hideLayout();
                     });
             }

@@ -553,9 +553,8 @@ $typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
         position: absolute;
         right: 0;
         cursor: pointer;
-        //color: #333;
         font-size: 18px;
-        padding: 5px 10px;
+        padding: 6px 10px;
         visibility: hidden;
         .typeahead__label & {
             visibility: visible;

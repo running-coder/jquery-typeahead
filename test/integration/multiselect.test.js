@@ -80,8 +80,7 @@ describe('Typeahead multiselect option Tests', () => {
     describe('Typeahead multiselect option Tests - advanced setup', () => {
 
         let isClicked = false,
-            clickedItem,
-            clickedTemplateValue;
+            clickedItem;
 
         beforeAll(() => {
 
@@ -96,11 +95,13 @@ describe('Typeahead multiselect option Tests', () => {
                 multiselect: {
                     limit: 2,
                     matchOn: ['id', 'key3'],
-                    limitTemplate: function () { return 'Only 1 item is allowed.'},
+                    limitTemplate: function () {
+                        return 'Only 1 item is allowed.'
+                    },
                     href: function (item) {
                         return '/item/' + item.id;
                     },
-                    items: [
+                    data: [
                         {
                             id: 1,
                             key1: 'group1-data1-key1',
@@ -109,11 +110,10 @@ describe('Typeahead multiselect option Tests', () => {
                         }
                     ],
                     callback: {
-                        onClick: function (node, item, templateValue, event) {
+                        onClick: function (node, item, event) {
                             event.preventDefault();
                             isClicked = true;
                             clickedItem = item;
-                            clickedTemplateValue = templateValue;
                         }
                     }
                 },
@@ -170,7 +170,6 @@ describe('Typeahead multiselect option Tests', () => {
                 key2: 'group1-data1-key2',
                 key3: 'group1-data1-key3'
             });
-            expect(clickedTemplateValue).toEqual('group1-data1-key2');
             expect(myTypeahead.comparedItems).toEqual(['1group1-data1-key3', '2group2-data1-key3']);
 
             myTypeahead.label.container.find('.typeahead__label:first .typeahead__cancel-button').trigger('click');
@@ -181,4 +180,92 @@ describe('Typeahead multiselect option Tests', () => {
 
     });
 
+    describe('Typeahead multiselect option Tests - advanced setup', () => {
+
+        let isCanceled = false,
+            canceledItem;
+
+        beforeAll(() => {
+
+            document.body.innerHTML = '<input class="js-typeahead">';
+
+            myTypeahead = $.typeahead({
+                input: '.js-typeahead',
+                minLength: 0,
+                generateOnLoad: true,
+                display: ['id', 'key1', 'key2', 'key3'],
+                templateValue: '{{key2}}',
+                multiselect: {
+                    matchOn: ['id'],
+                    data: function () {
+                        var deferred = $.Deferred();
+
+                        setTimeout(function () {
+                            deferred.resolve([{
+                                id: 1,
+                                key1: 'group1-data1-key1',
+                                key2: 'group1-data1-key2',
+                                key3: 'group1-data1-key3'
+                            }]);
+                        }, 500);
+
+                        return deferred;
+                    },
+                    callback: {
+                        onCancel: function (node, item, event) {
+                            isCanceled = true;
+                            canceledItem = item;
+                        }
+                    }
+                },
+                template: function () {
+                    return '{{id}} {{key1}} {{key2}} {{key3}}'
+                },
+                source: {
+                    group1: {
+                        templateValue: '{{key2}}',
+                        data: [{
+                            id: 1,
+                            key1: 'group1-data1-key1',
+                            key2: 'group1-data1-key2',
+                            key3: 'group1-data1-key3'
+                        }]
+                    },
+                    group2: {
+                        data: [{
+                            id: 2,
+                            key1: 'group2-data1-key1',
+                            key2: 'group2-data1-key2',
+                            key3: 'group2-data1-key3'
+                        }]
+                    },
+                }
+            });
+        });
+
+        it('Should populate Typeahead input with the async multiselect item and prevent duplicated data in the results', (done) => {
+
+            expect(myTypeahead.result.length).toEqual(2);
+
+            myTypeahead.node.on('search' + myTypeahead.namespace, (event, data) => {
+                if (data && data.origin !== 'populateMultiselectData') return;
+
+                expect(myTypeahead.result.length).toEqual(1);
+
+                myTypeahead.label.container.find('.typeahead__label:first .typeahead__cancel-button').trigger('click');
+
+                expect(myTypeahead.items.length).toEqual(0);
+                expect(isCanceled).toBeTruthy();
+                expect(canceledItem).toEqual(
+                    {
+                        id: 1,
+                        key1: 'group1-data1-key1',
+                        key2: 'group1-data1-key2',
+                        key3: 'group1-data1-key3'
+                    }
+                );
+                done();
+            });
+        });
+    });
 });

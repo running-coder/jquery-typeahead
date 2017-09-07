@@ -280,25 +280,51 @@
             hint: true,
             searchOnFocus: true,
             multiselect: {
-                limit: 2,
+//                limit: 2,
 //                limitTemplate: 'You can\'t select more than 2 teams',
                 matchOn: ["id", "name"],
 //                href: '/{{name}}.html',
-                items: [{
-                    "matchedKey": "name",
-                    "name": "Canadiens",
-                    "img": "canadiens",
-                    "city": "Montreal",
-                    "id": "MTL",
-                    "conference": "Eastern",
-                    "division": "Northeast",
-                    "group": "teams"
-                }],
+//                data: [{
+//                    "matchedKey": "name",
+//                    "name": "Canadiens",
+//                    "img": "canadiens",
+//                    "city": "Montreal",
+//                    "id": "MTL",
+//                    "conference": "Eastern",
+//                    "division": "Northeast",
+//                    "group": "teams"
+//                }],
+                data: function () {
+                    var deferred = $.Deferred();
+
+                    setTimeout(function () {
+                        deferred.resolve([{
+                            "matchedKey": "name",
+                            "name": "Canadiens",
+                            "img": "canadiens",
+                            "city": "Montreal",
+                            "id": "MTL",
+                            "conference": "Eastern",
+                            "division": "Northeast",
+                            "group": "teams"
+                        }]);
+                    }, 2000);
+
+                    deferred.always(function () {
+                        console.log('data loaded from promise');
+                    });
+
+                    return deferred;
+
+                },
                 callback: {
-                    onClick: function (node, item, templateValue, event) {
+                    onClick: function (node, item, event) {
                         event.preventDefault();
                         console.log(item);
                         alert(item.name + ' Clicked!');
+                    },
+                    onCancel: function (node, data, event) {
+                        console.log(data)
                     }
                 }
             },
