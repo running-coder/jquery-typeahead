@@ -65,7 +65,7 @@ gulp.task('jshint', function() {
 gulp.task('js', function () {
     return gulp.src('./src/jquery.typeahead.js')
         .pipe(replace(/\/\*![\S\s]+?\*\/[\r\n]*/, banner))
-        .pipe(replace(/version: '.*?'/, `version: '${version}'`))
+        .pipe(replace(/version: ["'].*?["']/, `version: '${version}'`))
         .pipe(gulp.dest('./src'))
         .pipe(rename('jquery.typeahead.min.js'))
         .pipe(replace(/\/\/\s?\{debug}[\s\S]*?\{\/debug}/g, ''))
