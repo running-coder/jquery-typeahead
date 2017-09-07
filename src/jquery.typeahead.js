@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.9.0 (2017-9-6)
+ * @version 2.9.0 (2017-9-7)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -2278,13 +2278,15 @@
                     "data-group": _group,
                     "data-index": i,
                     html: $("<a/>", {
-                        // #190 Strange JS-code fragment in href attribute using jQuery version below 1.10
-                        href: (function (href, item) {
-                            if (href) {
-                                item.href = this.generateHref.call(scope, href, item);
-                            }
-                            return (!item.disabled && href) || "javascript:;";
-                        })(_href, _item),
+                        href: _href && !_item.disabled
+                            ? (function (href, item) {
+                                return scope.generateHref.call(
+                                    scope,
+                                    href,
+                                    item
+                                );
+                            })(_href, _item)
+                            : "javascript:;",
                         html: function () {
                             _template =
                                 (_item.group && scope.options.source[_item.group].template) ||
