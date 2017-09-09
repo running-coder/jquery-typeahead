@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.0 (2017-9-7)
+ * @version 2.10.0 (2017-9-9)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -696,7 +696,14 @@
                             }
                             break;
                         case "keydown":
-                            if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                            if (e.keyCode === 8
+                                && scope.options.multiselect
+                                && scope.options.multiselect.cancelOnBackspace
+                                && scope.query === ''
+                                && scope.items.length
+                            ) {
+                                scope.cancelMultiselectItem(scope.items.length - 1, null, e);
+                            } else if (e.keyCode && ~[9, 13, 27, 38, 39, 40].indexOf(e.keyCode)) {
                                 preventNextEvent = true;
                                 scope.navigate(e);
                             }
@@ -3082,32 +3089,43 @@
                     class: this.options.selector.cancelButton,
                     html: "×",
                     click: function (e) {
-                        var currentLabel = $(this).closest(
+                        var label = $(this).closest(
                                 "." + scope.options.selector.label
                             ),
                             index = scope.label.container
                                 .find("." + scope.options.selector.label)
-                                .index(currentLabel),
-                            item = scope.items[index];
+                                .index(label);
 
-                        currentLabel.remove();
-                        scope.items.splice(index, 1);
-                        scope.comparedItems.splice(index, 1);
-
-                        scope.options.multiselect.callback && scope.helper.executeCallback.call(
-                            scope,
-                            scope.options.multiselect.callback.onCancel,
-                            [scope.node, item, e]
-                        );
-
-                        scope.adjustInputSize();
-                        scope.node.focus();
+                        scope.cancelMultiselectItem(index, label, e);
                     }
                 })
             );
 
             this.label.container.append(label);
             this.adjustInputSize();
+        },
+
+        cancelMultiselectItem: function (index, label, e) {
+            var item = this.items[index];
+
+            label = label
+                || this.label.container
+                    .find('.' + this.options.selector.label)
+                    .eq(index);
+
+            label.remove();
+
+            this.items.splice(index, 1);
+            this.comparedItems.splice(index, 1);
+
+            this.options.multiselect.callback && this.helper.executeCallback.call(
+                this,
+                this.options.multiselect.callback.onCancel,
+                [this.node, item, e]
+            );
+
+            this.adjustInputSize();
+            this.node.focus();
         },
 
         adjustInputSize: function () {
