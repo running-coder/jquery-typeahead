@@ -2505,7 +2505,7 @@
                         // #151 Slugify should be an option, not enforced
                         options = (options && options.split("|")) || [];
                         if (~options.indexOf("slugify")) {
-                            value = this.helper.slugify.call(scope, value);
+                            value = scope.helper.slugify.call(scope, value);
                         }
 
                         return value;
