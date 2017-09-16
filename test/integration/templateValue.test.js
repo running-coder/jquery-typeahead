@@ -64,7 +64,24 @@ describe('Typeahead templateValue option Tests', () => {
 
         beforeAll(() => {
 
-            document.body.innerHTML = '<input class="js-typeahead">';
+            document.body.innerHTML = `<form>
+                <div class="typeahead__container">
+                    <div class="typeahead__field">
+                    <span class="typeahead__query">
+                        <input class="js-typeahead"
+                               name="q"
+                               type="search"
+                               autofocus
+                               autocomplete="off">
+                    </span>
+                    <span class="typeahead__button">
+                        <button type="submit">
+                            <span class="typeahead__search-icon"></span>
+                        </button>
+                    </span>
+                    </div>
+                </div>
+            </form>`;
 
             myTypeahead = $.typeahead({
                 input: '.js-typeahead',
@@ -135,6 +152,8 @@ describe('Typeahead templateValue option Tests', () => {
 
             myTypeahead.resultContainer.find('li:eq(0) a').trigger('click');
             expect(myTypeahead.query).toEqual('group1-data1-key2');
+
+            expect(myTypeahead.container.hasClass('result')).toBeFalsy();
 
             myTypeahead.node.val('').triggerHandler('input').done(() => {
                 myTypeahead.resultContainer.find('li:eq(1) a').trigger('click');

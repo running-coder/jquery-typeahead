@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.0 (2017-9-9)
+ * @version 2.10.0 (2017-9-15)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -769,8 +769,7 @@
                             scope.searchResult();
                             scope.buildLayout();
 
-                            if (
-                                scope.result.length ||
+                            if (scope.result.length ||
                                 (scope.searchGroups.length &&
                                 scope.options.emptyTemplate &&
                                 scope.query.length)
@@ -795,6 +794,8 @@
         filterGenerateSource: function () {
             this.searchGroups = [];
             this.generateGroups = [];
+
+            if (this.focusOnly && !this.options.multiselect) return;
 
             for (var group in this.options.source) {
                 if (!this.options.source.hasOwnProperty(group)) continue;
@@ -1741,11 +1742,7 @@
             item.addClass("active");
         },
 
-        searchResult: function (preserveItem) {
-            // #54 In case the item is being clicked, preserve it for onSubmit callback
-            if (!preserveItem) {
-                this.item = null;
-            }
+        searchResult: function () {
             this.resetLayout();
 
             if (
@@ -1753,8 +1750,7 @@
                     this.node,
                     this.query
                 ]) === false
-            )
-                return;
+            ) return;
 
             if (
                 this.searchGroups.length && !(
@@ -2419,14 +2415,12 @@
                                 scope.options.callback.onClickBefore,
                                 [scope.node, $(this), item, e]
                             ) === false
-                        )
-                            return;
+                        ) return;
+
                         if (
                             (e.originalEvent && e.originalEvent.defaultPrevented) ||
                             e.isDefaultPrevented()
-                        ) {
-                            return;
-                        }
+                        ) return;
 
                         var templateValue = scope.getTemplateValue.call(scope, item);
 
@@ -2442,11 +2436,11 @@
                         }
 
                         scope.focusOnly = true;
-                        scope.node.val(scope.query).focus();
 
-                        scope.searchResult(true);
-                        scope.buildLayout();
-                        scope.hideLayout();
+                        scope.node
+                            .val(scope.query)
+                            .trigger('input' + scope.namespace)
+                            .focus();
 
                         scope.helper.executeCallback.call(
                             scope,
@@ -3047,7 +3041,7 @@
                     this.getTemplateValue(data[i])
                 );
             }
-            this.node.trigger("search" + this.namespace, {origin: 'populateMultiselectData'});
+            this.node.trigger("search" + this.namespace, { origin: 'populateMultiselectData' });
         },
 
         addMultiselectItemLayout: function (templateValue) {
@@ -3125,7 +3119,9 @@
             );
 
             this.adjustInputSize();
-            this.node.focus();
+
+            this.focusOnly = true;
+            this.node.focus().trigger('input' + this.namespace, { origin: 'cancelMultiselectItem' });
         },
 
         adjustInputSize: function () {
@@ -3239,11 +3235,11 @@
                     .off("click" + this.namespace + " touchend" + this.namespace)
                     .on("click" + this.namespace + " touchend" + this.namespace, function (e) {
                         if ($(e.target).closest(scope.container)[0] ||
+                            $(e.target).closest('.' + scope.options.selector.item)[0] ||
                             e.target.className === scope.options.selector.cancelButton ||
                             scope.hasDragged
-                        ) {
-                            return;
-                        }
+                        ) return;
+
                         scope.hideLayout();
                     });
             }
@@ -3280,6 +3276,10 @@
             this.resultCountPerGroup = {};
             this.resultItemCount = 0;
             this.resultHtml = null;
+
+            if (!this.focusOnly) {
+                this.item = null;
+            }
 
             if (this.options.hint && this.hint.container) {
                 this.hint.container.val("");

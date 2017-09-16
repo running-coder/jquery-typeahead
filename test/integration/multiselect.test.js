@@ -4,6 +4,8 @@ const Typeahead = require('../../src/jquery.typeahead');
 describe('Typeahead multiselect option Tests', () => {
 
     let myTypeahead;
+    let backspaceEvent = $.Event("keydown");
+    backspaceEvent.keyCode = 8;
 
     describe('Typeahead multiselect option Tests - basic setup', () => {
 
@@ -96,11 +98,12 @@ describe('Typeahead multiselect option Tests', () => {
                     limit: 2,
                     matchOn: ['id', 'key3'],
                     limitTemplate: function () {
-                        return 'Only 1 item is allowed.'
+                        return 'Only 2 item is allowed.'
                     },
                     href: function (item) {
                         return '/item/' + item.id;
                     },
+                    cancelOnBackspace: true,
                     data: [
                         {
                             id: 1,
@@ -150,7 +153,7 @@ describe('Typeahead multiselect option Tests', () => {
             });
         });
 
-        it('Should populate Typeahead input with the templateValue when an item is clicked', () => {
+        it('Should populate Typeahead input with the templateValue when an item is clicked', (done) => {
 
             expect(myTypeahead.result.length).toEqual(2);
             myTypeahead.resultContainer.find('li:eq(0) a').trigger('click');
@@ -160,7 +163,7 @@ describe('Typeahead multiselect option Tests', () => {
 
             myTypeahead.node.val('group').trigger('input');
             expect(myTypeahead.result).toEqual({});
-            expect(myTypeahead.resultContainer.find('.typeahead__empty').text()).toBe('Only 1 item is allowed.');
+            expect(myTypeahead.resultContainer.find('.typeahead__empty').text()).toBe('Only 2 item is allowed.');
 
             myTypeahead.label.container.find('.typeahead__label:first > a').trigger('click');
             expect(isClicked).toBeTruthy();
@@ -176,6 +179,17 @@ describe('Typeahead multiselect option Tests', () => {
 
             myTypeahead.node.val('group').trigger('input');
             expect(myTypeahead.result.length).toEqual(2);
+
+            myTypeahead.node.val('').trigger('input');
+            myTypeahead.node.on('input' + myTypeahead.namespace, () => {
+
+                expect(myTypeahead.items.length).toEqual(0);
+                expect(myTypeahead.result.length).toEqual(3);
+                done();
+
+            });
+
+            myTypeahead.node.trigger(backspaceEvent);
         });
 
     });
@@ -195,6 +209,7 @@ describe('Typeahead multiselect option Tests', () => {
                 generateOnLoad: true,
                 display: ['id', 'key1', 'key2', 'key3'],
                 templateValue: '{{key2}}',
+                cancelOnBackspace: false,
                 multiselect: {
                     matchOn: ['id'],
                     data: function () {
@@ -248,11 +263,16 @@ describe('Typeahead multiselect option Tests', () => {
             expect(myTypeahead.result.length).toEqual(2);
 
             myTypeahead.node.on('search' + myTypeahead.namespace, (event, data) => {
-                if (data && data.origin !== 'populateMultiselectData') return;
+                if (!data || data.origin !== 'populateMultiselectData') return;
 
                 expect(myTypeahead.result.length).toEqual(1);
-
+                myTypeahead.node.trigger(backspaceEvent);
+                expect(myTypeahead.items.length).toEqual(1);
                 myTypeahead.label.container.find('.typeahead__label:first .typeahead__cancel-button').trigger('click');
+            });
+
+            myTypeahead.node.on('input' + myTypeahead.namespace, (event, data) => {
+                if (!data || data.origin !== 'cancelMultiselectItem') return;
 
                 expect(myTypeahead.items.length).toEqual(0);
                 expect(isCanceled).toBeTruthy();
@@ -264,8 +284,11 @@ describe('Typeahead multiselect option Tests', () => {
                         key3: 'group1-data1-key3'
                     }
                 );
+
                 done();
             });
+
+
         });
     });
 });
