@@ -281,6 +281,7 @@ $typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
         .typeahead__hint {
             display: block;
             width: 100%;
+            min-height: $typeahead-height;
             line-height: $typeahead-line-height;
             padding: $typeahead-padding;
             background: #fff;
@@ -554,6 +555,8 @@ $typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
         right: 0;
         cursor: pointer;
         font-size: 18px;
+        line-height: 1.25;
+        height: $typeahead-height;
         padding: 6px 10px;
         visibility: hidden;
         .typeahead__label & {
@@ -644,6 +647,8 @@ $typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
         }
 
         .typeahead__cancel-button {
+            line-height: normal;
+            height: auto;
             position: static;
             padding: 4px 6px;
             margin-left: 4px;

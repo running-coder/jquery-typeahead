@@ -245,6 +245,7 @@
 .typeahead__field .typeahead__hint {
   display: block;
   width: 100%;
+  min-height: 36px;
   line-height: 1.6;
   padding: 6px 12px;
   background: #fff;
@@ -486,6 +487,8 @@
   right: 0;
   cursor: pointer;
   font-size: 18px;
+  line-height: 1.25;
+  height: 36px;
   padding: 6px 10px;
   visibility: hidden;
 }
@@ -587,6 +590,8 @@
 }
 
 .typeahead__label .typeahead__cancel-button {
+  line-height: normal;
+  height: auto;
   position: static;
   padding: 4px 6px;
   margin-left: 4px;
