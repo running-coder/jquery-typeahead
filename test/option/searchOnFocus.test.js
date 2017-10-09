@@ -10,7 +10,16 @@ describe('Typeahead searchOnFocus option Tests', () => {
 
         beforeAll(() => {
 
-            document.body.innerHTML = '<input class="js-typeahead">';
+            document.body.innerHTML = `
+<form>
+  <div class="typeahead__container">
+    <div class="typeahead__field">
+        <span class="typeahead__query">
+           <input class="js-typeahead" />
+        </span>
+    </div>
+  </div>
+</form>`;
 
             myTypeahead = $.typeahead({
                 input: '.js-typeahead',
@@ -36,6 +45,9 @@ describe('Typeahead searchOnFocus option Tests', () => {
                     ]
                 });
 
+                expect(myTypeahead.result.length).toEqual(3);
+                expect(myTypeahead.container.hasClass('result')).toBeTruthy();
+
                 done();
             })
 
@@ -47,11 +59,21 @@ describe('Typeahead searchOnFocus option Tests', () => {
 
         beforeAll(() => {
 
-            document.body.innerHTML = '<input class="js-typeahead">';
+            document.body.innerHTML = `
+<form>
+  <div class="typeahead__container">
+    <div class="typeahead__field">
+        <span class="typeahead__query">
+           <input class="js-typeahead" />
+        </span>
+    </div>
+  </div>
+</form>`;
 
             myTypeahead = $.typeahead({
                 input: '.js-typeahead',
                 searchOnFocus: true,
+                dynamic: true,
                 source: {
                     data: ['data1', 'data2', 'data3']
                 }
@@ -64,9 +86,16 @@ describe('Typeahead searchOnFocus option Tests', () => {
             expect(myTypeahead.result).toEqual([]);
 
             myTypeahead.node.triggerHandler('focus').done(() => {
-                expect(myTypeahead.result).toEqual({});
+                expect(myTypeahead.result).toEqual([]);
+                expect(myTypeahead.container.hasClass('result')).toBeFalsy();
 
-                done();
+                myTypeahead.node.val('da').triggerHandler('focus').done(() => {
+
+                    expect(myTypeahead.container.hasClass('result')).toBeTruthy();
+                    done();
+
+                });
+
             });
 
         });

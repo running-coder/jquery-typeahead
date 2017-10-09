@@ -21,7 +21,7 @@ describe('Typeahead Init from one Typeahead selector inside configuration', () =
 
     it('Should search / build / hide properly according to configuration', () => {
 
-        expect(myTypeahead.result).toEqual({});
+        expect(myTypeahead.result).toEqual([]);
 
         myTypeahead.node.val('d').trigger('input');
         expect(myTypeahead.result.length).toEqual(3);
@@ -33,7 +33,7 @@ describe('Typeahead Init from one Typeahead selector inside configuration', () =
         expect(myTypeahead.resultContainer.find('.' + myTypeahead.options.selector.empty).text()).toEqual('No result for "dd"');
 
         myTypeahead.node.val('').trigger('input');
-        expect(myTypeahead.result).toEqual({});
+        expect(myTypeahead.result).toEqual([]);
         expect(myTypeahead.container.hasClass('result')).toBeFalsy();
 
     });

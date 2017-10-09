@@ -16,7 +16,7 @@ describe('Typeahead onSubmit Callback Tests', () => {
         document.body.innerHTML = `<form>
             <div class="typeahead__container">
                 <div class="typeahead__field">
-    
+
                 <span class="typeahead__query">
                     <input class="js-typeahead"
                            name="q"
@@ -29,7 +29,7 @@ describe('Typeahead onSubmit Callback Tests', () => {
                         <span class="typeahead__search-icon"></span>
                     </button>
                 </span>
-    
+
                 </div>
             </div>
         </form>`;
@@ -59,15 +59,13 @@ describe('Typeahead onSubmit Callback Tests', () => {
     });
 
     it('Should call onSubmit callback with with the selected item', () => {
-        myTypeahead.node.val('test');
-        myTypeahead.node.trigger('input');
+        myTypeahead.node.val('test').trigger('input');
 
         myTypeahead.resultContainer.find('li:eq(0) a').trigger('click');
 
+        expect(myTypeahead.container.hasClass('result')).toBeFalsy();
 
         myTypeahead.node.trigger(enterEvent);
-        myTypeahead.node.closest('form').submit();
-
 
         expect(onSubmitCalled).toBeTruthy();
         expect(onSubmitItem).toEqual({
@@ -76,6 +74,8 @@ describe('Typeahead onSubmit Callback Tests', () => {
             "id": 1,
             "matchedKey": "display"
         });
+
+        expect(myTypeahead.container.hasClass('result')).toBeFalsy();
 
     });
 });
@@ -88,15 +88,12 @@ describe('Typeahead onSubmit Callback Tests', () => {
         onSubmitCalled,
         onSubmitItem;
 
-    let enterEvent = $.Event("keydown");
-    enterEvent.keyCode = 13;
-
     beforeAll(() => {
 
         document.body.innerHTML = `<form>
             <div class="typeahead__container">
                 <div class="typeahead__field">
-    
+
                 <span class="typeahead__query">
                     <input class="js-typeahead"
                            name="q"
@@ -109,7 +106,7 @@ describe('Typeahead onSubmit Callback Tests', () => {
                         <span class="typeahead__search-icon"></span>
                     </button>
                 </span>
-    
+
                 </div>
             </div>
         </form>`;
@@ -159,6 +156,8 @@ describe('Typeahead onSubmit Callback Tests', () => {
             {"display": "Test", "id": 1},
             {"display": "callback", "id": 2}
         ]);
+
+        expect(myTypeahead.container.hasClass('result')).toBeFalsy();
 
     });
 });

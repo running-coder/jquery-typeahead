@@ -162,7 +162,7 @@ describe('Typeahead multiselect option Tests', () => {
             expect(myTypeahead.label.container.find('.typeahead__label:first > a').attr('href')).toBe('/item/1');
 
             myTypeahead.node.val('group').trigger('input');
-            expect(myTypeahead.result).toEqual({});
+            expect(myTypeahead.result).toEqual([]);
             expect(myTypeahead.resultContainer.find('.typeahead__empty').text()).toBe('Only 2 item is allowed.');
 
             myTypeahead.label.container.find('.typeahead__label:first > a').trigger('click');
