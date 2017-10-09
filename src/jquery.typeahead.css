@@ -170,7 +170,7 @@
 
 .typeahead__container {
   position: relative;
-  font: 14px Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font: 1rem Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
 }
 
 .typeahead__container * {
@@ -207,27 +207,11 @@
 }
 
 .typeahead__field {
-  font-size: 0;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
   position: relative;
-  display: table;
-  border-collapse: collapse;
   width: 100%;
-}
-
-.typeahead__field > * {
-  display: table-cell;
-  vertical-align: top;
-}
-
-.typeahead__query, .typeahead__filter, .typeahead__button {
-  font-size: 14px;
-}
-
-.typeahead__button {
-  position: relative;
-  font-size: 0;
-  width: 1%;
-  vertical-align: top;
 }
 
 .typeahead__button button {
@@ -245,9 +229,9 @@
 .typeahead__field .typeahead__hint {
   display: block;
   width: 100%;
-  min-height: 36px;
-  line-height: 1.6;
-  padding: 6px 12px;
+  line-height: 1.25;
+  min-height: calc(0.5rem * 2 + 1.25rem + 2px);
+  padding: 0.5rem 0.75rem;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 2px 0 0 2px;
@@ -298,8 +282,8 @@
   cursor: pointer;
   background-color: #fff;
   border: 1px solid #ccc;
-  height: 36px;
-  padding: 6px 12px;
+  line-height: 1.25;
+  padding: 0.5rem 0.75rem;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -415,7 +399,7 @@
 .typeahead__list > li > a,
 .typeahead__dropdown > li > a {
   display: block;
-  padding: 6px 12px;
+  padding: 0.5rem 0.75rem;
   clear: both;
   color: #333;
   text-decoration: none;
@@ -432,7 +416,7 @@
 }
 
 .typeahead__list.empty > li {
-  padding: 6px 12px;
+  padding: 0.5rem 0.75rem;
   color: #333;
 }
 
@@ -486,10 +470,8 @@
   position: absolute;
   right: 0;
   cursor: pointer;
-  font-size: 18px;
   line-height: 1.25;
-  height: 36px;
-  padding: 6px 10px;
+  padding: 0.5rem 0.75rem;
   visibility: hidden;
 }
 
@@ -510,8 +492,6 @@
   padding: 0 1.25rem;
   width: 16px;
   height: 16px;
-  text-align: center;
-  display: inline-block;
   background: url(data:image/svg+xml;charset=utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTguMS4xLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDI1MC4zMTMgMjUwLjMxMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMjUwLjMxMyAyNTAuMzEzOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjE2cHgiIGhlaWdodD0iMTZweCI+CjxnIGlkPSJTZWFyY2giPgoJPHBhdGggc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkOyIgZD0iTTI0NC4xODYsMjE0LjYwNGwtNTQuMzc5LTU0LjM3OGMtMC4yODktMC4yODktMC42MjgtMC40OTEtMC45My0wLjc2ICAgYzEwLjctMTYuMjMxLDE2Ljk0NS0zNS42NiwxNi45NDUtNTYuNTU0QzIwNS44MjIsNDYuMDc1LDE1OS43NDcsMCwxMDIuOTExLDBTMCw0Ni4wNzUsMCwxMDIuOTExICAgYzAsNTYuODM1LDQ2LjA3NCwxMDIuOTExLDEwMi45MSwxMDIuOTExYzIwLjg5NSwwLDQwLjMyMy02LjI0NSw1Ni41NTQtMTYuOTQ1YzAuMjY5LDAuMzAxLDAuNDcsMC42NCwwLjc1OSwwLjkyOWw1NC4zOCw1NC4zOCAgIGM4LjE2OSw4LjE2OCwyMS40MTMsOC4xNjgsMjkuNTgzLDBDMjUyLjM1NCwyMzYuMDE3LDI1Mi4zNTQsMjIyLjc3MywyNDQuMTg2LDIxNC42MDR6IE0xMDIuOTExLDE3MC4xNDYgICBjLTM3LjEzNCwwLTY3LjIzNi0zMC4xMDItNjcuMjM2LTY3LjIzNWMwLTM3LjEzNCwzMC4xMDMtNjcuMjM2LDY3LjIzNi02Ny4yMzZjMzcuMTMyLDAsNjcuMjM1LDMwLjEwMyw2Ny4yMzUsNjcuMjM2ICAgQzE3MC4xNDYsMTQwLjA0NCwxNDAuMDQzLDE3MC4xNDYsMTAyLjkxMSwxNzAuMTQ2eiIgZmlsbD0iIzU1NTU1NSIvPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo=) no-repeat scroll center center transparent;
 }
 
@@ -519,16 +499,16 @@
   transition: all 0s linear, opacity 0.2s ease;
   position: absolute;
   z-index: 3;
-  content: '';
+  content: "";
   top: 50%;
-  right: .55em;
-  margin-top: -10.5px;
-  width: 21px;
-  height: 21px;
+  right: 0.55em;
+  margin-top: -0.675rem;
+  width: 1.35rem;
+  height: 1.35rem;
   box-sizing: border-box;
   border-radius: 500rem;
   border-style: solid;
-  border-width: .1em;
+  border-width: 0.1em;
 }
 
 .typeahead__container.loading .typeahead__query:before {
@@ -569,33 +549,48 @@
 .typeahead__label-container {
   list-style: none;
   position: absolute;
-  padding-top: 6px;
+  padding-top: calc(1rem * 0.375);
   padding-left: 6px;
+  width: 100%;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
 }
 
 .typeahead__label {
-  font-size: 12px;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-size: calc(1rem * 0.875);
   position: relative;
-  display: inline-block;
   background: #ecf5fc;
   border: solid 1px #c2e0ff;
   padding-left: 4px;
   border-radius: 2px;
   margin-right: 4px;
-  margin-bottom: 6px;
+  margin-bottom: calc(1rem * 0.375);
 }
 
 .typeahead__label > * {
-  display: inline-block;
+  -webkit-align-self: center;
+  -ms-flex-item-align: center;
+  -ms-grid-row-align: center;
+  align-self: center;
 }
 
 .typeahead__label .typeahead__cancel-button {
   line-height: normal;
   height: auto;
   position: static;
-  padding: 4px 6px;
+  padding-top: calc(1rem * 0.25 - 1px);
+  padding-bottom: calc(1rem * 0.25 + 1px);
+  padding-left: 6px;
+  padding-right: 6px;
   margin-left: 4px;
-  font-size: 12px;
+  font-size: calc(1rem * 0.875);
   border-left: solid 1px #c2e0ff;
 }
 
