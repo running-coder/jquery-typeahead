@@ -68,15 +68,15 @@ define(["jquery-typeahead"], function (Typeahead) {
         order: "asc",
         group: true,
         maxItemPerGroup: 3,
-        groupOrder: function () {
+        groupOrder: function (node, query, result, resultCount, resultCountPerGroup) {
 
             var scope = this,
                 sortGroup = [];
 
-            for (var i in this.result) {
+            for (var i in result) {
                 sortGroup.push({
                     group: i,
-                    length: this.result[i].length
+                    length: result[i].length
                 });
             }
 
