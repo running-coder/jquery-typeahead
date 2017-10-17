@@ -5,6 +5,7 @@ describe('Typeahead href option Tests', () => {
     'use strict';
 
     let myTypeahead;
+    let clickedItem = {};
 
     beforeAll(() => {
 
@@ -38,6 +39,11 @@ describe('Typeahead href option Tests', () => {
                         'group2-data4'
                     ]
                 }
+            },
+            callback: {
+                onClick: function (node, a, item, event) {
+                    clickedItem = item;
+                }
             }
         });
 
@@ -49,6 +55,19 @@ describe('Typeahead href option Tests', () => {
 
         expect(myTypeahead.resultContainer.find('li:eq(0) a').attr('href')).toEqual('/group/group1/item/group1-data1');
         expect(myTypeahead.resultContainer.find('li:eq(1) a').attr('href')).toEqual('/test/group2/test/group2-data1');
+
+    });
+
+    it('Should transfer the href link to the clicked item', () => {
+
+        myTypeahead.resultContainer.find('li:eq(0) a').trigger('click');
+
+        expect(clickedItem).toEqual({
+            matchedKey: 'display',
+            display: 'group1-data1',
+            group: 'group1',
+            href: '/group/group1/item/group1-data1'
+        });
 
     });
 });

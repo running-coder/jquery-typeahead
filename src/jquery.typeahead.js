@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.3 (2017-10-9)
+ * @version 2.10.3 (2017-10-17)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -2296,7 +2296,7 @@
                     html: $("<a/>", {
                         href: _href && !_item.disabled
                             ? (function (href, item) {
-                                return scope.generateHref.call(
+                                return item.href = scope.generateHref.call(
                                     scope,
                                     href,
                                     item
