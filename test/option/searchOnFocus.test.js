@@ -14,9 +14,9 @@ describe('Typeahead searchOnFocus option Tests', () => {
 <form>
   <div class="typeahead__container">
     <div class="typeahead__field">
-        <span class="typeahead__query">
+        <div class="typeahead__query">
            <input class="js-typeahead" />
-        </span>
+        </div>
     </div>
   </div>
 </form>`;
@@ -63,9 +63,9 @@ describe('Typeahead searchOnFocus option Tests', () => {
 <form>
   <div class="typeahead__container">
     <div class="typeahead__field">
-        <span class="typeahead__query">
+        <div class="typeahead__query">
            <input class="js-typeahead" />
-        </span>
+        </div>
     </div>
   </div>
 </form>`;

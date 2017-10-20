@@ -11,9 +11,9 @@ describe('Typeahead dropdownFilter option Tests', () => {
         beforeAll(() => {
 
             document.body.innerHTML = `<div class="typeahead__container">
-                                          <span class="typeahead__query">
+                                          <div class="typeahead__query">
                                               <input class="js-typeahead">
-                                          </span>
+                                          </div>
                                       </div>`;
 
             myTypeahead = $.typeahead({
@@ -77,9 +77,9 @@ describe('Typeahead dropdownFilter option Tests', () => {
         beforeAll(() => {
 
             document.body.innerHTML = `<div class="typeahead__container">
-                                          <span class="typeahead__query">
+                                          <div class="typeahead__query">
                                               <input class="js-typeahead">
-                                          </span>
+                                          </div>
                                       </div>`;
 
             myTypeahead = $.typeahead({
@@ -139,9 +139,9 @@ describe('Typeahead dropdownFilter option Tests', () => {
         beforeAll(() => {
 
             document.body.innerHTML = `<div class="typeahead__container">
-                                          <span class="typeahead__query">
+                                          <div class="typeahead__query">
                                               <input class="js-typeahead">
-                                          </span>
+                                          </div>
                                       </div>`;
 
             myTypeahead = $.typeahead({

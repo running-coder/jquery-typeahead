@@ -67,18 +67,18 @@ describe('Typeahead templateValue option Tests', () => {
             document.body.innerHTML = `<form>
                 <div class="typeahead__container">
                     <div class="typeahead__field">
-                    <span class="typeahead__query">
-                        <input class="js-typeahead"
-                               name="q"
-                               type="search"
-                               autofocus
-                               autocomplete="off">
-                    </span>
-                    <span class="typeahead__button">
-                        <button type="submit">
-                            <span class="typeahead__search-icon"></span>
-                        </button>
-                    </span>
+                        <div class="typeahead__query">
+                            <input class="js-typeahead"
+                                   name="q"
+                                   type="search"
+                                   autofocus
+                                   autocomplete="off">
+                        </div>
+                        <div class="typeahead__button">
+                            <button type="submit">
+                                <span class="typeahead__search-icon"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>`;
