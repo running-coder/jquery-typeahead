@@ -395,15 +395,15 @@
   border-top: none;
 }
 
-.typeahead__list > li[disabled] > a,
-.typeahead__dropdown > li[disabled] > a {
+.typeahead__list .typeahead__item[disabled] > a,
+.typeahead__dropdown .typeahead__dropdown-item[disabled] > a {
   cursor: not-allowed;
   color: #bababa;
   background-color: #fafafa;
 }
 
-.typeahead__list > li > a,
-.typeahead__dropdown > li > a {
+.typeahead__list .typeahead__item > a,
+.typeahead__dropdown .typeahead__dropdown-item > a {
   display: block;
   padding: 0.5rem 0.75rem;
   clear: both;
@@ -411,12 +411,12 @@
   text-decoration: none;
 }
 
-.typeahead__list > li:not([disabled]) > a:hover,
-.typeahead__list > li:not([disabled]) > a:focus,
-.typeahead__list > li:not([disabled]).active > a,
-.typeahead__dropdown > li:not([disabled]) > a:hover,
-.typeahead__dropdown > li:not([disabled]) > a:focus,
-.typeahead__dropdown > li:not([disabled]).active > a {
+.typeahead__list .typeahead__item:not([disabled]) > a:hover,
+.typeahead__list .typeahead__item:not([disabled]) > a:focus,
+.typeahead__list .typeahead__item:not([disabled]).active > a,
+.typeahead__dropdown .typeahead__dropdown-item:not([disabled]) > a:hover,
+.typeahead__dropdown .typeahead__dropdown-item:not([disabled]) > a:focus,
+.typeahead__dropdown .typeahead__dropdown-item:not([disabled]).active > a {
   background-color: #f5f5f5;
   color: #3c3c3c;
 }

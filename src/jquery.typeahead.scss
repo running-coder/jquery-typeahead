@@ -446,8 +446,8 @@ $typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
         }
     }
 
-    &list > li,
-    &dropdown > li {
+    &list .typeahead__item,
+    &dropdown .typeahead__dropdown-item {
         &[disabled] {
             > a {
                 cursor: not-allowed;
