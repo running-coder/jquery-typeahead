@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.4 (2017-10-27)
+ * @version 2.10.4 (2017-11-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -218,6 +218,7 @@
         this.label = {};                    // The label object
         this.hasDragged = false;            // Will cancel mouseend events if true
         this.focusOnly = false;             // Focus the input preventing any operations
+        this.displayEmptyTemplate           // Display the empty template in the result list
 
         this.__construct();
     };
@@ -768,8 +769,7 @@
 
                             if (scope.result.length ||
                                 (scope.searchGroups.length &&
-                                scope.options.emptyTemplate &&
-                                scope.query.length)
+                                scope.displayEmptyTemplate)
                             ) {
                                 scope.showLayout();
                             } else {
@@ -2165,6 +2165,7 @@
                     return;
                 }
             }
+            this.displayEmptyTemplate = !!emptyTemplate;
 
             var _query = this.query.toLowerCase();
             if (this.options.accent) {
@@ -3200,7 +3201,7 @@
         showLayout: function () {
             if (this.container.hasClass("result") ||
                 (
-                    !this.result.length && !this.options.emptyTemplate && !this.options.backdropOnFocus
+                    !this.result.length && !this.displayEmptyTemplate && !this.options.backdropOnFocus
                 )
             ) return;
 
@@ -3210,8 +3211,7 @@
                 [
                     this.result.length ||
                     (this.searchGroups.length &&
-                    this.options.emptyTemplate &&
-                    this.query.length)
+                    this.displayEmptyTemplate)
                         ? "result "
                         : "",
                     this.options.hint && this.searchGroups.length ? "hint" : "",
