@@ -73,6 +73,8 @@ describe('Typeahead multiselect option Tests', () => {
                 '{"id":1,"key1":"group2-data1-key1","key2":"group2-data1-key2","key3":"group2-data1-key3"}'
             ]);
 
+            expect(myTypeahead.item).toBeNull();
+
             expect(myTypeahead.label.container.find('.typeahead__label:first > a')[0]).toBeUndefined()
 
         });

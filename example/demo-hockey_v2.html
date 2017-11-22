@@ -29,6 +29,11 @@
         </li>
     </ul>
 
+    <div style="margin-bottom: 20px;">
+        <button onclick="addRandomTeam()">Add a random Team</button>
+        <button onclick="removeRandomTeam()">Remove a random Team</button>
+    </div>
+
     <form>
         <div class="typeahead__container">
             <div class="typeahead__field">
@@ -314,7 +319,6 @@
                     });
 
                     return deferred;
-
                 },
                 callback: {
                     onClick: function (node, item, event) {
@@ -345,8 +349,34 @@
             debug: true
         });
 
-    </script>
+        function addRandomTeam() {
+            var randomTeamInt = getRandomInt(0, data.length - 1);
+            var randomTeam = data[randomTeamInt];
 
+            if (!Typeahead[".js-typeahead"].addMultiselectItemLayout(randomTeam)) {
+                alert(randomTeam.name + ' is aleady added!')
+            }
+        }
+
+        function removeRandomTeam() {
+            if (!Typeahead[".js-typeahead"].items.length) {
+                alert('Teams are Empty');
+                return;
+            }
+
+            var randomTeamIndex = getRandomInt(0, Typeahead[".js-typeahead"].items.length - 1);
+
+            Typeahead[".js-typeahead"].cancelMultiselectItem(randomTeamIndex);
+        }
+
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+
+            return Math.floor(Math.random() * (max - min)) + min;
+        }
+
+    </script>
 </div>
 
 </body>

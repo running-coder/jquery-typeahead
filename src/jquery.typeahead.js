@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.4 (2017-11-21)
+ * @version 2.10.4 (2017-11-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -2418,10 +2418,11 @@
                             return;
                         }
 
-                        if (scope.options.multiselect) {
-                            scope.items.push(item);
-                            scope.comparedItems.push(scope.getMultiselectComparedData(item));
-                        } else {
+                        // if (scope.options.multiselect) {
+                        //     scope.items.push(item);
+                        //     scope.comparedItems.push(scope.getMultiselectComparedData(item));
+                        // } else {
+                        if (!scope.options.multiselect) {
                             scope.item = item;
                         }
 
@@ -2438,14 +2439,12 @@
                             e.isDefaultPrevented()
                         ) return;
 
-                        var templateValue = scope.getTemplateValue.call(scope, item);
-
                         if (scope.options.multiselect) {
                             scope.query = scope.rawQuery = "";
-                            scope.addMultiselectItemLayout(templateValue);
+                            scope.addMultiselectItemLayout(item);
                         } else {
                             scope.focusOnly = true;
-                            scope.query = scope.rawQuery = templateValue;
+                            scope.query = scope.rawQuery = scope.getTemplateValue.call(scope, item);;
                             if (scope.isContentEditable) {
                                 scope.node.text(scope.query);
                                 scope.helper.setCaretAtEnd(scope.node[0]);
@@ -3047,21 +3046,22 @@
 
         populateMultiselectData: function (data) {
             for (var i = 0, ii = data.length; i < ii; ++i) {
-                if (!this.isMultiselectUniqueData(data[i])) continue;
-
-                this.items.push(data[i]);
-                this.comparedItems.push(
-                    this.getMultiselectComparedData(data[i])
-                );
-                this.addMultiselectItemLayout(
-                    this.getTemplateValue(data[i])
-                );
+                this.addMultiselectItemLayout(data[i]);
             }
 
             this.node.trigger("search" + this.namespace, { origin: 'populateMultiselectData' });
         },
 
-        addMultiselectItemLayout: function (templateValue) {
+        addMultiselectItemLayout: function (item) {
+            if (!this.isMultiselectUniqueData(item)) return;
+
+            this.items.push(item);
+            this.comparedItems.push(
+                this.getMultiselectComparedData(item)
+            );
+
+            var templateValue = this.getTemplateValue(item);
+
             var scope = this,
                 htmlTag = this.options.multiselect.href ? "a" : "span";
 
@@ -3114,6 +3114,8 @@
 
             this.label.container.append(label);
             this.adjustInputSize();
+
+            return true;
         },
 
         cancelMultiselectItem: function (index, label, e) {
