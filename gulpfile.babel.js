@@ -8,6 +8,8 @@ import replace from 'gulp-replace';
 import autoprefixer from 'gulp-autoprefixer';
 import uglify from 'gulp-uglify';
 import jshint from 'gulp-jshint';
+import saveLicense from 'uglify-save-license';
+
 
 let pkg = require('./package.json'),
     version = pkg.version,
@@ -71,7 +73,10 @@ gulp.task('js', function () {
         .pipe(replace(/\/\/\s?\{debug}[\s\S]*?\{\/debug}/g, ''))
         .pipe(uglify({
             mangle: true,
-            preserveComments: 'license'
+            //preserveComments: 'license'
+            output: {
+                comments: saveLicense
+            }
         }))
         .pipe(gulp.dest('./dist'));
 });
