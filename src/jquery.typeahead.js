@@ -1,10 +1,10 @@
 /*!
  * jQuery Typeahead
- * Copyright (C) 2017 RunningCoder.org
+ * Copyright (C) 2018 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.4 (2017-11-22)
+ * @version 2.10.4 (2018-3-30)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -1920,6 +1920,8 @@
                         }
 
                         if (~[undefined, true].indexOf(groupFilter)) {
+                            if (displayValue === null) continue;
+
                             comparedDisplay = displayValue;
                             comparedDisplay = comparedDisplay.toString().toLowerCase();
 
