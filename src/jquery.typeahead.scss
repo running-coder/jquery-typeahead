@@ -481,7 +481,7 @@ $typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
         }
     }
 
-    &list > li.typeahead__group {
+    &list > .typeahead__group {
         border-color: $typeahead-group-border-color;
         font-weight: bold;
 
@@ -497,6 +497,10 @@ $typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
             cursor: default;
             color: $typeahead-group-color;
             background: $typeahead-group-background;
+            display: block;
+            padding: $typeahead-padding-y $typeahead-padding-x;
+            clear: both;
+            text-decoration: none;
         }
     }
 
