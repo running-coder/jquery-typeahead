@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.4 (2018-3-30)
+ * @version 2.10.4 (2018-4-16)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -409,7 +409,6 @@
             }
 
             if (
-                this.options.maxItemPerGroup &&
                 this.options.group &&
                 this.options.group.key
             ) {
