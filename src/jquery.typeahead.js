@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.4 (2018-4-16)
+ * @version 2.10.4 (2018-7-19)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -734,8 +734,9 @@
                                 scope.helper.executeCallback.call(
                                     scope,
                                     scope.options.callback.onCancel,
-                                    [scope.node, e]
+                                    [scope.node, scope.item, e]
                                 );
+                                scope.item = null;
                             }
 
                             scope.options.cancelButton &&
@@ -796,7 +797,6 @@
             this.rawQuery = this.rawQuery.replace(/^\s+/, "");
 
             if (this.rawQuery !== this.query) {
-                this.item = null;
                 this.query = this.rawQuery;
             }
         },
@@ -2419,10 +2419,6 @@
                             return;
                         }
 
-                        // if (scope.options.multiselect) {
-                        //     scope.items.push(item);
-                        //     scope.comparedItems.push(scope.getMultiselectComparedData(item));
-                        // } else {
                         if (!scope.options.multiselect) {
                             scope.item = item;
                         }
@@ -2457,6 +2453,9 @@
                         scope.node
                             .val(scope.query)
                             .focus();
+
+                        scope.options.cancelButton &&
+                            scope.toggleCancelButtonVisibility();
 
                         scope.helper.executeCallback.call(
                             scope,
@@ -3310,7 +3309,6 @@
             if (this.isContentEditable) {
                 this.node.text("");
             }
-            this.item = null;
             this.query = "";
             this.rawQuery = "";
         },
