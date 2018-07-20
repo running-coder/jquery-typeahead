@@ -211,3 +211,50 @@ describe('Typeahead dynamic option Tests - Abort dynamic requests', () => {
     });
 
 });
+
+describe('Typeahead dynamic option Tests - 404 endpoint when dynamic requests', () => {
+    let myTypeahead;
+
+    beforeAll(() => {
+
+        document.body.innerHTML = '<input class="js-typeahead">';
+
+        myTypeahead = $.typeahead({
+            input: '.js-typeahead',
+            minLength: 0,
+            dynamic: true,
+            delay: 10,
+            source: {
+                game: {
+                    ajax: {
+                        url: "http://test.com/game.json",
+                        path: "data"
+                    }
+                },
+                category: {
+                    ajax: {
+                        url: "http://test.com/invalid.json",
+                        path: "data"
+                    }
+                },
+                tag: {
+                    ajax: {
+                        url: "http://test.com/tag.json",
+                        path: "data"
+                    }
+                }
+            }
+        });
+    });
+
+    it('Should display the result of valid endpoints and skip the invalid one', (done) => {
+        myTypeahead.node.val('zom').triggerHandler('input').done(function () {
+            expect(myTypeahead.result.length).toBeGreaterThan(0);
+            expect(myTypeahead.generatedGroupCount).toEqual(myTypeahead.generateGroups.length);
+
+            done();
+        });
+    });
+
+});
+

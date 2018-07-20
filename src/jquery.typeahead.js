@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.5 (2018-7-19)
+ * @version 2.10.5 (2018-7-20)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -1189,7 +1189,7 @@
                                 _request.callback.always.call(scope, data, textStatus, jqXHR);
 
                                 // #248, #303 Aborted requests would call populate with invalid data
-                                if (typeof jqXHR !== "object") return;
+                                if (textStatus === 'abort') return;
 
                                 // #265 Modified data from ajax.callback.done is not being registered (use of _groupData[_group])
                                 scope.populateSource(
