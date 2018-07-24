@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.5 (2018-7-20)
+ * @version 2.10.5 (2018-7-24)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -813,6 +813,14 @@
                     this.query.length >= this.options.source[group].minLength &&
                     this.query.length <= this.options.source[group].maxLength
                 ) {
+                    if (
+                        this.filters.dropdown &&
+                        this.filters.dropdown.key === 'group' &&
+                        this.filters.dropdown.value !== group
+                    ) {
+                        continue;
+                    }
+
                     this.searchGroups.push(group);
                     if (!this.options.source[group].dynamic && this.source[group]) {
                         continue;
@@ -1119,7 +1127,7 @@
                                 _group = xhrObject.validForGroup[i];
                                 _request = scope.requests[_group];
 
-                                if (_request.callback.done instanceof Function) {
+                                if (typeof _request.callback.done === 'function') {
                                     _groupData[_group] = _request.callback.done.call(
                                         scope,
                                         data,
@@ -2858,7 +2866,7 @@
                     .html(item.template);
 
                 this.isDropdownEvent = true;
-                this.node.trigger("search" + this.namespace);
+                this.node.trigger("input" + this.namespace);
 
                 if (this.options.multiselect) {
                     this.adjustInputSize();

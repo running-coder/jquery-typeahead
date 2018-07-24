@@ -43,7 +43,7 @@ fakeServer.respondWith('GET', /\/empty\.json/, [
     JSON.stringify([]),
 ]);
 
-fakeServer.respondWith('POST', /\/groups\.json/, [
+fakeServer.respondWith('GET', /\/groups\.json/, [
     200,
     { 'Content-Type': 'application/json' },
     JSON.stringify({

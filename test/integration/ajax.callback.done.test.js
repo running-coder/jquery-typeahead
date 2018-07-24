@@ -21,7 +21,7 @@ describe('Typeahead $.ajax.callback.done Tests', () => {
             source: {
                 group1: {
                     ajax: {
-                        type: "POST",
+                        type: "GET",
                         url: "http://test.com/groups.json",
                         data: {
                             term: "{{query}}"
@@ -35,7 +35,7 @@ describe('Typeahead $.ajax.callback.done Tests', () => {
                 },
                 group2: {
                     ajax: {
-                        type: "POST",
+                        type: "GET",
                         url: "http://test.com/groups.json",
                         data: {
                             term: "{{query}}"
