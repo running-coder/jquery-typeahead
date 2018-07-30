@@ -42,4 +42,4 @@ The `master` branch should be a copy of the latest released `tag` without any ad
 - Only submit the changed lines and not the whole file(s)
 - Follow the same coding conversions
 
-Buy me a coffee with ETH: 0x38084cF7Ba4D84D8d9E5C185c66B4C234D8d4764
+Buy me a coffee with ETH: `0x38084cF7Ba4D84D8d9E5C185c66B4C234D8d4764`
