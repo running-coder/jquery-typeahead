@@ -3780,9 +3780,6 @@
 
                 node = $(options.input);
             }
-            if (typeof node[0].value === "undefined") {
-                node[0].value = node.text();
-            }
             if (!node.length) {
                 // {debug}
                 _debug.log({
@@ -3796,6 +3793,9 @@
                 // {/debug}
 
                 return;
+            }
+            if (typeof node[0].value === "undefined") {
+                node[0].value = node.text();
             }
 
             // #270 Forcing node.selector, the property was deleted from jQuery3
