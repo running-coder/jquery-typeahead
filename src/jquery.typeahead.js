@@ -2055,7 +2055,11 @@
                             displayKeys,
                             scope.options.order === "asc",
                             function (a) {
-                                return a.toString().toUpperCase();
+                                if (a) {
+                                    return a.toString().toUpperCase();
+                                } else {
+                                    return "";
+                                }
                             }
                         )
                     );
