@@ -2574,6 +2574,7 @@
             if (!this.options.backdrop) return;
 
             if (!this.backdrop.container) {
+                this.container.siblings('.' + this.options.selector.backdrop).remove();
                 this.backdrop.css = $.extend(
                     {
                         opacity: 0.6,
