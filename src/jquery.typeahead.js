@@ -78,6 +78,7 @@
         filter: true,               // Set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
         matcher: null,              // Add an extra filtering function after the typeahead functions
         source: null,               // Source of data for Typeahead to filter
+        abortAjax: true,            // Abort Ajax requests even if a new request is initiated
         callback: {
             onInit: null,               // When Typeahead is first initialized (happens only once)
             onReady: null,              // When the Typeahead initial preparation is completed
@@ -153,6 +154,20 @@
     var _isIE11 = ~window.navigator.userAgent.indexOf("Trident")
         ? ~window.navigator.userAgent.indexOf("rv:11")
         : false;
+
+    /**
+     * Sequence of ajax requests sent
+     * @type {number}
+     * @private
+     */
+    var _seq = 0;
+
+    /**
+     * The last processed sequence
+     * @type {number}
+     * @private
+     */
+    var _lastSeq = 0;
 
     // SOURCE GROUP RESERVED WORDS: ajax, data, url
     // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, compiled, href
@@ -846,7 +861,9 @@
             if (!this.helper.isEmpty(this.xhr)) {
                 for (var i in this.xhr) {
                     if (!this.xhr.hasOwnProperty(i)) continue;
-                    this.xhr[i].abort();
+                    if(this.options.abortAjax) {
+                        this.xhr[i].abort();
+                    }
                 }
                 this.xhr = {};
             }
@@ -955,6 +972,12 @@
                     beforeSend: function (jqXHR, options) {
                         // Important to call .abort() in case of dynamic requests
                         scope.xhr[group] = jqXHR;
+
+                        // Increase the sequence counter if aborting ajax request is disabled
+                        if (!scope.options.abortAjax) {
+                            jqXHR.seq = _seq;
+                            _seq++;
+                        }
 
                         var beforeSend =
                             scope.requests[group].callback.beforeSend ||
@@ -1198,6 +1221,15 @@
 
                                 // #248, #303 Aborted requests would call populate with invalid data
                                 if (textStatus === 'abort') return;
+
+                                // If aborting ajax request is disaled, check to make sure that this request is not older than previous requests
+                                if(!scope.options.abortAjax) {
+                                    if(jqXHR.seq < _lastSeq) {
+                                        return;
+                                    } else {
+                                        _lastSeq = jqXHR.seq;
+                                    }
+                                }
 
                                 // #265 Modified data from ajax.callback.done is not being registered (use of _groupData[_group])
                                 scope.populateSource(
