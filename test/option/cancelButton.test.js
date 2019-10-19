@@ -5,7 +5,7 @@ describe('Typeahead cancelButton option Tests', () => {
     let myTypeahead;
 
     describe('Cancel button is enabled', () => {
-        
+
         beforeAll(() => {
             document.body.innerHTML = `<form>
                 <div class="typeahead__container">
@@ -13,7 +13,6 @@ describe('Typeahead cancelButton option Tests', () => {
                         <div class="typeahead__query">
                             <input class="js-typeahead"
                                    name="q"
-                                   type="search"
                                    autofocus
                                    autocomplete="off">
                         </div>
@@ -70,7 +69,7 @@ describe('Typeahead cancelButton option Tests', () => {
             items.eq(0).find('a').trigger('click');
 
             myTypeahead.node.trigger($.Event("keydown", { keyCode: 27 }));
-       
+
             expect(myTypeahead.container.find(`.${myTypeahead.options.selector.cancelButton}`)).toHaveLength(1);
             expect(myTypeahead.container.hasClass('cancel')).toBeFalsy();
         });

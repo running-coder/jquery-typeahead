@@ -188,14 +188,3 @@ html {
 body {
     min-height: 100%;
 }
-
-.typeahead__field input[type="search"] {
-    -webkit-appearance: textfield;
-    -moz-appearance: textfield;
-    appearance: textfield;
-}
-
-.typeahead__field input[type="search"]::-webkit-search-cancel-button {
-    /*Bootstrap 3 override*/
-    -webkit-appearance: textfield;
-}

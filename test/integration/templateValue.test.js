@@ -70,7 +70,6 @@ describe('Typeahead templateValue option Tests', () => {
                         <div class="typeahead__query">
                             <input class="js-typeahead"
                                    name="q"
-                                   type="search"
                                    autofocus
                                    autocomplete="off">
                         </div>

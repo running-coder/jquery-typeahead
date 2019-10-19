@@ -16,7 +16,6 @@ describe('Typeahead $.ajax.callback.done Tests', () => {
                     <div class="typeahead__query">
                         <input class="js-typeahead"
                                 name="q"
-                                type="search"
                                 autofocus
                                 autocomplete="off">
                     </div>
@@ -79,7 +78,7 @@ describe('Typeahead $.ajax.callback.done Tests', () => {
             expect(group1DoneCallback).toHaveBeenCalled();
             expect(group2DoneCallback).toHaveBeenCalled();
             expect(group3DoneCallback).toHaveBeenCalled();
-            
+
             done()
         });
 
@@ -95,7 +94,7 @@ describe('Typeahead $.ajax.callback.done Tests', () => {
             expect(group1DoneCallback).toHaveBeenCalled();
             expect(group2DoneCallback).not.toHaveBeenCalled();
             expect(group3DoneCallback).not.toHaveBeenCalled();
-            
+
             done()
         });
 

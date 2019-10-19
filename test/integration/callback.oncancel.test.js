@@ -13,7 +13,6 @@ describe('Typeahead onCancel Callback Tests', () => {
                 <div class="typeahead__query">
                     <input class="js-typeahead"
                             name="q"
-                            type="search"
                             autofocus
                             autocomplete="off">
                 </div>
