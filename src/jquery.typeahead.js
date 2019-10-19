@@ -1,10 +1,10 @@
 /*!
  * jQuery Typeahead
- * Copyright (C) 2018 RunningCoder.org
+ * Copyright (C) 2019 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.6 (2018-7-30)
+ * @version 2.10.7 (2019-10-19)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -30,7 +30,7 @@
     "use strict";
 
     window.Typeahead = {
-        version: '2.10.6'
+        version: '2.10.7'
     };
 
     /**
