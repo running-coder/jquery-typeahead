@@ -1,8 +1,8 @@
-const $ = require('jquery');
-const Typeahead = require('../../src/jquery.typeahead');
+const $ = require("jquery");
+const Typeahead = require("../../src/jquery.typeahead");
 
-describe('Typeahead onCancel Callback Tests', () => {
-  'use strict';
+describe("Typeahead onCancel Callback Tests", () => {
+  "use strict";
 
   let myTypeahead, onCancel, myItem;
 
@@ -26,28 +26,28 @@ describe('Typeahead onCancel Callback Tests', () => {
     </form>`;
 
     myTypeahead = $.typeahead({
-      input: '.js-typeahead',
+      input: ".js-typeahead",
       minLength: 0,
       generateOnLoad: true,
-      display: ['display'],
-      template: '{{display}} {{details}}',
-      emptyTemplate: 'no result for {{query}}',
+      display: ["display"],
+      template: "{{display}} {{details}}",
+      emptyTemplate: "no result for {{query}}",
       source: [
         {
-          id: '1',
-          display: 'Test',
+          id: "1",
+          display: "Test"
         },
         {
-          id: '2',
-          display: 'callback',
-        },
+          id: "2",
+          display: "callback"
+        }
       ],
       callback: {
         onCancel: function(node, item, event) {
           onCancel = true;
           myItem = item;
-        },
-      },
+        }
+      }
     });
   });
 
@@ -55,42 +55,44 @@ describe('Typeahead onCancel Callback Tests', () => {
     onCancel = false;
   });
 
-  it('Should call onCancel callback when ESC is pressed', () => {
-    myTypeahead.node.val('test');
-    myTypeahead.node.trigger('input');
+  it("Should call onCancel callback when ESC is pressed", () => {
+    myTypeahead.node.val("test");
+    myTypeahead.node.trigger("input");
 
-    myTypeahead.node.trigger($.Event('keydown', { keyCode: 27 }));
+    myTypeahead.node.trigger($.Event("keydown", { keyCode: 27 }));
     expect(onCancel).toBeTruthy();
   });
 
-  it('Should call onCancel callback if cancel button is clicked', () => {
-    myTypeahead.node.val('test');
-    myTypeahead.node.trigger('input');
+  it("Should call onCancel callback if cancel button is clicked", () => {
+    myTypeahead.node.val("test");
+    myTypeahead.node.trigger("input");
 
     myTypeahead.node
       .parent()
-      .find('.typeahead__cancel-button')
-      .trigger('mousedown');
+      .find(".typeahead__cancel-button")
+      .trigger("mousedown");
     expect(onCancel).toBeTruthy();
   });
 
-  it('Should call onCancel callback if an item is selected and the input is cleared', () => {
-    myTypeahead.node.val('test');
-    myTypeahead.node.trigger('input');
+  it("Should call onCancel callback if an item is selected and the input is cleared", () => {
+    myTypeahead.node.val("test");
+    myTypeahead.node.trigger("input");
 
-    let items = myTypeahead.container.find('.' + myTypeahead.options.selector.item);
+    let items = myTypeahead.container.find(
+      "." + myTypeahead.options.selector.item
+    );
     items
       .eq(0)
-      .find('a')
-      .trigger('click');
+      .find("a")
+      .trigger("click");
 
-    myTypeahead.node.trigger($.Event('keydown', { keyCode: 27 }));
+    myTypeahead.node.trigger($.Event("keydown", { keyCode: 27 }));
     expect(onCancel).toBeTruthy();
     expect(myItem).toEqual({
-      matchedKey: 'display',
-      id: '1',
-      display: 'Test',
-      group: 'group',
+      matchedKey: "display",
+      id: "1",
+      display: "Test",
+      group: "group"
     });
   });
 });

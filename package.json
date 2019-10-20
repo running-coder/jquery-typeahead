@@ -1,7 +1,8 @@
 {
   "name": "jquery-typeahead",
   "version": "2.10.7",
-  "description": "jQuery plugin that provides Typeahead (autocomplete) Search preview from Json object(s) via same domain Ajax request or cross domain Jsonp and offers data compression inside Local Storage. The plugin is built with a lot of options and callbacks to allow customization.",
+  "description":
+    "jQuery plugin that provides Typeahead (autocomplete) Search preview from Json object(s) via same domain Ajax request or cross domain Jsonp and offers data compression inside Local Storage. The plugin is built with a lot of options and callbacks to allow customization.",
   "author": {
     "name": "Tom Bertrand"
   },
@@ -51,8 +52,7 @@
     "test": "jest"
   },
   "jest": {
-    "setupFiles": [
-      "<rootDir>/test/jestSetupFile.js"
-    ]
+    "testURL": "http://localhost/",
+    "setupFiles": ["<rootDir>/test/jestSetupFile.js"]
   }
 }
