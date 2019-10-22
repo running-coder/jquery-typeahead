@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.7 (2019-10-19)
+ * @version 2.10.7 (2019-10-21)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -75,6 +75,7 @@
         emptyTemplate: false,       // Display an empty template if no result
         cancelButton: true,         // If text is detected in the input, a cancel button will be available to reset the input (pressing ESC also cancels)
         loadingAnimation: true,     // Display a loading animation when typeahead is doing request / searching for results
+        asyncResult: false,         // If set to true, the search results will be displayed as they are beging received from the requests / async data function
         filter: true,               // Set to false or function to bypass Typeahead filtering. WARNING: accent, correlativeTemplate, offset & matcher will not be interpreted
         matcher: null,              // Add an extra filtering function after the typeahead functions
         source: null,               // Source of data for Typeahead to filter
@@ -218,7 +219,7 @@
         this.label = {};                    // The label object
         this.hasDragged = false;            // Will cancel mouseend events if true
         this.focusOnly = false;             // Focus the input preventing any operations
-        this.displayEmptyTemplate           // Display the empty template in the result list
+        this.displayEmptyTemplate;          // Display the empty template in the result list
 
         this.__construct();
     };
@@ -866,6 +867,10 @@
                 cache = groupSource.cache;
                 compression = groupSource.compression;
 
+                if (this.options.asyncResult) {
+                    delete this.source[group];
+                }
+
                 if (cache) {
                     dataInStorage = window[cache].getItem(
                         "TYPEAHEAD_" + this.selector + ":" + group
@@ -939,6 +944,10 @@
 
             if (this.requestGroups.length) {
                 this.handleRequests();
+            }
+
+            if (this.options.asyncResult && this.searchGroups.length !== this.generateGroups) {
+                this.node.trigger("search" + this.namespace);
             }
 
             return !!this.generateGroups.length;
@@ -1507,28 +1516,33 @@
                 );
             }
 
-            this.incrementGeneratedGroup();
+            this.incrementGeneratedGroup(group);
         },
 
-        incrementGeneratedGroup: function () {
+        incrementGeneratedGroup: function (group) {
             this.generatedGroupCount++;
-            if (this.generatedGroupCount !== this.generateGroups.length) {
+            if (this.generatedGroupCount !== this.generateGroups.length && !this.options.asyncResult) {
                 return;
             }
 
-            this.xhr = {};
+            if (this.xhr && this.xhr[group]) {
+                delete this.xhr[group];
+            }
 
             for (var i = 0, ii = this.generateGroups.length; i < ii; i++) {
                 this.source[this.generateGroups[i]] = this.tmpSource[
                     this.generateGroups[i]
-                    ];
+                ];
             }
 
             if (!this.hasDynamicGroups) {
                 this.buildDropdownItemLayout("dynamic");
             }
 
-            this.options.loadingAnimation && this.container.removeClass("loading");
+            if (this.generatedGroupCount === this.generateGroups.length) {
+                this.xhr = {};
+                this.options.loadingAnimation && this.container.removeClass("loading");
+            }
             this.node.trigger("search" + this.namespace);
         },
 
@@ -1849,6 +1863,8 @@
                     this.options.source[group].matcher) ||
                     matcher;
 
+                if (!this.source[group]) continue;
+
                 for (var k = 0, kk = this.source[group].length; k < kk; k++) {
                     if (this.resultItemCount >= maxItem && !this.options.callback.onResult) break;
                     if (hasDynamicFilters && !this.dynamicFilter.validate.apply(this, [this.source[group][k]])) continue;
@@ -2144,7 +2160,7 @@
             }
 
             var emptyTemplate;
-            if (!this.result.length) {
+            if (!this.result.length && this.generatedGroupCount === this.generateGroups.length) {
                 if (
                     this.options.multiselect &&
                     this.options.multiselect.limit &&
