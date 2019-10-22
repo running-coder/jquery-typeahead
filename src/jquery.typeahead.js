@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.7 (2019-10-21)
+ * @version 2.10.7 (2019-10-22)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -833,6 +833,9 @@
 
         generateSource: function (generateGroups) {
             this.filterGenerateSource();
+
+            this.generatedGroupCount = 0;
+
             if (Array.isArray(generateGroups) && generateGroups.length) {
                 this.generateGroups = generateGroups;
             } else if (!this.generateGroups.length) {
@@ -841,7 +844,6 @@
             }
 
             this.requestGroups = [];
-            this.generatedGroupCount = 0;
             this.options.loadingAnimation && this.container.addClass("loading");
 
             if (!this.helper.isEmpty(this.xhr)) {
