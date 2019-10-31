@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.10.7 (2019-10-22)
+ * @version 2.10.7 (2019-10-31)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {

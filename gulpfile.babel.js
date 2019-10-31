@@ -2,14 +2,13 @@
 
 import gulp from 'gulp';
 import sass from 'gulp-sass';
-import cssnano from 'gulp-cssnano';
+import cleanCSS from 'gulp-clean-css';
 import rename from 'gulp-rename';
 import replace from 'gulp-replace';
 import autoprefixer from 'gulp-autoprefixer';
 import uglify from 'gulp-uglify';
 import jshint from 'gulp-jshint';
 import saveLicense from 'uglify-save-license';
-
 
 let pkg = require('./package.json'),
     version = pkg.version,
@@ -45,7 +44,7 @@ gulp.task('scss', function () {
             cascade: false
         }))
         .pipe(gulp.dest('./src'))
-        .pipe(cssnano({keepSpecialComments: 0}))
+        .pipe(cleanCSS())
         .pipe(rename('jquery.typeahead.min.css'))
         .pipe(gulp.dest('./dist'));
 });
