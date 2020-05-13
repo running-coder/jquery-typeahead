@@ -1,10 +1,10 @@
 /*!
  * jQuery Typeahead
- * Copyright (C) 2019 RunningCoder.org
+ * Copyright (C) 2020 RunningCoder.org
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.11.0 (2019-10-31)
+ * @version 2.11.0 (2020-5-13)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -2899,12 +2899,11 @@
         },
 
         dynamicFilter: {
-            isEnabled: false,
             init: function () {
                 if (!this.options.dynamicFilter) return;
 
                 this.dynamicFilter.bind.call(this);
-                this.dynamicFilter.isEnabled = true;
+                this.isDynamicFilterEnabled = true;
             },
 
             validate: function (item) {
@@ -2959,7 +2958,7 @@
                     };
                 }
 
-                if (this.dynamicFilter.isEnabled) {
+                if (this.isDynamicFilterEnabled) {
                     this.generateSource();
                 }
             },
