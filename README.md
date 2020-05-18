@@ -14,11 +14,11 @@ The complete documentation, demo and further instructions can be found at www.ru
 
 ## Installation
 
-    bower install jquery-typeahead
+    npm install jquery-typeahead
 
 or
 
-    npm install jquery-typeahead
+    yarn add jquery-typeahead
 
 ## Documentation
 
@@ -37,9 +37,7 @@ www.runningcoder.org/jquerytypeahead/version/
 Please consider these points before creating a new pull request
 
 - Pull request should be made from `develop` to `develop` branch so it can be tested properly and not be directly available to download on the `master`.
-The `master` branch should be a copy of the latest released `tag` without any additional new code that has not been released
+  The `master` branch should be a copy of the latest released `tag` without any additional new code that has not been released
 - Add a descriptive note along with the PR and examples
 - Only submit the changed lines and not the whole file(s)
 - Follow the same coding conversions
-
-Buy me a coffee with ETH: `0x38084cF7Ba4D84D8d9E5C185c66B4C234D8d4764`
