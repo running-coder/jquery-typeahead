@@ -546,7 +546,7 @@ $typeahead-label-background: lighten($typeahead-primary-color, 30%) !default;
             content: "";
             top: 50%;
             right: 0.55em;
-            margin-top: calc(-$typeahead-loading-size / 2);
+            margin-top: calc($typeahead-loading-size / -2);
             width: $typeahead-loading-size;
             height: $typeahead-loading-size;
             box-sizing: border-box;
