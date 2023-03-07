@@ -1,6 +1,7 @@
 <!doctype html>
 
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
 
@@ -10,373 +11,372 @@
 
     <link rel="stylesheet" href="../src/jquery.typeahead.css">
 
-    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
     <script src="../src/jquery.typeahead.js"></script>
 
 </head>
+
 <body>
 
-<div style="width: 100%; max-width: 800px; margin: 0 auto;">
+    <div style="width: 100%; max-width: 800px; margin: 0 auto;">
 
-    <h1>Hockey_v2 Demo</h1>
+        <h1>Hockey_v2 Demo</h1>
 
-    <ul>
-        <li>
-            <a href="http://www.runningcoder.org/jquerytypeahead/documentation/">Documentation</a>
-        </li>
-        <li>
-            <a href="http://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
-        </li>
-    </ul>
+        <ul>
+            <li>
+                <a href="https://www.runningcoder.org/jquerytypeahead/documentation/">Documentation</a>
+            </li>
+            <li>
+                <a href="https://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
+            </li>
+        </ul>
 
-    <div style="margin-bottom: 20px;">
-        <button onclick="addRandomTeam()">Add a random Team</button>
-        <button onclick="removeRandomTeam()">Remove a random Team</button>
-    </div>
+        <div style="margin-bottom: 20px;">
+            <button onclick="addRandomTeam()">Add a random Team</button>
+            <button onclick="removeRandomTeam()">Remove a random Team</button>
+        </div>
 
-    <form>
-        <div class="typeahead__container">
-            <div class="typeahead__field">
-                <div class="typeahead__query">
-                    <input class="js-typeahead"
-                           name="q"
-                           autofocus
-                           autocomplete="off">
-                </div>
+        <form>
+            <div class="typeahead__container">
+                <div class="typeahead__field">
+                    <div class="typeahead__query">
+                        <input class="js-typeahead" name="q" autofocus autocomplete="off">
+                    </div>
                     <div class="typeahead__button">
-                    <button type="submit">
-                        <span class="typeahead__search-icon"></span>
-                    </button>
+                        <button type="submit">
+                            <span class="typeahead__search-icon"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
 
-    <script>
+        <script>
 
-        var data = [{
-            "name": "Ducks",
-            "img": "ducks",
-            "city": "Anaheim",
-            "id": "ANA",
-            "conference": "Western",
-            "division": "Pacific"
-        }, {
-            "name": "Thrashers",
-            "img": "thrashers",
-            "city": "Atlanta",
-            "id": "ATL",
-            "conference": "Eastern",
-            "division": "Southeast"
-        }, {
-            "name": "Bruins",
-            "img": "bruins",
-            "city": "Boston",
-            "id": "BOS",
-            "conference": "Eastern",
-            "division": "Northeast"
-        }, {
-            "name": "Sabres",
-            "img": "sabres",
-            "city": "Buffalo",
-            "id": "BUF",
-            "conference": "Eastern",
-            "division": "Northeast"
-        }, {
-            "name": "Flames",
-            "img": "flames",
-            "city": "Calgary",
-            "id": "CGY",
-            "conference": "Western",
-            "division": "Northwest"
-        }, {
-            "name": "Hurricanes",
-            "img": "hurricanes",
-            "city": "Carolina",
-            "id": "CAR",
-            "conference": "Eastern",
-            "division": "Southeast"
-        }, {
-            "name": "Blackhawks",
-            "img": "blackhawks",
-            "city": "Chicago",
-            "id": "CHI",
-            "conference": "Western",
-            "division": "Central"
-        }, {
-            "name": "Avalanche",
-            "img": "avalanche",
-            "city": "Colorado",
-            "id": "COL",
-            "conference": "Western",
-            "division": "Northwest"
-        }, {
-            "name": "Bluejackets",
-            "img": "bluejackets",
-            "city": "Columbus",
-            "id": "CBJ",
-            "conference": "Western",
-            "division": "Central"
-        }, {
-            "name": "Stars",
-            "img": "stars",
-            "city": "Dallas",
-            "id": "DAL",
-            "conference": "Western",
-            "division": "Pacific"
-        }, {
-            "name": "Red Wings",
-            "img": "redwings",
-            "city": "Detroit",
-            "id": "DET",
-            "conference": "Western",
-            "division": "Central"
-        }, {
-            "name": "Oilers",
-            "img": "oilers",
-            "city": "Edmonton",
-            "id": "EDM",
-            "conference": "Western",
-            "division": "Northwest"
-        }, {
-            "name": "Panthers",
-            "img": "panthers",
-            "city": "Florida",
-            "id": "FLA",
-            "conference": "Eastern",
-            "division": "Southeast"
-        }, {
-            "name": "Kings",
-            "img": "kings",
-            "city": "Los Angeles",
-            "id": "LAK",
-            "conference": "Western",
-            "division": "Pacific"
-        }, {
-            "name": "Wild",
-            "img": "wild",
-            "city": "Minnesota",
-            "id": "MIN",
-            "conference": "Western",
-            "division": "Northwest"
-        }, {
-            "name": "Canadiens",
-            "img": "canadiens",
-            "city": "Montreal",
-            "id": "MTL",
-            "conference": "Eastern",
-            "division": "Northeast"
-        }, {
-            "name": "Predators",
-            "img": "predators",
-            "city": "Nashville",
-            "id": "NSH",
-            "conference": "Western",
-            "division": "Central"
-        }, {
-            "name": "Devils",
-            "img": "devils",
-            "city": "New Jersey",
-            "id": "NJD",
-            "conference": "Eastern",
-            "division": "Atlantic"
-        }, {
-            "name": "Islanders",
-            "img": "islanders",
-            "city": "New York",
-            "id": "NYI",
-            "conference": "Eastern",
-            "division": "Atlantic"
-        }, {
-            "name": "Rangers",
-            "img": "rangers",
-            "city": "New York",
-            "id": "NYR",
-            "conference": "Eastern",
-            "division": "Atlantic"
-        }, {
-            "name": "Senators",
-            "img": "senators",
-            "city": "Ottawa",
-            "id": "OTT",
-            "conference": "Eastern",
-            "division": "Northeast"
-        }, {
-            "name": "Flyers",
-            "img": "flyers",
-            "city": "Philadelphia",
-            "id": "PHI",
-            "conference": "Eastern",
-            "division": "Atlantic"
-        }, {
-            "name": "Coyotes",
-            "img": "coyotes",
-            "city": "Phoenix",
-            "id": "PHX",
-            "conference": "Western",
-            "division": "Pacific"
-        }, {
-            "name": "Penguins",
-            "img": "penguins",
-            "city": "Pittsburgh",
-            "id": "PIT",
-            "conference": "Eastern",
-            "division": "Atlantic"
-        }, {
-            "name": "Sharks",
-            "img": "sharks",
-            "city": "San Jose",
-            "id": "SJS",
-            "conference": "Western",
-            "division": "Pacific"
-        }, {
-            "name": "Blues",
-            "img": "blues",
-            "city": "St. Louis",
-            "id": "STL",
-            "conference": "Western",
-            "division": "Central"
-        }, {
-            "name": "Lightning",
-            "img": "lightning",
-            "city": "Tampa Bay",
-            "id": "TBL",
-            "conference": "Eastern",
-            "division": "Southeast"
-        }, {
-            "name": "Maple Leafs",
-            "img": "mapleleafs",
-            "city": "Toronto",
-            "id": "TOR",
-            "conference": "Eastern",
-            "division": "Northeast"
-        }, {
-            "name": "Canucks",
-            "img": "canucks",
-            "city": "Vancouver",
-            "id": "VAN",
-            "conference": "Western",
-            "division": "Northwest"
-        }, {
-            "name": "Capitals",
-            "img": "capitals",
-            "city": "Washington",
-            "id": "WSH",
-            "conference": "Eastern",
-            "division": "Southeast"
-        }, {
-            "name": "Jets",
-            "img": "jets",
-            "city": "Winnipeg",
-            "id": "WPG",
-            "conference": "Eastern",
-            "division": "Southeast"
-        }];
+            var data = [{
+                "name": "Ducks",
+                "img": "ducks",
+                "city": "Anaheim",
+                "id": "ANA",
+                "conference": "Western",
+                "division": "Pacific"
+            }, {
+                "name": "Thrashers",
+                "img": "thrashers",
+                "city": "Atlanta",
+                "id": "ATL",
+                "conference": "Eastern",
+                "division": "Southeast"
+            }, {
+                "name": "Bruins",
+                "img": "bruins",
+                "city": "Boston",
+                "id": "BOS",
+                "conference": "Eastern",
+                "division": "Northeast"
+            }, {
+                "name": "Sabres",
+                "img": "sabres",
+                "city": "Buffalo",
+                "id": "BUF",
+                "conference": "Eastern",
+                "division": "Northeast"
+            }, {
+                "name": "Flames",
+                "img": "flames",
+                "city": "Calgary",
+                "id": "CGY",
+                "conference": "Western",
+                "division": "Northwest"
+            }, {
+                "name": "Hurricanes",
+                "img": "hurricanes",
+                "city": "Carolina",
+                "id": "CAR",
+                "conference": "Eastern",
+                "division": "Southeast"
+            }, {
+                "name": "Blackhawks",
+                "img": "blackhawks",
+                "city": "Chicago",
+                "id": "CHI",
+                "conference": "Western",
+                "division": "Central"
+            }, {
+                "name": "Avalanche",
+                "img": "avalanche",
+                "city": "Colorado",
+                "id": "COL",
+                "conference": "Western",
+                "division": "Northwest"
+            }, {
+                "name": "Bluejackets",
+                "img": "bluejackets",
+                "city": "Columbus",
+                "id": "CBJ",
+                "conference": "Western",
+                "division": "Central"
+            }, {
+                "name": "Stars",
+                "img": "stars",
+                "city": "Dallas",
+                "id": "DAL",
+                "conference": "Western",
+                "division": "Pacific"
+            }, {
+                "name": "Red Wings",
+                "img": "redwings",
+                "city": "Detroit",
+                "id": "DET",
+                "conference": "Western",
+                "division": "Central"
+            }, {
+                "name": "Oilers",
+                "img": "oilers",
+                "city": "Edmonton",
+                "id": "EDM",
+                "conference": "Western",
+                "division": "Northwest"
+            }, {
+                "name": "Panthers",
+                "img": "panthers",
+                "city": "Florida",
+                "id": "FLA",
+                "conference": "Eastern",
+                "division": "Southeast"
+            }, {
+                "name": "Kings",
+                "img": "kings",
+                "city": "Los Angeles",
+                "id": "LAK",
+                "conference": "Western",
+                "division": "Pacific"
+            }, {
+                "name": "Wild",
+                "img": "wild",
+                "city": "Minnesota",
+                "id": "MIN",
+                "conference": "Western",
+                "division": "Northwest"
+            }, {
+                "name": "Canadiens",
+                "img": "canadiens",
+                "city": "Montreal",
+                "id": "MTL",
+                "conference": "Eastern",
+                "division": "Northeast"
+            }, {
+                "name": "Predators",
+                "img": "predators",
+                "city": "Nashville",
+                "id": "NSH",
+                "conference": "Western",
+                "division": "Central"
+            }, {
+                "name": "Devils",
+                "img": "devils",
+                "city": "New Jersey",
+                "id": "NJD",
+                "conference": "Eastern",
+                "division": "Atlantic"
+            }, {
+                "name": "Islanders",
+                "img": "islanders",
+                "city": "New York",
+                "id": "NYI",
+                "conference": "Eastern",
+                "division": "Atlantic"
+            }, {
+                "name": "Rangers",
+                "img": "rangers",
+                "city": "New York",
+                "id": "NYR",
+                "conference": "Eastern",
+                "division": "Atlantic"
+            }, {
+                "name": "Senators",
+                "img": "senators",
+                "city": "Ottawa",
+                "id": "OTT",
+                "conference": "Eastern",
+                "division": "Northeast"
+            }, {
+                "name": "Flyers",
+                "img": "flyers",
+                "city": "Philadelphia",
+                "id": "PHI",
+                "conference": "Eastern",
+                "division": "Atlantic"
+            }, {
+                "name": "Coyotes",
+                "img": "coyotes",
+                "city": "Phoenix",
+                "id": "PHX",
+                "conference": "Western",
+                "division": "Pacific"
+            }, {
+                "name": "Penguins",
+                "img": "penguins",
+                "city": "Pittsburgh",
+                "id": "PIT",
+                "conference": "Eastern",
+                "division": "Atlantic"
+            }, {
+                "name": "Sharks",
+                "img": "sharks",
+                "city": "San Jose",
+                "id": "SJS",
+                "conference": "Western",
+                "division": "Pacific"
+            }, {
+                "name": "Blues",
+                "img": "blues",
+                "city": "St. Louis",
+                "id": "STL",
+                "conference": "Western",
+                "division": "Central"
+            }, {
+                "name": "Lightning",
+                "img": "lightning",
+                "city": "Tampa Bay",
+                "id": "TBL",
+                "conference": "Eastern",
+                "division": "Southeast"
+            }, {
+                "name": "Maple Leafs",
+                "img": "mapleleafs",
+                "city": "Toronto",
+                "id": "TOR",
+                "conference": "Eastern",
+                "division": "Northeast"
+            }, {
+                "name": "Canucks",
+                "img": "canucks",
+                "city": "Vancouver",
+                "id": "VAN",
+                "conference": "Western",
+                "division": "Northwest"
+            }, {
+                "name": "Capitals",
+                "img": "capitals",
+                "city": "Washington",
+                "id": "WSH",
+                "conference": "Eastern",
+                "division": "Southeast"
+            }, {
+                "name": "Jets",
+                "img": "jets",
+                "city": "Winnipeg",
+                "id": "WPG",
+                "conference": "Eastern",
+                "division": "Southeast"
+            }];
 
-        typeof $.typeahead === 'function' && $.typeahead({
-            input: ".js-typeahead",
-            minLength: 1,
-            maxItem: 8,
-            maxItemPerGroup: 6,
-            order: "asc",
-            hint: true,
-            searchOnFocus: true,
-            multiselect: {
-//                limit: 2,
-//                limitTemplate: 'You can\'t select more than 2 teams',
-                matchOn: ["id", "name"],
-                cancelOnBackspace: true,
-//                href: '/{{name}}.html',
-//                data: [{
-//                    "matchedKey": "name",
-//                    "name": "Canadiens",
-//                    "img": "canadiens",
-//                    "city": "Montreal",
-//                    "id": "MTL",
-//                    "conference": "Eastern",
-//                    "division": "Northeast",
-//                    "group": "teams"
-//                }],
-                data: function () {
-                    var deferred = $.Deferred();
+            typeof $.typeahead === 'function' && $.typeahead({
+                input: ".js-typeahead",
+                minLength: 1,
+                maxItem: 8,
+                maxItemPerGroup: 6,
+                order: "asc",
+                hint: true,
+                searchOnFocus: true,
+                multiselect: {
+                    //                limit: 2,
+                    //                limitTemplate: 'You can\'t select more than 2 teams',
+                    matchOn: ["id", "name"],
+                    cancelOnBackspace: true,
+                    //                href: '/{{name}}.html',
+                    //                data: [{
+                    //                    "matchedKey": "name",
+                    //                    "name": "Canadiens",
+                    //                    "img": "canadiens",
+                    //                    "city": "Montreal",
+                    //                    "id": "MTL",
+                    //                    "conference": "Eastern",
+                    //                    "division": "Northeast",
+                    //                    "group": "teams"
+                    //                }],
+                    data: function () {
+                        var deferred = $.Deferred();
 
-                    setTimeout(function () {
-                        deferred.resolve([{
-                            "matchedKey": "name",
-                            "name": "Canadiens",
-                            "img": "canadiens",
-                            "city": "Montreal",
-                            "id": "MTL",
-                            "conference": "Eastern",
-                            "division": "Northeast",
-                            "group": "teams"
-                        }]);
-                    }, 2000);
+                        setTimeout(function () {
+                            deferred.resolve([{
+                                "matchedKey": "name",
+                                "name": "Canadiens",
+                                "img": "canadiens",
+                                "city": "Montreal",
+                                "id": "MTL",
+                                "conference": "Eastern",
+                                "division": "Northeast",
+                                "group": "teams"
+                            }]);
+                        }, 2000);
 
-                    deferred.always(function () {
-                        console.log('data loaded from promise');
-                    });
+                        deferred.always(function () {
+                            console.log('data loaded from promise');
+                        });
 
-                    return deferred;
+                        return deferred;
+                    },
+                    callback: {
+                        onClick: function (node, item, event) {
+                            event.preventDefault();
+                            console.log(item);
+                            alert(item.name + ' Clicked!');
+                        },
+                        onCancel: function (node, item, event) {
+                            console.log(item)
+                        }
+                    }
+                },
+                templateValue: "{{name}}",
+                display: ["name", "city"],
+                emptyTemplate: 'no result for {{query}}',
+                source: {
+                    teams: {
+                        data: data
+                    }
                 },
                 callback: {
-                    onClick: function (node, item, event) {
+                    onSubmit: function (node, form, items, event) {
                         event.preventDefault();
-                        console.log(item);
-                        alert(item.name + ' Clicked!');
-                    },
-                    onCancel: function (node, item, event) {
-                        console.log(item)
+
+                        alert(JSON.stringify(items))
                     }
+                },
+                debug: true
+            });
+
+            function addRandomTeam() {
+                var randomTeamInt = getRandomInt(0, data.length - 1);
+                var randomTeam = data[randomTeamInt];
+
+                if (!Typeahead[".js-typeahead"].addMultiselectItemLayout(randomTeam)) {
+                    alert(randomTeam.name + ' is aleady added!')
                 }
-            },
-            templateValue: "{{name}}",
-            display: ["name", "city"],
-            emptyTemplate: 'no result for {{query}}',
-            source: {
-                teams: {
-                    data: data
-                }
-            },
-            callback: {
-                onSubmit: function (node, form, items, event) {
-                    event.preventDefault();
-
-                    alert(JSON.stringify(items))
-                }
-            },
-            debug: true
-        });
-
-        function addRandomTeam() {
-            var randomTeamInt = getRandomInt(0, data.length - 1);
-            var randomTeam = data[randomTeamInt];
-
-            if (!Typeahead[".js-typeahead"].addMultiselectItemLayout(randomTeam)) {
-                alert(randomTeam.name + ' is aleady added!')
-            }
-        }
-
-        function removeRandomTeam() {
-            if (!Typeahead[".js-typeahead"].items.length) {
-                alert('Teams are Empty');
-                return;
             }
 
-            var randomTeamIndex = getRandomInt(0, Typeahead[".js-typeahead"].items.length - 1);
+            function removeRandomTeam() {
+                if (!Typeahead[".js-typeahead"].items.length) {
+                    alert('Teams are Empty');
+                    return;
+                }
 
-            Typeahead[".js-typeahead"].cancelMultiselectItem(randomTeamIndex);
-        }
+                var randomTeamIndex = getRandomInt(0, Typeahead[".js-typeahead"].items.length - 1);
 
-        function getRandomInt(min, max) {
-            min = Math.ceil(min);
-            max = Math.floor(max);
+                Typeahead[".js-typeahead"].cancelMultiselectItem(randomTeamIndex);
+            }
 
-            return Math.floor(Math.random() * (max - min)) + min;
-        }
+            function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
 
-    </script>
-</div>
+                return Math.floor(Math.random() * (max - min)) + min;
+            }
+
+        </script>
+    </div>
 
 </body>
+
 </html>

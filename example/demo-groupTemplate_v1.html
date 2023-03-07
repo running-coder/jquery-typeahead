@@ -1,6 +1,7 @@
 <!doctype html>
 
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
 
@@ -10,93 +11,92 @@
 
     <link rel="stylesheet" href="../src/jquery.typeahead.css">
 
-    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
     <!--script src="../dist/jquery.typeahead.min.js"></script-->
     <script src="../src/jquery.typeahead.js"></script>
 
 </head>
+
 <body>
 
-<div style="width: 100%; max-width: 800px; margin: 0 auto;">
+    <div style="width: 100%; max-width: 800px; margin: 0 auto;">
 
-    <h1>groupTemplate_v1 Demo</h1>
+        <h1>groupTemplate_v1 Demo</h1>
 
-    <ul>
-        <li>
-            <a href="http://www.runningcoder.org/jquerytypeahead/documentation/">Documentation</a>
-        </li>
-        <li>
-            <a href="http://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
-        </li>
-    </ul>
+        <ul>
+            <li>
+                <a href="https://www.runningcoder.org/jquerytypeahead/documentation/">Documentation</a>
+            </li>
+            <li>
+                <a href="https://www.runningcoder.org/jquerytypeahead/demo/">Demos</a>
+            </li>
+        </ul>
 
-    <form>
-        <div class="typeahead__container">
-            <div class="typeahead__field">
-                <div class="typeahead__query">
-                    <input class="js-typeahead"
-                           name="q"
-                           autofocus
-                           autocomplete="off">
-                </div>
-                <div class="typeahead__button">
-                    <button type="submit">
-                        <span class="typeahead__search-icon"></span>
-                    </button>
+        <form>
+            <div class="typeahead__container">
+                <div class="typeahead__field">
+                    <div class="typeahead__query">
+                        <input class="js-typeahead" name="q" autofocus autocomplete="off">
+                    </div>
+                    <div class="typeahead__button">
+                        <button type="submit">
+                            <span class="typeahead__search-icon"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
 
-    <script>
+        <script>
 
-        typeof $.typeahead === 'function' && $.typeahead({
-            input: ".js-typeahead",
-            minLength: 0,
-            maxItem: 0,
-            generateOnLoad: true,
-            groupOrder: "desc",
-            groupTemplate: "<table><tr><td>{{group}}</td></tr></table>",
-            source: {
-                group_one: {
-                    data: ['group_one_data_one', 'group_one_data_two', 'group_one_data_three', 'group_one_data_four']
-                },
-                group_two: {
-                    data: ['group_two_data_one', 'group_two_data_two', 'group_two_data_three', 'group_two_data_four', 'group_two_data_five']
-                },
-                group_three: {
-                    data: ['group_three_data_one', 'group_three_data_two', 'group_three_data_three', 'group_three_data_four']
+            typeof $.typeahead === 'function' && $.typeahead({
+                input: ".js-typeahead",
+                minLength: 0,
+                maxItem: 0,
+                generateOnLoad: true,
+                groupOrder: "desc",
+                groupTemplate: "<table><tr><td>{{group}}</td></tr></table>",
+                source: {
+                    group_one: {
+                        data: ['group_one_data_one', 'group_one_data_two', 'group_one_data_three', 'group_one_data_four']
+                    },
+                    group_two: {
+                        data: ['group_two_data_one', 'group_two_data_two', 'group_two_data_three', 'group_two_data_four', 'group_two_data_five']
+                    },
+                    group_three: {
+                        data: ['group_three_data_one', 'group_three_data_two', 'group_three_data_three', 'group_three_data_four']
+                    }
                 }
-            }
-//            maxItem: 12,
-//            maxItemPerGroup: 6,
-//            order: "asc",
-//            hint: true,
-//            searchOnFocus: true,
-//            groupTemplate: "" +
-//            "<table>" +
-//            "<tr>" +
-//            "<td>{{group_one}}</td>" +
-//            "<td>{{group_two}}</td>" +
-//            "<td>{{group_three}}</td>" +
-//            "</tr>" +
-//            "</table>",
-//            source: {
-//                group_one: {
-//                    data: ['group_one_data_one', 'group_one_data_two', 'group_one_data_three', 'group_one_data_four']
-//                },
-//                group_two: {
-//                    data: ['group_two_data_one', 'group_two_data_two', 'group_two_data_three', 'group_two_data_four']
-//                },
-//                group_three: {
-//                    data: ['group_three_data_one', 'group_three_data_two', 'group_three_data_three', 'group_three_data_four']
-//                }
-//            }
-        });
+                //            maxItem: 12,
+                //            maxItemPerGroup: 6,
+                //            order: "asc",
+                //            hint: true,
+                //            searchOnFocus: true,
+                //            groupTemplate: "" +
+                //            "<table>" +
+                //            "<tr>" +
+                //            "<td>{{group_one}}</td>" +
+                //            "<td>{{group_two}}</td>" +
+                //            "<td>{{group_three}}</td>" +
+                //            "</tr>" +
+                //            "</table>",
+                //            source: {
+                //                group_one: {
+                //                    data: ['group_one_data_one', 'group_one_data_two', 'group_one_data_three', 'group_one_data_four']
+                //                },
+                //                group_two: {
+                //                    data: ['group_two_data_one', 'group_two_data_two', 'group_two_data_three', 'group_two_data_four']
+                //                },
+                //                group_three: {
+                //                    data: ['group_three_data_one', 'group_three_data_two', 'group_three_data_three', 'group_three_data_four']
+                //                }
+                //            }
+            });
 
-    </script>
+        </script>
 
-</div>
+    </div>
 
 </body>
+
 </html>

@@ -1,6 +1,7 @@
 <!doctype html>
 
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
 
@@ -13,134 +14,135 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 
-    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
     <script src="../../dist/jquery.typeahead.min.js"></script>
 
 </head>
+
 <body>
 
-<header class="header"></header>
+    <header class="header"></header>
 
-<div class="nav-wrapper">
-    <nav class="nav-container">
-        <div class="typeahead__container">
-            <div class="typeahead__field">
-                <div class="typeahead__query">
-                    <input class="js-nav-typeahead-input" name="q" placeholder="Search"
-                           autocomplete="off">
-                    <i class="fa fa-search"></i>
+    <div class="nav-wrapper">
+        <nav class="nav-container">
+            <div class="typeahead__container">
+                <div class="typeahead__field">
+                    <div class="typeahead__query">
+                        <input class="js-nav-typeahead-input" name="q" placeholder="Search" autocomplete="off">
+                        <i class="fa fa-search"></i>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <ul class="main-nav">
-            <li>
-                <a><i class="fa fa-home"></i> Home</a>
-            </li>
-            <li>
-                <a><i class="fa fa-tasks"></i> Master Section <i class="fa fa-chevron-left pull-right"></i></a>
-                <ul class="sub-nav">
-                    <li>
-                        <a>First Section</a>
-                    </li>
-                    <li>
-                        <a>Second Section</a>
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <a><i class="fa fa-futbol-o"></i> Sports <i class="fa fa-chevron-left pull-right"></i></a>
-                <ul class="sub-nav">
-                    <li>
-                        <a>Hockey</a>
-                    </li>
-                    <li>
-                        <a>Baseball</a>
-                    </li>
-                    <li>
-                        <a>Football</a>
-                    </li>
-                    <li>
-                        <a>Golf</a>
-                    </li>
-                    <li>
-                        <a>Soccer</a>
-                    </li>
-                    <li>
-                        <a>Tennis</a>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </nav>
-</div>
+            <ul class="main-nav">
+                <li>
+                    <a><i class="fa fa-home"></i> Home</a>
+                </li>
+                <li>
+                    <a><i class="fa fa-tasks"></i> Master Section <i class="fa fa-chevron-left pull-right"></i></a>
+                    <ul class="sub-nav">
+                        <li>
+                            <a>First Section</a>
+                        </li>
+                        <li>
+                            <a>Second Section</a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a><i class="fa fa-futbol-o"></i> Sports <i class="fa fa-chevron-left pull-right"></i></a>
+                    <ul class="sub-nav">
+                        <li>
+                            <a>Hockey</a>
+                        </li>
+                        <li>
+                            <a>Baseball</a>
+                        </li>
+                        <li>
+                            <a>Football</a>
+                        </li>
+                        <li>
+                            <a>Golf</a>
+                        </li>
+                        <li>
+                            <a>Soccer</a>
+                        </li>
+                        <li>
+                            <a>Tennis</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </div>
 
-<div class="main-container">
-    <h1>Navigation_v1 Demo</h1>
-    <h4>Edit this demo on <a href="https://jsfiddle.net/runningcoder/ogr7e52r/">JsFiddle</a></h4>
-</div>
+    <div class="main-container">
+        <h1>Navigation_v1 Demo</h1>
+        <h4>Edit this demo on <a href="https://jsfiddle.net/runningcoder/ogr7e52r/">JsFiddle</a></h4>
+    </div>
 
-<script>
-    $(function () {
+    <script>
+        $(function () {
 
-        var element = $('.typeahead__container'),
-            listItems = element.closest('.nav-wrapper').find('nav li'),
-            data = $.map(listItems, function (v, i) {
-                return {
-                    index: i,
-                    value: $(v).find('a:first').text().trim()
-                }
+            var element = $('.typeahead__container'),
+                listItems = element.closest('.nav-wrapper').find('nav li'),
+                data = $.map(listItems, function (v, i) {
+                    return {
+                        index: i,
+                        value: $(v).find('a:first').text().trim()
+                    }
+                });
+
+            $('.nav-container').find('a').on('click', function () {
+                if (!$(this).siblings('ul.sub-nav')[0]) return;
+                $(this).closest('li').toggleClass('open');
             });
 
-        $('.nav-container').find('a').on('click', function () {
-            if (!$(this).siblings('ul.sub-nav')[0]) return;
-            $(this).closest('li').toggleClass('open');
-        });
-
-        typeof $.typeahead === "function" && $.typeahead({
-            input: '.js-nav-typeahead-input',
-            minLength: 1,
-            display: 'value',
-            resultContainer: false,
-            source: {
-                data: data
-            },
-            callback: {
-                onSearch: function (node, query) {
-
-                    this.container.toggleClass('hasText', query.length >= 1);
-
-                    listItems.toggleClass('hidden', query.length >= 1).removeClass('open');
-
+            typeof $.typeahead === "function" && $.typeahead({
+                input: '.js-nav-typeahead-input',
+                minLength: 1,
+                display: 'value',
+                resultContainer: false,
+                source: {
+                    data: data
                 },
-                onResult: function (node, query, result, resultCount, resultCountPerGroup) {
+                callback: {
+                    onSearch: function (node, query) {
 
-                    var item,
-                        isSubItem;
+                        this.container.toggleClass('hasText', query.length >= 1);
 
-                    for (var i = 0, len = result.length; i < len; ++i) {
+                        listItems.toggleClass('hidden', query.length >= 1).removeClass('open');
 
-                        item = $(listItems[result[i].index]);
-                        isSubItem = item.parent().hasClass('sub-nav');
+                    },
+                    onResult: function (node, query, result, resultCount, resultCountPerGroup) {
 
-                        if (isSubItem) {
-                            item.parent().closest('li').attr('class', 'open')
+                        var item,
+                            isSubItem;
+
+                        for (var i = 0, len = result.length; i < len; ++i) {
+
+                            item = $(listItems[result[i].index]);
+                            isSubItem = item.parent().hasClass('sub-nav');
+
+                            if (isSubItem) {
+                                item.parent().closest('li').attr('class', 'open')
+                            }
+
+                            item.removeClass('hidden')
                         }
-
-                        item.removeClass('hidden')
                     }
-                }
-            },
-            debug: true
-        });
+                },
+                debug: true
+            });
 
-        $(document).on('click', '.typeahead__container.hasText .fa-search', function () {
-            $('.js-nav-typeahead-input').val('').trigger('input.typeahead');
-        });
+            $(document).on('click', '.typeahead__container.hasText .fa-search', function () {
+                $('.js-nav-typeahead-input').val('').trigger('input.typeahead');
+            });
 
-    })
-</script>
+        })
+    </script>
 
 
 </body>
+
 </html>
