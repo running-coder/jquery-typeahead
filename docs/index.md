@@ -41,7 +41,7 @@ $('.js-typeahead').typeahead({
 
 ## Config
 
-```
+``` javascript
 
 /**
  * @private
@@ -135,4 +135,3 @@ var _options = {
 };
 
 ```
-
