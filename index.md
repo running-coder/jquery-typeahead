@@ -1,4 +1,4 @@
-#Examples
+# Examples
 
 ## Install
 
@@ -133,5 +133,13 @@ var _options = {
     },
     debug: false // Display debug information (RECOMMENDED for dev environment)
 };
+
+```
+
+
+## Advanced
+``` javascript
+
+
 
 ```
