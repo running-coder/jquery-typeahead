@@ -2,7 +2,9 @@
 
 ## Install
 
-`yarn add ChaerilM/jquery-typeahead`
+```
+yarn add ChaerilM/jquery-typeahead
+```
 
 ## Setup
 ``` html
@@ -133,13 +135,5 @@ var _options = {
     },
     debug: false // Display debug information (RECOMMENDED for dev environment)
 };
-
-```
-
-
-## Advanced
-``` javascript
-
-
 
 ```
