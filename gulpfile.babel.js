@@ -1,7 +1,8 @@
 'use strict';
 
 import gulp from 'gulp';
-import sass from 'gulp-sass';
+import nodeSass from "node-sass";
+import gulpSass from 'gulp-sass';
 import cleanCSS from 'gulp-clean-css';
 import rename from 'gulp-rename';
 import replace from 'gulp-replace';
@@ -10,11 +11,13 @@ import uglify from 'gulp-uglify';
 import jshint from 'gulp-jshint';
 import saveLicense from 'uglify-save-license';
 
+let sass = gulpSass(nodeSass);
+
 let pkg = require('./package.json'),
     version = pkg.version,
     date = new Date(),
     yyyy = date.getFullYear().toString(),
-    mm = (date.getMonth()+1).toString(),
+    mm = (date.getMonth() + 1).toString(),
     dd = date.getDate().toString(),
     yyyymmdd = `${yyyy}-${mm}-${dd}`,
     banner = `/*!
@@ -34,13 +37,6 @@ gulp.task('scss', function () {
             outputStyle: 'expanded'
         }))
         .pipe(autoprefixer({
-            browsers: [
-                'last 3 versions',
-                'ie >= 8',
-                'ios >= 7',
-                'android >= 4.4',
-                'bb >= 10'
-            ],
             cascade: false
         }))
         .pipe(gulp.dest('./src'))
@@ -49,7 +45,7 @@ gulp.task('scss', function () {
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('jshint', function() {
+gulp.task('jshint', function () {
     return gulp.src('./src/jquery.typeahead.js')
         .pipe(jshint({
             shadow: true,
@@ -58,7 +54,7 @@ gulp.task('jshint', function() {
             // Switch statements "falls through"
             "-W086": true,
             validthis: true,
-            scripturl:true
+            scripturl: true
         }))
         .pipe(jshint.reporter('default'));
 });

@@ -487,7 +487,7 @@
   content: "";
   top: 50%;
   right: 0.55em;
-  margin-top: -0.675rem;
+  margin-top: calc($typeahead-loading-size / -2);
   width: 1.35rem;
   height: 1.35rem;
   -webkit-box-sizing: border-box;
