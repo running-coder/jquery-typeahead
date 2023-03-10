@@ -15,7 +15,7 @@
     "input",
     "autocomplete"
   ],
-  "homepage": "http://www.runningcoder.org/jquerytypeahead/",
+  "homepage": "https://chaerilm.github.io/jquery-typeahead/",
   "bugs": "https://github.com/ChaerilM/jquery-typeahead/issues",
   "repository": {
     "type": "git",
@@ -57,5 +57,11 @@
     "setupFiles": [
       "<rootDir>/test/jestSetupFile.js"
     ]
+  },
+  "resolutions": {
+    "jquery": ">=1.7.2"
+  },
+  "overrides": {
+    "jquery": ">=1.7.2"
   }
 }
