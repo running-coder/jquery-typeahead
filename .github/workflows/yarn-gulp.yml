@@ -25,5 +25,5 @@ jobs:
 
     - name: Build
       run: |
-        npm install
+        yarn
         gulp
