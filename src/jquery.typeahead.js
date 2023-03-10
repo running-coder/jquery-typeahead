@@ -100,8 +100,7 @@
             onPopulateSource: null,     // Perform operation on the source data before it gets in Typeahead data
             onCacheSave: null,          // Perform operation on the source data before it gets in Typeahead cache
             onSubmit: null,             // When Typeahead form is submitted
-            onCancel: null,             // Triggered if the typeahead had text inside and is cleared
-            onSelect: null              // Triggered when an item is selected from the list
+            onCancel: null              // Triggered if the typeahead had text inside and is cleared
         },
         selector: {
             container: "typeahead__container",
@@ -2452,11 +2451,6 @@
 
                         if (!scope.options.multiselect) {
                             scope.item = item;
-                            scope.helper.executeCallback.call(
-                                scope,
-                                scope.options.callback.onSelect,
-                                item
-                            )
                         }
 
                         if (
