@@ -4,7 +4,7 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.11.4 (2023-3-10)
+ * @version 2.11.4 (2023-3-13)
  * @link http://www.runningcoder.org/jquerytypeahead/
  */
 (function (factory) {
@@ -348,7 +348,7 @@
                 for (var i = 0, ii = this.options.dropdownFilter.length; i < ii; ++i) {
                     this.dropdownFilter[
                         this.options.dropdownFilter[i].value ? "static" : "dynamic"
-                        ].push(this.options.dropdownFilter[i]);
+                    ].push(this.options.dropdownFilter[i]);
                 }
             }
 
@@ -517,8 +517,8 @@
                             function: "unifySourceFormat()",
                             arguments: JSON.stringify(this.options.source),
                             message: 'Undefined "options.source.' +
-                            group +
-                            '.[data|ajax]" is Missing - Typeahead dropped'
+                                group +
+                                '.[data|ajax]" is Missing - Typeahead dropped'
                         });
 
                         _debug.print();
@@ -565,7 +565,7 @@
                                 node: this.selector,
                                 function: "unifySourceFormat()",
                                 message: "Missing LZString Library or group.cache, no compression will occur on group: " +
-                                group
+                                    group
                             });
 
                             _debug.print();
@@ -741,7 +741,7 @@
                             }
 
                             scope.options.cancelButton &&
-                            scope.toggleCancelButtonVisibility();
+                                scope.toggleCancelButtonVisibility();
 
                             if (
                                 scope.options.hint &&
@@ -770,7 +770,7 @@
 
                             if (scope.result.length ||
                                 (scope.searchGroups.length &&
-                                scope.displayEmptyTemplate)
+                                    scope.displayEmptyTemplate)
                             ) {
                                 scope.showLayout();
                             } else {
@@ -971,7 +971,7 @@
                             scope.requests[group].callback.beforeSend ||
                             groupSource.ajax.beforeSend;
                         typeof beforeSend === "function" &&
-                        beforeSend.apply(null, arguments);
+                            beforeSend.apply(null, arguments);
                     }
                 },
                 callback: {
@@ -1080,8 +1080,8 @@
                                     node: scope.selector,
                                     function: "handleRequests",
                                     message: 'Source function must return an object containing ".url" key for group "' +
-                                    group +
-                                    '"'
+                                        group +
+                                        '"'
                                 });
                                 _debug.print();
                             }
@@ -1172,12 +1172,12 @@
                             ) {
                                 _request = scope.requests[xhrObject.validForGroup[i]];
                                 _request.callback.fail instanceof Function &&
-                                _request.callback.fail.call(
-                                    scope,
-                                    jqXHR,
-                                    textStatus,
-                                    errorThrown
-                                );
+                                    _request.callback.fail.call(
+                                        scope,
+                                        jqXHR,
+                                        textStatus,
+                                        errorThrown
+                                    );
                             }
 
                             // {debug}
@@ -1205,7 +1205,7 @@
                                 _group = xhrObject.validForGroup[i];
                                 _request = scope.requests[_group];
                                 _request.callback.always instanceof Function &&
-                                _request.callback.always.call(scope, data, textStatus, jqXHR);
+                                    _request.callback.always.call(scope, data, textStatus, jqXHR);
 
                                 // #248, #303 Aborted requests would call populate with invalid data
                                 if (textStatus === 'abort') return;
@@ -1237,7 +1237,7 @@
                             ) {
                                 _request = scope.requests[xhrObject.validForGroup[i]];
                                 _request.callback.then instanceof Function &&
-                                _request.callback.then.call(scope, jqXHR, textStatus);
+                                    _request.callback.then.call(scope, jqXHR, textStatus);
                             }
                         });
                 })(group, this.requests[group]);
@@ -1282,7 +1282,7 @@
                     _debug.log({
                         node: this.selector,
                         function: "populateSource()",
-                        arguments: JSON.stringify({group: group}),
+                        arguments: JSON.stringify({ group: group }),
                         message: "Invalid data type, must be Array type."
                     });
                     _debug.print();
@@ -1306,8 +1306,8 @@
                             function: "populateSource()",
                             arguments: JSON.stringify(extraData),
                             message: "WARNING - this.options.source." +
-                            group +
-                            ".data Must be an Array or a function that returns an Array."
+                                group +
+                                ".data Must be an Array or a function that returns an Array."
                         });
 
                         _debug.print();
@@ -1333,8 +1333,8 @@
                             node: this.selector,
                             function: "populateSource()",
                             message: "WARNING - NULL/BOOLEAN value inside " +
-                            group +
-                            "! The data was skipped."
+                                group +
+                                "! The data was skipped."
                         });
 
                         _debug.print();
@@ -1425,7 +1425,7 @@
                             .html(
                                 compiledTemplate
                                     .replace(/\{\{([\w\-\.]+)(?:\|(\w+))?}}/g, function (match,
-                                                                                         index) {
+                                        index) {
                                         return scope.helper.namespace.call(
                                             scope,
                                             index,
@@ -1583,8 +1583,8 @@
             if (!this.result.length) return;
 
             var itemList = this.resultContainer
-                    .find("." + this.options.selector.item)
-                    .not("[disabled]"),
+                .find("." + this.options.selector.item)
+                .not("[disabled]"),
                 activeItem = itemList.filter(".active"),
                 activeItemIndex = activeItem[0] ? itemList.index(activeItem) : null,
                 activeDataIndex = activeItem[0] ? activeItem.attr("data-index") : null,
@@ -1738,7 +1738,7 @@
                     this.node,
                     itemList,
                     (newActiveItemIndex !== null &&
-                    itemList.eq(newActiveItemIndex).find("a:first")) ||
+                        itemList.eq(newActiveItemIndex).find("a:first")) ||
                     undefined,
                     (newActiveDataIndex !== null && this.result[newActiveDataIndex]) ||
                     undefined,
@@ -1862,7 +1862,7 @@
                         : this.options.filter;
                 groupMatcher =
                     (typeof this.options.source[group].matcher === "function" &&
-                    this.options.source[group].matcher) ||
+                        this.options.source[group].matcher) ||
                     matcher;
 
                 if (!this.source[group]) continue;
@@ -2016,7 +2016,7 @@
                             }
 
                             this.tmpResult[groupReference].push(
-                                $.extend(true, {matchedKey: displayKeys[v]}, item)
+                                $.extend(true, { matchedKey: displayKeys[v] }, item)
                             );
                             this.resultItemCount++;
                         }
@@ -2271,7 +2271,7 @@
                 _group = _item.group;
                 _href =
                     (!this.options.multiselect &&
-                    this.options.source[_item.group].href) ||
+                        this.options.source[_item.group].href) ||
                     this.options.href;
                 _display = [];
                 _displayKeys =
@@ -2302,16 +2302,16 @@
                         (this.groupTemplate
                             ? groupTemplate.find('[data-group-template="' + _group + '"] ul')
                             : groupTemplate).append(
-                            $("<li/>", {
-                                class: scope.options.selector.group,
-                                html: $("<a/>", {
-                                    href: "javascript:;",
-                                    html: _groupTemplate || _group,
-                                    tabindex: -1
-                                }),
-                                "data-search-group": _group
-                            })
-                        );
+                                $("<li/>", {
+                                    class: scope.options.selector.group,
+                                    html: $("<a/>", {
+                                        href: "javascript:;",
+                                        html: _groupTemplate || _group,
+                                        tabindex: -1
+                                    }),
+                                    "data-search-group": _group
+                                })
+                            );
                     }
                 }
 
@@ -2348,7 +2348,7 @@
                                 }
 
                                 _aHtml = _template.replace(
-                                    /\{\{([^\|}]+)(?:\|([^}]+))*}}/gi,
+                                    /\{\{([^|}]+)(?:\|([^|}]+))*}}/gi,
                                     function (match, index, options) {
                                         var value = scope.helper.cleanStringFromScript(
                                             String(
@@ -2715,7 +2715,7 @@
 
                 var hintValue =
                     (hint.length > 0 &&
-                    this.rawQuery + hint.substring(this.query.length)) ||
+                        this.rawQuery + hint.substring(this.query.length)) ||
                     "";
                 this.hint.container.val(hintValue);
 
@@ -2751,7 +2751,7 @@
                                             ($(e.target).closest(
                                                 "." + scope.options.selector.filter
                                             )[0] &&
-                                            $(e.target).closest(scope.container)[0]) ||
+                                                $(e.target).closest(scope.container)[0]) ||
                                             scope.hasDragged
                                         )
                                             return;
@@ -2780,7 +2780,7 @@
                 template,
                 all =
                     (typeof this.options.dropdownFilter === "string" &&
-                    this.options.dropdownFilter) ||
+                        this.options.dropdownFilter) ||
                     "All",
                 ulScope = this.container.find("." + this.options.selector.dropdown),
                 filter;
@@ -2789,7 +2789,7 @@
             if (
                 type === "static" &&
                 (this.options.dropdownFilter === true ||
-                typeof this.options.dropdownFilter === "string")
+                    typeof this.options.dropdownFilter === "string")
             ) {
                 this.dropdownFilter.static.push({
                     key: "group",
@@ -2840,11 +2840,11 @@
                         ulScope.append(
                             $("<li/>", {
                                 class: scope.options.selector.dropdownItem +
-                                " " +
-                                scope.helper.slugify.call(
-                                    scope,
-                                    filter.key + "-" + (filter.value[k] || all)
-                                ),
+                                    " " +
+                                    scope.helper.slugify.call(
+                                        scope,
+                                        filter.key + "-" + (filter.value[k] || all)
+                                    ),
                                 html: $("<a/>", {
                                     href: "javascript:;",
                                     html: template,
@@ -3100,8 +3100,8 @@
                     text: templateValue,
                     click: function (e) {
                         var currentLabel = $(this).closest(
-                                "." + scope.options.selector.label
-                            ),
+                            "." + scope.options.selector.label
+                        ),
                             index = scope.label.container
                                 .find("." + scope.options.selector.label)
                                 .index(currentLabel);
@@ -3130,8 +3130,8 @@
                     html: "×",
                     click: function (e) {
                         var label = $(this).closest(
-                                "." + scope.options.selector.label
-                            ),
+                            "." + scope.options.selector.label
+                        ),
                             index = scope.label.container
                                 .find("." + scope.options.selector.label)
                                 .index(label);
@@ -3241,8 +3241,8 @@
             this.container.addClass(
                 [
                     this.result.length ||
-                    (this.searchGroups.length &&
-                    this.displayEmptyTemplate)
+                        (this.searchGroups.length &&
+                            this.displayEmptyTemplate)
                         ? "result "
                         : "",
                     this.options.hint && this.searchGroups.length ? "hint" : "",
@@ -3496,7 +3496,7 @@
                 string = String(string);
 
                 var searchString =
-                        (accents && this.helper.removeAccent.call(this, string)) || string,
+                    (accents && this.helper.removeAccent.call(this, string)) || string,
                     matches = [];
 
                 if (!Array.isArray(keys)) {
@@ -3609,7 +3609,7 @@
             cleanStringFromScript: function (string) {
                 return (
                     (typeof string === "string" &&
-                    string.replace(/<\/?(?:script|iframe)\b[^>]*>/gm, "")) ||
+                        string.replace(/<\/?(?:script|iframe)\b[^>]*>/gmi, "")) ||
                     string
                 );
             },
@@ -3888,9 +3888,9 @@
 
     // IE8 Shims
     window.console = window.console || {
-            log: function () {
-            }
-        };
+        log: function () {
+        }
+    };
 
     if (!Array.isArray) {
         Array.isArray = function (arg) {
