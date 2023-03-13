@@ -2,9 +2,7 @@
 
 ## Install
 
-```
-yarn add ChaerilM/jquery-typeahead
-```
+    yarn add ChaerilM/jquery-typeahead
 
 ## Setup
 ``` html
