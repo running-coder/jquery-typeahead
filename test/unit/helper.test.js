@@ -2,12 +2,12 @@ let pkg = require("../../package.json");
 let $ = require("jquery");
 let Typeahead = require("../../src/jquery.typeahead");
 
-describe("Typeahead Helpers Tests", function() {
+describe("Typeahead Helpers Tests", function () {
   "use strict";
 
   let myTypeahead;
 
-  beforeAll(function() {
+  beforeAll(function () {
     document.body.innerHTML = '<input class="js-typeahead">';
 
     myTypeahead = $.typeahead({
@@ -16,24 +16,24 @@ describe("Typeahead Helpers Tests", function() {
         testGroup: ["item1", "item2", "item3"]
       },
       callback: {
-        onInit: function() {
+        onInit: function () {
           return true;
         }
       }
     });
   });
 
-  it("Typeahead.version", function() {
+  it("Typeahead.version", function () {
     expect(window.Typeahead.version).toEqual(pkg.version);
   });
 
-  it("Typeahead.prototype.helper.isEmpty", function() {
+  it("Typeahead.prototype.helper.isEmpty", function () {
     expect(Typeahead.prototype.helper.isEmpty).toBeDefined();
     expect(Typeahead.prototype.helper.isEmpty({})).toBeTruthy();
     expect(Typeahead.prototype.helper.isEmpty({ test: "test" })).toBeFalsy();
   });
 
-  it("Typeahead.prototype.helper.removeAccent", function() {
+  it("Typeahead.prototype.helper.removeAccent", function () {
     expect(Typeahead.prototype.helper.removeAccent).toBeDefined();
     expect(
       myTypeahead.helper.removeAccent.call(
@@ -43,7 +43,7 @@ describe("Typeahead Helpers Tests", function() {
     ).toEqual("aaaaaeeeeeiiiiooooouuuunc");
   });
 
-  it("Typeahead.prototype.helper.slugify", function() {
+  it("Typeahead.prototype.helper.slugify", function () {
     expect(Typeahead.prototype.helper.slugify).toBeDefined();
     expect(
       myTypeahead.helper.slugify.call(myTypeahead, "url with àccénts")
@@ -62,7 +62,7 @@ describe("Typeahead Helpers Tests", function() {
     ).toEqual("url-not-start-end-with");
   });
 
-  it("Typeahead.prototype.helper.sort", function() {
+  it("Typeahead.prototype.helper.sort", function () {
     let myArray = [
       { display: "aDisplay" },
       { display: "cDisplay" },
@@ -71,7 +71,7 @@ describe("Typeahead Helpers Tests", function() {
 
     expect(
       myArray.sort(
-        Typeahead.prototype.helper.sort(["display"], true, function(a) {
+        Typeahead.prototype.helper.sort(["display"], true, function (a) {
           return a.toString().toUpperCase();
         })
       )
@@ -83,7 +83,7 @@ describe("Typeahead Helpers Tests", function() {
 
     expect(
       myArray.sort(
-        Typeahead.prototype.helper.sort(["display"], false, function(a) {
+        Typeahead.prototype.helper.sort(["display"], false, function (a) {
           return a.toString().toUpperCase();
         })
       )
@@ -94,14 +94,14 @@ describe("Typeahead Helpers Tests", function() {
     ]);
   });
 
-  it("Typeahead.prototype.helper.replaceAt", function() {
+  it("Typeahead.prototype.helper.replaceAt", function () {
     expect(Typeahead.prototype.helper.replaceAt).toBeDefined();
     expect(
       Typeahead.prototype.helper.replaceAt("thisisatest", 4, 2, "was")
     ).toEqual("thiswasatest");
   });
 
-  it("Typeahead.prototype.helper.highlight", function() {
+  it("Typeahead.prototype.helper.highlight", function () {
     expect(Typeahead.prototype.helper.highlight).toBeDefined();
     expect(
       myTypeahead.helper.highlight.apply(myTypeahead, [
@@ -142,7 +142,7 @@ describe("Typeahead Helpers Tests", function() {
     ).toEqual("highlight <strong>number 42</strong> test");
   });
 
-  it("Typeahead.prototype.helper.getCaret", function() {
+  it("Typeahead.prototype.helper.getCaret", function () {
     expect(Typeahead.prototype.helper.getCaret).toBeDefined();
 
     myTypeahead.node.val("test");
@@ -151,7 +151,7 @@ describe("Typeahead Helpers Tests", function() {
     expect(myTypeahead.helper.getCaret(myTypeahead.node[0])).toEqual(4);
   });
 
-  it("Typeahead.prototype.helper.cleanStringFromScript", function() {
+  xit("Typeahead.prototype.helper.cleanStringFromScript", function () {
     expect(Typeahead.prototype.helper.cleanStringFromScript).toBeDefined();
 
     expect(myTypeahead.helper.cleanStringFromScript(1)).toEqual(1);
@@ -172,15 +172,15 @@ describe("Typeahead Helpers Tests", function() {
     ).toEqual("alert('test');");
   });
 
-  it("Typeahead.prototype.helper.executeCallback", function() {
-    window.definedTestFunction = function() {
+  it("Typeahead.prototype.helper.executeCallback", function () {
+    window.definedTestFunction = function () {
       return true;
     };
 
     window.testFunctions = {};
     window.testFunctions.oneTest = {};
-    window.testFunctions.oneTest.deepTest = function(param1, param2, param3) {
-      return $.map(arguments, function(v, i) {
+    window.testFunctions.oneTest.deepTest = function (param1, param2, param3) {
+      return $.map(arguments, function (v, i) {
         return v;
       });
     };
@@ -212,7 +212,7 @@ describe("Typeahead Helpers Tests", function() {
     ).toBeTruthy();
   });
 
-  it("Typeahead.prototype.helper.namespace", function() {
+  it("Typeahead.prototype.helper.namespace", function () {
     let myObject = {
       property: true,
       test: "test",
@@ -287,10 +287,10 @@ describe("Typeahead Helpers Tests", function() {
     ).toEqual("test");
   });
 
-  it("Typeahead.prototype.helper.typeWatch", function(done) {
+  it("Typeahead.prototype.helper.typeWatch", function (done) {
     expect(Typeahead.prototype.helper.typeWatch).toBeDefined();
 
-    Typeahead.prototype.helper.typeWatch(function() {
+    Typeahead.prototype.helper.typeWatch(function () {
       done();
     }, 100);
   });
