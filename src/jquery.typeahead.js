@@ -1926,7 +1926,7 @@
                                 continue;
                             }
 
-                            displayValue = this.helper.cleanStringFromScript(displayValue);
+                            displayValue = displayValue;
                         }
 
                         if (typeof groupFilter === "function") {
@@ -2175,7 +2175,7 @@
                                 : this.options.multiselect.limitTemplate.replace(
                                     /\{\{query}}/gi,
                                     $("<div>")
-                                        .text(this.helper.cleanStringFromScript(this.query))
+                                        .text(this.query)
                                         .html()
                                 );
                     } else {
@@ -2189,7 +2189,7 @@
                             : this.options.emptyTemplate.replace(
                                 /\{\{query}}/gi,
                                 $("<div>")
-                                    .text(this.helper.cleanStringFromScript(this.query))
+                                    .text(this.query)
                                     .html()
                             );
                 } else {
@@ -2350,15 +2350,13 @@
                                 _aHtml = _template.replace(
                                     /\{\{([^|}]+)(?:\|([^|}]+))*}}/gi,
                                     function (match, index, options) {
-                                        var value = scope.helper.cleanStringFromScript(
-                                            String(
-                                                scope.helper.namespace.call(
-                                                    scope,
-                                                    index,
-                                                    _item,
-                                                    "get",
-                                                    ""
-                                                )
+                                        var value = String(
+                                            scope.helper.namespace.call(
+                                                scope,
+                                                index,
+                                                _item,
+                                                "get",
+                                                ""
                                             )
                                         );
 
@@ -2409,9 +2407,7 @@
                                     '<span class="' +
                                     scope.options.selector.display +
                                     '">' +
-                                    scope.helper.cleanStringFromScript(
-                                        String(_display.join(" "))
-                                    ) +
+                                    String(_display.join(" ")) +
                                     "</span>";
                             }
 
@@ -3599,19 +3595,6 @@
                     textRange.collapse(false);
                     textRange.select();
                 }
-            },
-
-            /**
-             * Clean strings from possible XSS (script and iframe tags)
-             * @param string
-             * @returns {string}
-             */
-            cleanStringFromScript: function (string) {
-                return (
-                    (typeof string === "string" &&
-                        string.replace(/<\/?(?:script|iframe)\b[^>]*>/gmi, "")) ||
-                    string
-                );
             },
 
             /**
