@@ -11,34 +11,32 @@ describe("Typeahead cache option Tests", () => {
   let myTypeahead;
 
   function storageMock() {
-    var storage = {};
+    const storage = {};
 
     return {
-      setItem: function(key, value) {
-        storage[key] = value || "";
-      },
-      getItem: function(key) {
+      getItem: function (key) {
         return key in storage ? storage[key] : null;
       },
-      removeItem: function(key) {
+      setItem: function (key, value) {
+        storage[key] = value;
+      },
+      removeItem: function (key) {
         delete storage[key];
       },
-      get length() {
-        return Object.keys(storage).length;
-      },
-      key: function(i) {
-        var keys = Object.keys(storage);
-        return keys[i] || null;
-      },
-      clear: function() {
-        storage = {};
+      clear: function () {
+        Object.keys(storage).forEach(function (key) {
+          delete storage[key];
+        });
       }
     };
   }
 
   beforeAll(() => {
-    window.localStorage = storageMock();
-    window.sessionStorage = storageMock();
+    const localStorageMock = storageMock();
+    const sessionStorageMock = storageMock();
+    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+    Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
+
   });
 
   describe("Typeahead cache option Tests - Global configuration", () => {
@@ -47,8 +45,10 @@ describe("Typeahead cache option Tests", () => {
       group3Counter = 0;
 
     beforeAll(() => {
-      window.localStorage = storageMock();
-      window.sessionStorage = storageMock();
+      const localStorageMock = storageMock();
+      const sessionStorageMock = storageMock();
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+      Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
 
       document.body.innerHTML = '<input class="js-typeahead">';
 
@@ -59,14 +59,14 @@ describe("Typeahead cache option Tests", () => {
         cache: true,
         source: {
           group1: {
-            data: function() {
+            data: function () {
               group1Counter++;
               return ["group1-item1", "group1-item2", "group1-item3"];
             }
           },
           group2: {
             dynamic: true,
-            data: function() {
+            data: function () {
               group2Counter++;
               return ["group2-item1", "group2-item2", "group2-item3"];
             }
@@ -74,7 +74,7 @@ describe("Typeahead cache option Tests", () => {
           group3: {
             cache: false,
             dynamic: true,
-            data: function() {
+            data: function () {
               group3Counter++;
               return ["group3-item1", "group3-item2", "group3-item3"];
             }
@@ -107,7 +107,7 @@ describe("Typeahead cache option Tests", () => {
       myTypeahead.node
         .val("group")
         .triggerHandler("input")
-        .done(function(data) {
+        .done(function (data) {
           expect(group1Counter).toEqual(1);
           expect(group2Counter).toEqual(1);
           expect(group3Counter).toEqual(2);
@@ -133,18 +133,18 @@ describe("Typeahead cache option Tests", () => {
           group1: {
             cache: true,
             compression: true,
-            data: function() {
+            data: function () {
               return ["group1-item1", "group1-item2", "group1-item3"];
             }
           },
           group2: {
             cache: "sessionStorage",
-            data: function() {
+            data: function () {
               return ["group2-item1", "group2-item2", "group2-item3"];
             }
           },
           group3: {
-            data: function() {
+            data: function () {
               return ["group3-item1", "group3-item2", "group3-item3"];
             }
           }
