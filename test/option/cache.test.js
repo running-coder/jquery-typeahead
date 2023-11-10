@@ -78,6 +78,14 @@ describe("Typeahead cache option Tests", () => {
               group3Counter++;
               return ["group3-item1", "group3-item2", "group3-item3"];
             }
+          },
+          group4: {
+            cache: "indexedDB",
+            dynamic: true,
+            data: function () {
+              group4Counter++;
+              return ["group4-item1", "group4-item2", "group4-item3"];
+            }
           }
         }
       });
