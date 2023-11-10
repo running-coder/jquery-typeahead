@@ -480,7 +480,6 @@
 
 .typeahead__container.loading .typeahead__query:before, .typeahead__container.loading .typeahead__query:after {
   -webkit-transition: all 0s linear, opacity 0.2s ease;
-  -o-transition: all 0s linear, opacity 0.2s ease;
   transition: all 0s linear, opacity 0.2s ease;
   position: absolute;
   z-index: 3;

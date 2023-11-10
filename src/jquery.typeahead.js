@@ -4,8 +4,8 @@
  * Licensed under the MIT license
  *
  * @author Tom Bertrand
- * @version 2.12.0 (2023-6-13)
- * @link http://www.runningcoder.org/jquerytypeahead/
+ * @version 2.12.0 (2023-11-10)
+ * @link https://github.com/ChaerilM/jquery-typeahead
  */
 (function (factory) {
   if (typeof define === "function" && define.amd) {
@@ -30,7 +30,7 @@
   "use strict";
 
   window.Typeahead = {
-    version: "2.12.0",
+    version: '2.12.0',
   };
 
   /**
