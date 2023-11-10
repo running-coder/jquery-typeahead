@@ -51,10 +51,10 @@
     "uglify-save-license": "^0.4.1"
   },
   "scripts": {
-    "test": "jest",
-    "gulp": "gulp",
     "eslint": "eslint src/*.js",
+    "gulp": "gulp",
     "stylelint": "stylelint src/*.scss",
+    "test": "jest",
     "watch": "gulp watch"
   }
 }
