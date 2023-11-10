@@ -1,4 +1,4 @@
-import sinon from "sinon";
+const sinon = require('sinon/pkg/sinon');
 
 /**
  * Mocking legacy code global objects/functions required for our

@@ -1,6 +1,6 @@
 const $ = require("jquery");
 const Typeahead = require("../../src/jquery.typeahead");
-const sinon = require("sinon");
+const sinon = require("sinon/pkg/sinon");
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
