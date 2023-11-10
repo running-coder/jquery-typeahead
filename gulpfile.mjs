@@ -12,7 +12,6 @@ import jshint from 'gulp-jshint';
 import saveLicense from 'uglify-save-license';
 import fs from 'fs';
 
-const sass = sassModule(nodeSass);
 
 const pkg = JSON.parse(fs.readFileSync('./package.json'));
 
@@ -34,6 +33,8 @@ const banner = `/*!
 `;
 
 function scss() {
+    const sass = sassModule(nodeSass);
+
     return gulp
         .src('./src/jquery.typeahead.scss')
         .pipe(sass({ outputStyle: 'expanded' }).on('error', sass.logError))
