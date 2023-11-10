@@ -1,0 +1,29 @@
+
+// VARIABLES -----------------------------------------------------------------------------------------------------------
+
+$typeahead-font-size: 1rem !default;
+$typeahead-line-height: 1.25 !default;
+$typeahead-font-family: lato, "Helvetica Neue", arial, helvetica, sans-serif !default;
+$typeahead-primary-color: #66afe9 !default;
+$typeahead-cancel-color: #d0021b !default;
+$typeahead-radius: 2px !default;
+$typeahead-shadow: false !default; // true / false
+$typeahead-dropdown-spacing: 5px !default;
+$typeahead-outline-color: $typeahead-primary-color !default;
+$typeahead-loading-size: 1.35rem !default;
+$typeahead-padding-y: 0.5rem !default;
+$typeahead-padding-x: 0.75rem !default;
+$typeahead-color: #555 !default;
+$typeahead-border-color: #ccc !default;
+$typeahead-group-color: color.adjust($typeahead-primary-color, $lightness: -30%) !default;
+$typeahead-group-background: color.adjust($typeahead-primary-color, $lightness: 30%) !default;
+$typeahead-group-border-color: color.adjust($typeahead-primary-color, $lightness: 20%) !default;
+$typeahead-item-color: #333 !default;
+$typeahead-item-background: #fff !default;
+$typeahead-item-hover-background: #f5f5f5 !default;
+$typeahead-item-disabled-color: #bababa !default;
+$typeahead-item-disabled-background: #fafafa !default;
+$typeahead-label-color: #3a99fc !default;
+$typeahead-label-font-size: calc(#{$typeahead-font-size} * 0.875) !default;
+$typeahead-label-border-color: #c2e0ff !default;
+$typeahead-label-background: color.adjust($typeahead-primary-color, $lightness: 30%) !default;
