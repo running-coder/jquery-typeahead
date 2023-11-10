@@ -1,16 +1,21 @@
 'use strict';
 
-const gulp = require('gulp');
-const sass = require('gulp-sass')(require('node-sass'));
-const cleanCSS = require('gulp-clean-css');
-const rename = require('gulp-rename');
-const replace = require('gulp-replace');
-const autoprefixer = require('gulp-autoprefixer');
-const uglify = require('gulp-uglify');
-const jshint = require('gulp-jshint');
-const saveLicense = require('uglify-save-license');
+import gulp from 'gulp';
+import sassModule from 'gulp-sass';
+import nodeSass from 'node-sass';
+import cleanCSS from 'gulp-clean-css';
+import rename from 'gulp-rename';
+import replace from 'gulp-replace';
+import autoprefixer from 'gulp-autoprefixer';
+import uglify from 'gulp-uglify';
+import jshint from 'gulp-jshint';
+import saveLicense from 'uglify-save-license';
+import fs from 'fs';
 
-const pkg = require('./package.json');
+const sass = sassModule(nodeSass);
+
+const pkg = JSON.parse(fs.readFileSync('./package.json'));
+
 const version = pkg.version;
 const date = new Date();
 const yyyy = date.getFullYear().toString();
@@ -81,8 +86,8 @@ function watch() {
     });
 }
 
-exports.scss = scss;
-exports.jshint = jshintTask;
-exports.js = js;
-exports.watch = watch;
-exports.default = gulp.parallel(scss, js);
+// Export your tasks
+export { scss, jshintTask as jshint, js, watch };
+
+// Export default task
+export default gulp.parallel(scss, js);
