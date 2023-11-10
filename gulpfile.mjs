@@ -2,7 +2,7 @@
 
 import gulp from 'gulp';
 import sassModule from 'gulp-sass';
-import nodeSass from 'node-sass';
+import * as dartSass from 'sass';
 import cleanCSS from 'gulp-clean-css';
 import rename from 'gulp-rename';
 import replace from 'gulp-replace';
@@ -33,7 +33,7 @@ const banner = `/*!
 `;
 
 function scss() {
-    const sass = sassModule(nodeSass);
+    const sass = sassModule(dartSass);
 
     return gulp
         .src('./src/jquery.typeahead.scss')
