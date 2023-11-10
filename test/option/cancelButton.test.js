@@ -29,16 +29,16 @@ describe("Typeahead cancelButton option Tests", () => {
         minLength: 1,
         cancelButton: true,
         source: {
-          data: ["test1", "test2", "test3", "test4", "test5"]
-        }
+          data: ["test1", "test2", "test3", "test4", "test5"],
+        },
       });
     });
 
     it("Should show/hide the cancel button when search is empty/not empty", () => {
       expect(
         myTypeahead.container.find(
-          `.${myTypeahead.options.selector.cancelButton}`
-        )
+          `.${myTypeahead.options.selector.cancelButton}`,
+        ),
       ).toHaveLength(1);
       expect(myTypeahead.container.hasClass("cancel")).toBeFalsy();
 
@@ -57,17 +57,14 @@ describe("Typeahead cancelButton option Tests", () => {
       myTypeahead.node.trigger("input");
 
       let items = myTypeahead.container.find(
-        "." + myTypeahead.options.selector.item
+        "." + myTypeahead.options.selector.item,
       );
-      items
-        .eq(0)
-        .find("a")
-        .trigger("click");
+      items.eq(0).find("a").trigger("click");
 
       expect(
         myTypeahead.container.find(
-          `.${myTypeahead.options.selector.cancelButton}`
-        )
+          `.${myTypeahead.options.selector.cancelButton}`,
+        ),
       ).toHaveLength(1);
       expect(myTypeahead.container.hasClass("cancel")).toBeTruthy();
     });
@@ -77,19 +74,16 @@ describe("Typeahead cancelButton option Tests", () => {
       myTypeahead.node.trigger("input");
 
       let items = myTypeahead.container.find(
-        "." + myTypeahead.options.selector.item
+        "." + myTypeahead.options.selector.item,
       );
-      items
-        .eq(0)
-        .find("a")
-        .trigger("click");
+      items.eq(0).find("a").trigger("click");
 
       myTypeahead.node.trigger($.Event("keydown", { keyCode: 27 }));
 
       expect(
         myTypeahead.container.find(
-          `.${myTypeahead.options.selector.cancelButton}`
-        )
+          `.${myTypeahead.options.selector.cancelButton}`,
+        ),
       ).toHaveLength(1);
       expect(myTypeahead.container.hasClass("cancel")).toBeFalsy();
     });

@@ -18,21 +18,21 @@ describe("Typeahead onSendRequest Callback Tests", () => {
       source: {
         group1: {
           ajax: {
-            url: ""
-          }
+            url: "",
+          },
         },
         group2: {
           ajax: {
-            url: ""
-          }
-        }
+            url: "",
+          },
+        },
       },
       callback: {
-        onSendRequest: function(node, event) {
+        onSendRequest: function (node, event) {
           // Return false will prevent from sending Ajax request(s)
           return !!this.query.length;
-        }
-      }
+        },
+      },
     });
   });
 

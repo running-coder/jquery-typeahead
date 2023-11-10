@@ -13,7 +13,7 @@ describe("Typeahead Init from one Typeahead selector inside configuration", () =
       generateOnLoad: true,
       display: ["key1", "key2", "key3"],
       highlight: false,
-      template: function() {
+      template: function () {
         return "{{id}} {{key1}} {{key2}} {{key3}}";
       },
       source: [
@@ -21,13 +21,13 @@ describe("Typeahead Init from one Typeahead selector inside configuration", () =
           id: 1,
           key1: "Test1",
           key2: undefined,
-          key3: "Test3"
+          key3: "Test3",
         },
         {
           id: 2,
-          key2: "Test2"
-        }
-      ]
+          key2: "Test2",
+        },
+      ],
     });
   });
 
@@ -36,7 +36,7 @@ describe("Typeahead Init from one Typeahead selector inside configuration", () =
     myTypeahead.node.trigger("input");
 
     expect(myTypeahead.resultHtml.find("a:eq(0)").html()).toEqual(
-      "1 Test1  Test3"
+      "1 Test1  Test3",
     );
     expect(myTypeahead.resultHtml.find("a:eq(1)").html()).toEqual("2  Test2 ");
   });

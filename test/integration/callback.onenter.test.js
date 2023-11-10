@@ -19,22 +19,22 @@ describe("Typeahead onEnter and onLeave Callback Tests", () => {
       generateOnLoad: true,
       source: ["data1", "data2"],
       callback: {
-        onEnter: function(node, li, item, e) {
+        onEnter: function (node, li, item, e) {
           onEnterItem = item;
           onEnterCount++;
         },
-        onLeave: function(node, li, item, e) {
+        onLeave: function (node, li, item, e) {
           onLeaveItem = item;
           onLeaveCount++;
-        }
-      }
+        },
+      },
     });
   });
 
   it("Should call onEnter callback first item is browser with arrow down", () => {
     myTypeahead.navigate($.Event("keydown", { keyCode: 40 }));
     expect(
-      myTypeahead.resultContainer.find("li:eq(0)").hasClass("active")
+      myTypeahead.resultContainer.find("li:eq(0)").hasClass("active"),
     ).toBeTruthy();
     expect(onEnterCount).toEqual(1);
     expect(onLeaveCount).toEqual(1);
@@ -42,22 +42,22 @@ describe("Typeahead onEnter and onLeave Callback Tests", () => {
     expect(onEnterItem).toEqual({
       matchedKey: "display",
       display: "data1",
-      group: "group"
+      group: "group",
     });
 
     myTypeahead.navigate($.Event("keydown", { keyCode: 40 }));
     expect(
-      myTypeahead.resultContainer.find("li:eq(1)").hasClass("active")
+      myTypeahead.resultContainer.find("li:eq(1)").hasClass("active"),
     ).toBeTruthy();
     expect(onLeaveItem).toEqual({
       matchedKey: "display",
       display: "data1",
-      group: "group"
+      group: "group",
     });
     expect(onEnterItem).toEqual({
       matchedKey: "display",
       display: "data2",
-      group: "group"
+      group: "group",
     });
 
     myTypeahead.navigate($.Event("keydown", { keyCode: 40 }));
@@ -65,13 +65,13 @@ describe("Typeahead onEnter and onLeave Callback Tests", () => {
     expect(onLeaveItem).toEqual({
       matchedKey: "display",
       display: "data2",
-      group: "group"
+      group: "group",
     });
     expect(onEnterItem).toBeUndefined();
 
     myTypeahead.navigate($.Event("keydown", { keyCode: 38 }));
     expect(
-      myTypeahead.resultContainer.find("li:eq(1)").hasClass("active")
+      myTypeahead.resultContainer.find("li:eq(1)").hasClass("active"),
     ).toBeTruthy();
     expect(onEnterCount).toEqual(4);
     expect(onLeaveCount).toEqual(4);
@@ -79,7 +79,7 @@ describe("Typeahead onEnter and onLeave Callback Tests", () => {
     expect(onEnterItem).toEqual({
       matchedKey: "display",
       display: "data2",
-      group: "group"
+      group: "group",
     });
   });
 });

@@ -20,7 +20,7 @@ describe("Typeahead display option Tests", () => {
           "booleanT",
           "booleanF",
           "undefined",
-          "deeper.key.level"
+          "deeper.key.level",
         ],
         source: {
           data: [
@@ -31,12 +31,12 @@ describe("Typeahead display option Tests", () => {
               booleanF: false,
               deeper: {
                 key: {
-                  level: 42
-                }
-              }
-            }
-          ]
-        }
+                  level: 42,
+                },
+              },
+            },
+          ],
+        },
       });
     });
 

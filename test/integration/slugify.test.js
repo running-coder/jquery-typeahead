@@ -16,9 +16,9 @@ describe("Typeahead slugify", () => {
         {
           id: 1,
           display: "test",
-          url: "test of an url"
-        }
-      ]
+          url: "test of an url",
+        },
+      ],
     });
   });
 
@@ -26,7 +26,7 @@ describe("Typeahead slugify", () => {
     myTypeahead.node.val("test").trigger("input");
 
     expect(myTypeahead.resultContainer.find("a:first").attr("href")).toEqual(
-      "test-of-an-url"
+      "test-of-an-url",
     );
   });
 });

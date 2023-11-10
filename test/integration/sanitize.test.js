@@ -20,14 +20,14 @@ describe("Typeahead Sanitize Tests", () => {
         {
           id: "1",
           display: "Test & Sanitize",
-          details: "\u003cscript\u003ealert('test')\u003c/script\u003e"
+          details: "\u003cscript\u003ealert('test')\u003c/script\u003e",
         },
         {
           id: "2",
           display: "More Test > Sanitize",
-          details: "<script>alert('test')</script>"
-        }
-      ]
+          details: "<script>alert('test')</script>",
+        },
+      ],
     });
   });
 
@@ -38,7 +38,7 @@ describe("Typeahead Sanitize Tests", () => {
     expect(myTypeahead.resultCount).toEqual(2);
     expect(myTypeahead.resultHtml).toBeDefined();
     expect(
-      /<\/?(?:script|iframe)\b[^>]*>/.test(myTypeahead.resultHtml[0].innerHTML)
+      /<\/?(?:script|iframe)\b[^>]*>/.test(myTypeahead.resultHtml[0].innerHTML),
     ).toBeFalsy();
   });
 

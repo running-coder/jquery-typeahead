@@ -3,7 +3,7 @@ const Typeahead = require("../../src/jquery.typeahead");
 const sinon = require("sinon");
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 describe("Typeahead asyncResult option Tests", () => {
@@ -27,19 +27,19 @@ describe("Typeahead asyncResult option Tests", () => {
             data: [
               { id: "1", name: "group1-item1" },
               { id: "2", name: "group1-item2" },
-              { id: "3", name: "group1-item3" }
-            ]
+              { id: "3", name: "group1-item3" },
+            ],
           },
           group2: {
-            data: function() {
+            data: function () {
               return [
                 { id: "1", name: "group2-item1" },
                 { id: "2", name: "group2-item2" },
-                { id: "3", name: "group2-item3" }
+                { id: "3", name: "group2-item3" },
               ];
-            }
-          }
-        }
+            },
+          },
+        },
       });
     });
 
@@ -60,8 +60,8 @@ describe("Typeahead asyncResult option Tests", () => {
         JSON.stringify([
           { id: "1", name: "group3-item1" },
           { id: "2", name: "group3-item2" },
-          { id: "3", name: "group3-item3" }
-        ])
+          { id: "3", name: "group3-item3" },
+        ]),
       ]);
 
       delayFakeServer.autoRespond = true;
@@ -93,8 +93,8 @@ describe("Typeahead asyncResult option Tests", () => {
             data: [
               { id: "1", name: "group1-item1" },
               { id: "2", name: "group1-item2" },
-              { id: "3", name: "group1-item3" }
-            ]
+              { id: "3", name: "group1-item3" },
+            ],
           },
           group2: {
             data: () => {
@@ -102,7 +102,7 @@ describe("Typeahead asyncResult option Tests", () => {
               const data = [
                 { id: "1", name: "group2-item1" },
                 { id: "2", name: "group2-item2" },
-                { id: "3", name: "group2-item3" }
+                { id: "3", name: "group2-item3" },
               ];
 
               setTimeout(() => {
@@ -110,20 +110,20 @@ describe("Typeahead asyncResult option Tests", () => {
               }, 2000);
 
               return deferred;
-            }
+            },
           },
           group3: {
             dynamic: true,
             ajax: {
               type: "GET",
-              url: "http://test.com/group3.json"
-            }
-          }
-        }
+              url: "http://test.com/group3.json",
+            },
+          },
+        },
       });
     });
 
-    it("Should display async results", done => {
+    it("Should display async results", (done) => {
       myTypeahead.node.triggerHandler("input").done(async () => {
         await sleep(10);
         expect(myTypeahead.container.hasClass("loading")).toBe(true);
@@ -138,7 +138,7 @@ describe("Typeahead asyncResult option Tests", () => {
       });
     });
 
-    it("Should display async results for dynamic request", done => {
+    it("Should display async results for dynamic request", (done) => {
       myTypeahead.node
         .val("item")
         .triggerHandler("input")
@@ -153,7 +153,7 @@ describe("Typeahead asyncResult option Tests", () => {
         });
     });
 
-    it("Should display no async results for dynamic request", done => {
+    it("Should display no async results for dynamic request", (done) => {
       myTypeahead.node
         .val("invalid")
         .triggerHandler("input")
@@ -164,11 +164,11 @@ describe("Typeahead asyncResult option Tests", () => {
           expect(myTypeahead.container.hasClass("loading")).toBe(false);
           expect(
             myTypeahead.container.find("." + myTypeahead.options.selector.empty)
-              .length
+              .length,
           ).toBe(1);
           expect(myTypeahead.result.length).toEqual(0);
           expect(myTypeahead.resultHtml.text()).toEqual(
-            "no result for invalid"
+            "no result for invalid",
           );
           done();
         });

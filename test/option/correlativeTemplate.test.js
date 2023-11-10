@@ -20,15 +20,15 @@ describe("Typeahead correlativeTemplate option Tests", () => {
             data: [
               {
                 username: "user1",
-                email: "email1@domain.com"
+                email: "email1@domain.com",
               },
               {
                 username: "user2",
-                email: "email2@domain.com"
-              }
-            ]
-          }
-        }
+                email: "email2@domain.com",
+              },
+            ],
+          },
+        },
       });
     });
 
@@ -59,15 +59,15 @@ describe("Typeahead correlativeTemplate option Tests", () => {
             data: [
               {
                 username: "user1",
-                email: "email1@domain.com"
+                email: "email1@domain.com",
               },
               {
                 username: "user2",
-                email: "email2@domain.com"
-              }
-            ]
-          }
-        }
+                email: "email2@domain.com",
+              },
+            ],
+          },
+        },
       });
     });
 
@@ -82,15 +82,15 @@ describe("Typeahead correlativeTemplate option Tests", () => {
           username: "user1",
           email: "email1@domain.com",
           group: "group_one",
-          compiled: "user1 <email1@domain.com>"
+          compiled: "user1 <email1@domain.com>",
         },
         {
           matchedKey: "compiled",
           username: "user2",
           email: "email2@domain.com",
           group: "group_one",
-          compiled: "user2 <email2@domain.com>"
-        }
+          compiled: "user2 <email2@domain.com>",
+        },
       ]);
       myTypeahead.resultHtml.find("a:first").click();
 

@@ -13,7 +13,7 @@ describe("Typeahead source option Tests", () => {
       input: ".js-typeahead",
       minLength: 0,
       display: ["display"],
-      source: []
+      source: [],
     });
   });
 
@@ -31,21 +31,21 @@ describe("Typeahead source option Tests", () => {
           minLength: 0,
           maxLength: Infinity,
           dynamic: false,
-          data: ["data1", "data2"]
-        }
+          data: ["data1", "data2"],
+        },
       });
 
       expect(myTypeahead.source).toEqual({
         group: [
           {
             display: "data1",
-            group: "group"
+            group: "group",
           },
           {
             display: "data2",
-            group: "group"
-          }
-        ]
+            group: "group",
+          },
+        ],
       });
     });
   });
@@ -65,9 +65,9 @@ describe("Typeahead source option Tests", () => {
           maxLength: Infinity,
           dynamic: false,
           ajax: {
-            url: "data.json"
-          }
-        }
+            url: "data.json",
+          },
+        },
       });
     });
   });
@@ -77,7 +77,7 @@ describe("Typeahead source option Tests", () => {
       myTypeahead.options.source = {
         data: ["item1", "item2"],
         url: "data.json",
-        display: "display"
+        display: "display",
       };
       isValidSource = myTypeahead.unifySourceFormat();
     });
@@ -92,10 +92,10 @@ describe("Typeahead source option Tests", () => {
           dynamic: false,
           data: ["item1", "item2"],
           ajax: {
-            url: "data.json"
+            url: "data.json",
           },
-          display: ["display"]
-        }
+          display: ["display"],
+        },
       });
     });
   });
@@ -115,9 +115,9 @@ describe("Typeahead source option Tests", () => {
           maxLength: Infinity,
           dynamic: false,
           ajax: {
-            url: "data.json"
-          }
-        }
+            url: "data.json",
+          },
+        },
       });
     });
   });
@@ -125,7 +125,7 @@ describe("Typeahead source option Tests", () => {
   describe("Typeahead.options.source - Test for group with ajax Object", () => {
     beforeAll(() => {
       myTypeahead.options.source = {
-        ajax: { url: "data.json", dataType: "jsonp" }
+        ajax: { url: "data.json", dataType: "jsonp" },
       };
       isValidSource = myTypeahead.unifySourceFormat();
     });
@@ -140,9 +140,9 @@ describe("Typeahead source option Tests", () => {
           dynamic: false,
           ajax: {
             url: "data.json",
-            dataType: "jsonp"
-          }
-        }
+            dataType: "jsonp",
+          },
+        },
       });
     });
   });
@@ -150,7 +150,7 @@ describe("Typeahead source option Tests", () => {
   describe("Typeahead.options.source - Test for group with Array, ajax as String", () => {
     beforeAll(() => {
       myTypeahead.options.source = {
-        group: { url: ["data.json", "path"], display: "display" }
+        group: { url: ["data.json", "path"], display: "display" },
       };
       isValidSource = myTypeahead.unifySourceFormat();
     });
@@ -165,10 +165,10 @@ describe("Typeahead source option Tests", () => {
           dynamic: false,
           ajax: {
             url: "data.json",
-            path: "path"
+            path: "path",
           },
-          display: ["display"]
-        }
+          display: ["display"],
+        },
       });
     });
   });
@@ -179,10 +179,10 @@ describe("Typeahead source option Tests", () => {
         group: {
           url: [
             { url: "data.json", dataType: "jsonp", path: "ajax.path" },
-            "path"
+            "path",
           ],
-          display: "display"
-        }
+          display: "display",
+        },
       };
       isValidSource = myTypeahead.unifySourceFormat();
     });
@@ -198,10 +198,10 @@ describe("Typeahead source option Tests", () => {
           ajax: {
             url: "data.json",
             path: "ajax.path",
-            dataType: "jsonp"
+            dataType: "jsonp",
           },
-          display: ["display"]
-        }
+          display: ["display"],
+        },
       });
     });
   });
@@ -209,7 +209,7 @@ describe("Typeahead source option Tests", () => {
   describe("Typeahead.options.source - Test for group with legacy url key", () => {
     beforeAll(() => {
       myTypeahead.options.source = {
-        group: { url: { url: "data.json", method: "GET" }, display: "display" }
+        group: { url: { url: "data.json", method: "GET" }, display: "display" },
       };
       isValidSource = myTypeahead.unifySourceFormat();
     });
@@ -224,10 +224,10 @@ describe("Typeahead source option Tests", () => {
           dynamic: false,
           ajax: {
             url: "data.json",
-            method: "GET"
+            method: "GET",
           },
-          display: ["display"]
-        }
+          display: ["display"],
+        },
       });
     });
   });

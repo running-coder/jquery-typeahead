@@ -89,9 +89,9 @@ fakeServer.respondWith("GET", /\/game\.json/, [
       { id: "94", display: "the last stand 2" },
       { id: "95", display: "epsilon" },
       { id: "96", display: "race to kill" },
-      { id: "97", display: "arsenal 2" }
-    ]
-  })
+      { id: "97", display: "arsenal 2" },
+    ],
+  }),
 ]);
 
 fakeServer.respondWith("GET", /\/category\.json/, [
@@ -118,9 +118,9 @@ fakeServer.respondWith("GET", /\/category\.json/, [
       { id: "17", display: "video" },
       { id: "18", display: "multiplayer" },
       { id: "19", display: "terrorism" },
-      { id: "21", display: "halloween" }
-    ]
-  })
+      { id: "21", display: "halloween" },
+    ],
+  }),
 ]);
 
 fakeServer.respondWith("GET", /\/tag\.json/, [
@@ -205,21 +205,21 @@ fakeServer.respondWith("GET", /\/tag\.json/, [
       { id: "76", display: "terrorism" },
       { id: "77", display: "babes" },
       { id: "78", display: "hunting" },
-      { id: "79", display: "super hero" }
-    ]
-  })
+      { id: "79", display: "super hero" },
+    ],
+  }),
 ]);
 
 fakeServer.respondWith("GET", /\/null\.json/, [
   200,
   { "Content-Type": "application/json" },
-  JSON.stringify(null)
+  JSON.stringify(null),
 ]);
 
 fakeServer.respondWith("GET", /\/empty\.json/, [
   200,
   { "Content-Type": "application/json" },
-  JSON.stringify([])
+  JSON.stringify([]),
 ]);
 
 fakeServer.respondWith("GET", /\/groups\.json/, [
@@ -228,8 +228,8 @@ fakeServer.respondWith("GET", /\/groups\.json/, [
   JSON.stringify({
     group1: ["group1-item1", "group1-item2", "group1-item3"],
     group2: ["group2-item1", "group2-item2", "group2-item3"],
-    group3: ["group3-item1", "group3-item2", "group3-item3"]
-  })
+    group3: ["group3-item1", "group3-item2", "group3-item3"],
+  }),
 ]);
 
 fakeServer.autoRespond = true;

@@ -24,12 +24,12 @@ describe("Typeahead searchOnFocus option Tests", () => {
         minLength: 0,
         searchOnFocus: true,
         source: {
-          data: ["data1", "data2", "data3"]
-        }
+          data: ["data1", "data2", "data3"],
+        },
       });
     });
 
-    it("Should display results when the Typeahead input is focused", done => {
+    it("Should display results when the Typeahead input is focused", (done) => {
       expect(myTypeahead.result).toEqual([]);
 
       myTypeahead.node.triggerHandler("focus").done(() => {
@@ -37,8 +37,8 @@ describe("Typeahead searchOnFocus option Tests", () => {
           group: [
             { display: "data1", group: "group" },
             { display: "data2", group: "group" },
-            { display: "data3", group: "group" }
-          ]
+            { display: "data3", group: "group" },
+          ],
         });
 
         expect(myTypeahead.result.length).toEqual(3);
@@ -67,12 +67,12 @@ describe("Typeahead searchOnFocus option Tests", () => {
         searchOnFocus: true,
         dynamic: true,
         source: {
-          data: ["data1", "data2", "data3"]
-        }
+          data: ["data1", "data2", "data3"],
+        },
       });
     });
 
-    it("Should not display results when the Typeahead input is focused", done => {
+    it("Should not display results when the Typeahead input is focused", (done) => {
       expect(myTypeahead.result).toEqual([]);
 
       myTypeahead.node.triggerHandler("focus").done(() => {

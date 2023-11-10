@@ -14,7 +14,7 @@ describe("Typeahead templateValue option Tests", () => {
         generateOnLoad: true,
         display: ["id", "key1", "key2", "key3"],
         highlight: false,
-        template: function() {
+        template: function () {
           return "{{id}} {{key1}} {{key2}} {{key3}}";
         },
         source: {
@@ -25,9 +25,9 @@ describe("Typeahead templateValue option Tests", () => {
                 id: 1,
                 key1: "group1-data1-key1",
                 key2: "group1-data1-key2",
-                key3: "group1-data1-key3"
-              }
-            ]
+                key3: "group1-data1-key3",
+              },
+            ],
           },
           group2: {
             data: [
@@ -35,15 +35,15 @@ describe("Typeahead templateValue option Tests", () => {
                 id: 1,
                 key1: "group2-data1-key1",
                 key2: "group2-data1-key2",
-                key3: "group2-data1-key3"
-              }
-            ]
-          }
-        }
+                key3: "group2-data1-key3",
+              },
+            ],
+          },
+        },
       });
     });
 
-    it("Should populate Typeahead input with the templateValue when an item is clicked", done => {
+    it("Should populate Typeahead input with the templateValue when an item is clicked", (done) => {
       expect(myTypeahead.result.length).toEqual(2);
 
       myTypeahead.resultContainer.find("li:eq(0) a").trigger("click");
@@ -88,7 +88,7 @@ describe("Typeahead templateValue option Tests", () => {
         display: ["id", "key1", "key2", "key3"],
         highlight: false,
         blurOnTab: false,
-        template: function() {
+        template: function () {
           return "{{id}} {{key1}} {{key2}} {{key3}}";
         },
         templateValue: "{{id}} {{key1}}",
@@ -100,9 +100,9 @@ describe("Typeahead templateValue option Tests", () => {
                 id: 1,
                 key1: "group1-data1-key1",
                 key2: "group1-data1-key2",
-                key3: "group1-data1-key3"
-              }
-            ]
+                key3: "group1-data1-key3",
+              },
+            ],
           },
           group2: {
             data: [
@@ -110,12 +110,12 @@ describe("Typeahead templateValue option Tests", () => {
                 id: 1,
                 key1: "group2-data1-key1",
                 key2: "group2-data1-key2",
-                key3: "group2-data1-key3"
-              }
-            ]
+                key3: "group2-data1-key3",
+              },
+            ],
           },
           group3: {
-            templateValue: function() {
+            templateValue: function () {
               return "{{key3}} test";
             },
             data: [
@@ -123,11 +123,11 @@ describe("Typeahead templateValue option Tests", () => {
                 id: 1,
                 key1: "group3-data1-key1",
                 key2: "group3-data1-key2",
-                key3: "group3-data1-key3"
-              }
-            ]
-          }
-        }
+                key3: "group3-data1-key3",
+              },
+            ],
+          },
+        },
       });
     });
 
@@ -150,7 +150,7 @@ describe("Typeahead templateValue option Tests", () => {
       expect(myTypeahead.node.val()).toEqual("group1-data1-key2");
     });
 
-    it("Should populate Typeahead input with the templateValue when an item is clicked", done => {
+    it("Should populate Typeahead input with the templateValue when an item is clicked", (done) => {
       expect(myTypeahead.result.length).toEqual(3);
 
       myTypeahead.resultContainer.find("li:eq(0) a").trigger("click");

@@ -18,26 +18,26 @@ describe("Typeahead Config Tests", () => {
       maxItemPerGroup: 6,
       source: {
         group1: {
-          data: ["item1", "item2", "item2"]
+          data: ["item1", "item2", "item2"],
         },
         group2: {
-          data: ["item1", "item2", "item2"]
-        }
+          data: ["item1", "item2", "item2"],
+        },
       },
       callback: {
-        onInit: function(node) {
+        onInit: function (node) {
           return this;
         },
-        onSearch: function(node, query) {
+        onSearch: function (node, query) {
           return this;
-        }
+        },
       },
       selector: {
         container: "typeahead-container-test",
         result: "typeahead-result-test",
-        list: "typeahead-list-test"
+        list: "typeahead-list-test",
       },
-      debug: true
+      debug: true,
     });
   });
 
@@ -55,7 +55,7 @@ describe("Typeahead Config Tests", () => {
   it("Should merge callbacks", () => {
     expect(myTypeahead.options.callback.onInit).toBeDefined();
     expect(
-      myTypeahead.options.callback.onInit.apply(myTypeahead).selector
+      myTypeahead.options.callback.onInit.apply(myTypeahead).selector,
     ).toEqual(".js-typeahead");
     expect(myTypeahead.options.callback.onSearch).toBeDefined();
 
@@ -63,16 +63,16 @@ describe("Typeahead Config Tests", () => {
     myTypeahead.node.trigger("input");
 
     expect(
-      myTypeahead.options.callback.onSearch.apply(myTypeahead).query
+      myTypeahead.options.callback.onSearch.apply(myTypeahead).query,
     ).toEqual("test");
   });
 
   it("Should merge selectors", () => {
     expect(myTypeahead.options.selector.container).toEqual(
-      "typeahead-container-test"
+      "typeahead-container-test",
     );
     expect(myTypeahead.options.selector.result).toEqual(
-      "typeahead-result-test"
+      "typeahead-result-test",
     );
     expect(myTypeahead.options.selector.list).toEqual("typeahead-list-test");
   });

@@ -22,7 +22,7 @@ describe("Typeahead dynamic option Tests as a global option", () => {
           data: () => {
             group1Counter++;
             return ["item1"];
-          }
+          },
         },
         group2: {
           data: () => {
@@ -40,7 +40,7 @@ describe("Typeahead dynamic option Tests as a global option", () => {
             }, 10);
 
             return deferred;
-          }
+          },
         },
         group3: {
           ajax: {
@@ -49,22 +49,22 @@ describe("Typeahead dynamic option Tests as a global option", () => {
             callback: {
               always: () => {
                 group3Counter++;
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     });
   });
 
-  it("Should increment every group counter every time a request is made", done => {
-    myTypeahead.node.triggerHandler("input").done(function() {
+  it("Should increment every group counter every time a request is made", (done) => {
+    myTypeahead.node.triggerHandler("input").done(function () {
       expect(myTypeahead.result.length).toEqual(3);
       expect(group1Counter).toEqual(1);
       expect(group2Counter).toEqual(1);
       expect(group3Counter).toEqual(1);
 
-      myTypeahead.node.triggerHandler("input").done(function() {
+      myTypeahead.node.triggerHandler("input").done(function () {
         expect(group1Counter).toEqual(2);
         expect(group2Counter).toEqual(2);
         expect(group3Counter).toEqual(2);
@@ -95,7 +95,7 @@ describe("Typeahead dynamic option Tests as a group option", () => {
           data: () => {
             group1Counter++;
             return ["item1"];
-          }
+          },
         },
         group2: {
           dynamic: true,
@@ -114,7 +114,7 @@ describe("Typeahead dynamic option Tests as a group option", () => {
             }, 10);
 
             return deferred;
-          }
+          },
         },
         group3: {
           ajax: {
@@ -123,22 +123,22 @@ describe("Typeahead dynamic option Tests as a group option", () => {
             callback: {
               always: () => {
                 group3Counter++;
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     });
   });
 
-  it("Should increment every group counter every time a request is made", done => {
-    myTypeahead.node.triggerHandler("input").done(function(data) {
+  it("Should increment every group counter every time a request is made", (done) => {
+    myTypeahead.node.triggerHandler("input").done(function (data) {
       expect(myTypeahead.result.length).toEqual(3);
       expect(group1Counter).toEqual(1);
       expect(group2Counter).toEqual(1);
       expect(group3Counter).toEqual(1);
 
-      myTypeahead.node.triggerHandler("input").done(function() {
+      myTypeahead.node.triggerHandler("input").done(function () {
         expect(group1Counter).toEqual(1);
         expect(group2Counter).toEqual(2);
         expect(group3Counter).toEqual(1);
@@ -166,26 +166,26 @@ describe("Typeahead dynamic option Tests - Abort dynamic requests", () => {
         game: {
           ajax: {
             url: "http://test.com/game.json",
-            path: "data"
-          }
+            path: "data",
+          },
         },
         category: {
           ajax: {
             url: "http://test.com/category.json",
-            path: "data"
-          }
+            path: "data",
+          },
         },
         tag: {
           ajax: {
             url: "http://test.com/tag.json",
-            path: "data"
-          }
-        }
-      }
+            path: "data",
+          },
+        },
+      },
     });
   });
 
-  it("Should abort previous requests and display the results for the second request", done => {
+  it("Should abort previous requests and display the results for the second request", (done) => {
     myTypeahead.node.val("zom").trigger("input");
 
     // Simulate a request Abort
@@ -193,10 +193,10 @@ describe("Typeahead dynamic option Tests - Abort dynamic requests", () => {
       myTypeahead.node
         .val("zo")
         .triggerHandler("input")
-        .done(function() {
+        .done(function () {
           expect(myTypeahead.result.length).toBeGreaterThan(0);
           expect(myTypeahead.generatedGroupCount).toEqual(
-            myTypeahead.generateGroups.length
+            myTypeahead.generateGroups.length,
           );
 
           done();
@@ -220,33 +220,33 @@ describe("Typeahead dynamic option Tests - 404 endpoint when dynamic requests", 
         game: {
           ajax: {
             url: "http://test.com/game.json",
-            path: "data"
-          }
+            path: "data",
+          },
         },
         category: {
           ajax: {
             url: "http://test.com/invalid.json",
-            path: "data"
-          }
+            path: "data",
+          },
         },
         tag: {
           ajax: {
             url: "http://test.com/tag.json",
-            path: "data"
-          }
-        }
-      }
+            path: "data",
+          },
+        },
+      },
     });
   });
 
-  it("Should display the result of valid endpoints and skip the invalid one", done => {
+  it("Should display the result of valid endpoints and skip the invalid one", (done) => {
     myTypeahead.node
       .val("zom")
       .triggerHandler("input")
-      .done(function() {
+      .done(function () {
         expect(myTypeahead.result.length).toBeGreaterThan(0);
         expect(myTypeahead.generatedGroupCount).toEqual(
-          myTypeahead.generateGroups.length
+          myTypeahead.generateGroups.length,
         );
 
         done();

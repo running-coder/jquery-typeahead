@@ -16,7 +16,7 @@ describe("Typeahead multiselect option Tests", () => {
         generateOnLoad: true,
         display: ["id", "key1", "key2", "key3"],
         multiselect: true,
-        template: function() {
+        template: function () {
           return "{{id}} {{key1}} {{key2}} {{key3}}";
         },
         source: {
@@ -27,9 +27,9 @@ describe("Typeahead multiselect option Tests", () => {
                 id: 1,
                 key1: "group1-data1-key1",
                 key2: "group1-data1-key2",
-                key3: "group1-data1-key3"
-              }
-            ]
+                key3: "group1-data1-key3",
+              },
+            ],
           },
           group2: {
             data: [
@@ -37,11 +37,11 @@ describe("Typeahead multiselect option Tests", () => {
                 id: 1,
                 key1: "group2-data1-key1",
                 key2: "group2-data1-key2",
-                key3: "group2-data1-key3"
-              }
-            ]
-          }
-        }
+                key3: "group2-data1-key3",
+              },
+            ],
+          },
+        },
       });
     });
 
@@ -51,10 +51,10 @@ describe("Typeahead multiselect option Tests", () => {
       myTypeahead.resultContainer.find("li:eq(0) a").trigger("click");
       expect(myTypeahead.query).toEqual("");
       expect(
-        myTypeahead.label.container.find(".typeahead__label").length
+        myTypeahead.label.container.find(".typeahead__label").length,
       ).toEqual(1);
       expect(
-        myTypeahead.label.container.find(".typeahead__label").text()
+        myTypeahead.label.container.find(".typeahead__label").text(),
       ).toMatch("group1-data1-key2");
 
       myTypeahead.node.trigger("input");
@@ -63,16 +63,16 @@ describe("Typeahead multiselect option Tests", () => {
       myTypeahead.resultContainer.find("li:eq(0) a").trigger("click");
       expect(myTypeahead.query).toEqual("");
       expect(
-        myTypeahead.label.container.find(".typeahead__label").length
+        myTypeahead.label.container.find(".typeahead__label").length,
       ).toEqual(2);
       expect(
-        myTypeahead.label.container.find(".typeahead__label:last").text()
+        myTypeahead.label.container.find(".typeahead__label:last").text(),
       ).toMatch("1");
 
       expect(myTypeahead.items.length).toBe(2);
       expect(myTypeahead.comparedItems).toEqual([
         '{"id":1,"key1":"group1-data1-key1","key2":"group1-data1-key2","key3":"group1-data1-key3"}',
-        '{"id":1,"key1":"group2-data1-key1","key2":"group2-data1-key2","key3":"group2-data1-key3"}'
+        '{"id":1,"key1":"group2-data1-key1","key2":"group2-data1-key2","key3":"group2-data1-key3"}',
       ]);
 
       myTypeahead.label.container
@@ -80,13 +80,13 @@ describe("Typeahead multiselect option Tests", () => {
         .trigger("click");
       expect(myTypeahead.items.length).toBe(1);
       expect(myTypeahead.comparedItems).toEqual([
-        '{"id":1,"key1":"group2-data1-key1","key2":"group2-data1-key2","key3":"group2-data1-key3"}'
+        '{"id":1,"key1":"group2-data1-key1","key2":"group2-data1-key2","key3":"group2-data1-key3"}',
       ]);
 
       expect(myTypeahead.item).toBeNull();
 
       expect(
-        myTypeahead.label.container.find(".typeahead__label:first > a")[0]
+        myTypeahead.label.container.find(".typeahead__label:first > a")[0],
       ).toBeUndefined();
     });
   });
@@ -107,10 +107,10 @@ describe("Typeahead multiselect option Tests", () => {
         multiselect: {
           limit: 2,
           matchOn: ["id", "key3"],
-          limitTemplate: function() {
+          limitTemplate: function () {
             return "Only 2 item is allowed.";
           },
-          href: function(item) {
+          href: function (item) {
             return "/item/" + item.id;
           },
           cancelOnBackspace: true,
@@ -119,18 +119,18 @@ describe("Typeahead multiselect option Tests", () => {
               id: 1,
               key1: "group1-data1-key1",
               key2: "group1-data1-key2",
-              key3: "group1-data1-key3"
-            }
+              key3: "group1-data1-key3",
+            },
           ],
           callback: {
-            onClick: function(node, item, event) {
+            onClick: function (node, item, event) {
               event.preventDefault();
               isClicked = true;
               clickedItem = item;
-            }
-          }
+            },
+          },
         },
-        template: function() {
+        template: function () {
           return "{{id}} {{key1}} {{key2}} {{key3}}";
         },
         source: {
@@ -141,9 +141,9 @@ describe("Typeahead multiselect option Tests", () => {
                 id: 1,
                 key1: "group1-data1-key1",
                 key2: "group1-data1-key2",
-                key3: "group1-data1-key3"
-              }
-            ]
+                key3: "group1-data1-key3",
+              },
+            ],
           },
           group2: {
             data: [
@@ -151,9 +151,9 @@ describe("Typeahead multiselect option Tests", () => {
                 id: 2,
                 key1: "group2-data1-key1",
                 key2: "group2-data1-key2",
-                key3: "group2-data1-key3"
-              }
-            ]
+                key3: "group2-data1-key3",
+              },
+            ],
           },
           group3: {
             data: [
@@ -161,31 +161,31 @@ describe("Typeahead multiselect option Tests", () => {
                 id: 3,
                 key1: "group3-data1-key1",
                 key2: "group3-data1-key2",
-                key3: "group3-data1-key3"
-              }
-            ]
-          }
-        }
+                key3: "group3-data1-key3",
+              },
+            ],
+          },
+        },
       });
     });
 
-    it("Should populate Typeahead input with the templateValue when an item is clicked", done => {
+    it("Should populate Typeahead input with the templateValue when an item is clicked", (done) => {
       expect(myTypeahead.result.length).toEqual(2);
       myTypeahead.resultContainer.find("li:eq(0) a").trigger("click");
       expect(myTypeahead.query).toEqual("");
       expect(
-        myTypeahead.label.container.find(".typeahead__label").length
+        myTypeahead.label.container.find(".typeahead__label").length,
       ).toEqual(2);
       expect(
         myTypeahead.label.container
           .find(".typeahead__label:first > a")
-          .attr("href")
+          .attr("href"),
       ).toBe("/item/1");
 
       myTypeahead.node.val("group").trigger("input");
       expect(myTypeahead.result).toEqual([]);
       expect(myTypeahead.resultContainer.find(".typeahead__empty").text()).toBe(
-        "Only 2 item is allowed."
+        "Only 2 item is allowed.",
       );
 
       myTypeahead.label.container
@@ -196,11 +196,11 @@ describe("Typeahead multiselect option Tests", () => {
         id: 1,
         key1: "group1-data1-key1",
         key2: "group1-data1-key2",
-        key3: "group1-data1-key3"
+        key3: "group1-data1-key3",
       });
       expect(myTypeahead.comparedItems).toEqual([
         "1group1-data1-key3",
-        "2group2-data1-key3"
+        "2group2-data1-key3",
       ]);
 
       myTypeahead.label.container
@@ -237,30 +237,30 @@ describe("Typeahead multiselect option Tests", () => {
         cancelOnBackspace: false,
         multiselect: {
           matchOn: ["id"],
-          data: function() {
+          data: function () {
             var deferred = $.Deferred();
 
-            setTimeout(function() {
+            setTimeout(function () {
               deferred.resolve([
                 {
                   id: 1,
                   key1: "group1-data1-key1",
                   key2: "group1-data1-key2",
-                  key3: "group1-data1-key3"
-                }
+                  key3: "group1-data1-key3",
+                },
               ]);
             }, 500);
 
             return deferred;
           },
           callback: {
-            onCancel: function(node, item, event) {
+            onCancel: function (node, item, event) {
               isCanceled = true;
               canceledItem = item;
-            }
-          }
+            },
+          },
         },
-        template: function() {
+        template: function () {
           return "{{id}} {{key1}} {{key2}} {{key3}}";
         },
         source: {
@@ -271,9 +271,9 @@ describe("Typeahead multiselect option Tests", () => {
                 id: 1,
                 key1: "group1-data1-key1",
                 key2: "group1-data1-key2",
-                key3: "group1-data1-key3"
-              }
-            ]
+                key3: "group1-data1-key3",
+              },
+            ],
           },
           group2: {
             data: [
@@ -281,15 +281,15 @@ describe("Typeahead multiselect option Tests", () => {
                 id: 2,
                 key1: "group2-data1-key1",
                 key2: "group2-data1-key2",
-                key3: "group2-data1-key3"
-              }
-            ]
-          }
-        }
+                key3: "group2-data1-key3",
+              },
+            ],
+          },
+        },
       });
     });
 
-    it("Should populate Typeahead input with the async multiselect item and prevent duplicated data in the results", done => {
+    it("Should populate Typeahead input with the async multiselect item and prevent duplicated data in the results", (done) => {
       expect(myTypeahead.result.length).toEqual(2);
 
       myTypeahead.node.on("search" + myTypeahead.namespace, (event, data) => {
@@ -312,7 +312,7 @@ describe("Typeahead multiselect option Tests", () => {
           id: 1,
           key1: "group1-data1-key1",
           key2: "group1-data1-key2",
-          key3: "group1-data1-key3"
+          key3: "group1-data1-key3",
         });
 
         done();

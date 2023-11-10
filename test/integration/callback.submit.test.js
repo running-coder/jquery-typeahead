@@ -34,21 +34,21 @@ describe("Typeahead onSubmit Callback Tests", () => {
       source: [
         {
           id: 1,
-          display: "Test"
+          display: "Test",
         },
         {
           id: 2,
-          display: "callback"
-        }
+          display: "callback",
+        },
       ],
       callback: {
-        onSubmit: function(node, form, item, event) {
+        onSubmit: function (node, form, item, event) {
           event.preventDefault();
 
           onSubmitCalled = true;
           onSubmitItem = item;
-        }
-      }
+        },
+      },
     });
   });
 
@@ -66,7 +66,7 @@ describe("Typeahead onSubmit Callback Tests", () => {
       display: "Test",
       group: "group",
       id: 1,
-      matchedKey: "display"
+      matchedKey: "display",
     });
 
     expect(myTypeahead.container.hasClass("result")).toBeFalsy();
@@ -104,32 +104,32 @@ describe("Typeahead onSubmit Callback Tests", () => {
         data: [
           {
             id: 1,
-            display: "Test"
+            display: "Test",
           },
           {
             id: 2,
-            display: "callback"
-          }
-        ]
+            display: "callback",
+          },
+        ],
       },
       source: [
         {
           id: 1,
-          display: "Test"
+          display: "Test",
         },
         {
           id: 2,
-          display: "callback"
-        }
+          display: "callback",
+        },
       ],
       callback: {
-        onSubmit: function(node, form, item, event) {
+        onSubmit: function (node, form, item, event) {
           event.preventDefault();
 
           onSubmitCalled = true;
           onSubmitItem = item;
-        }
-      }
+        },
+      },
     });
   });
 
@@ -139,7 +139,7 @@ describe("Typeahead onSubmit Callback Tests", () => {
     expect(onSubmitCalled).toBeTruthy();
     expect(onSubmitItem).toEqual([
       { display: "Test", id: 1 },
-      { display: "callback", id: 2 }
+      { display: "callback", id: 2 },
     ]);
 
     expect(myTypeahead.container.hasClass("result")).toBeFalsy();

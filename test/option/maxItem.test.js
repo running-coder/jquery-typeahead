@@ -18,18 +18,38 @@ describe("Typeahead maxItem option Tests", () => {
       display: ["display"],
       source: {
         group4: {
-          data: ["group4-data1", "group4-data2", "group4-data3", "group4-data4"]
+          data: [
+            "group4-data1",
+            "group4-data2",
+            "group4-data3",
+            "group4-data4",
+          ],
         },
         group1: {
-          data: ["group1-data1", "group1-data2", "group1-data3", "group1-data4"]
+          data: [
+            "group1-data1",
+            "group1-data2",
+            "group1-data3",
+            "group1-data4",
+          ],
         },
         group2: {
-          data: ["group2-data1", "group2-data2", "group2-data3", "group2-data4"]
+          data: [
+            "group2-data1",
+            "group2-data2",
+            "group2-data3",
+            "group2-data4",
+          ],
         },
         group3: {
-          data: ["group3-data1", "group3-data2", "group3-data3", "group3-data4"]
-        }
-      }
+          data: [
+            "group3-data1",
+            "group3-data2",
+            "group3-data3",
+            "group3-data4",
+          ],
+        },
+      },
     });
   });
 
@@ -39,43 +59,43 @@ describe("Typeahead maxItem option Tests", () => {
       {
         display: "group4-data1",
         group: "group4",
-        matchedKey: "display"
+        matchedKey: "display",
       },
       {
         display: "group4-data2",
         group: "group4",
-        matchedKey: "display"
+        matchedKey: "display",
       },
       {
         display: "group4-data3",
         group: "group4",
-        matchedKey: "display"
+        matchedKey: "display",
       },
       {
         display: "group1-data1",
         group: "group1",
-        matchedKey: "display"
+        matchedKey: "display",
       },
       {
         display: "group1-data2",
         group: "group1",
-        matchedKey: "display"
+        matchedKey: "display",
       },
       {
         display: "group1-data3",
         group: "group1",
-        matchedKey: "display"
+        matchedKey: "display",
       },
       {
         display: "group2-data1",
         group: "group2",
-        matchedKey: "display"
+        matchedKey: "display",
       },
       {
         display: "group2-data2",
         group: "group2",
-        matchedKey: "display"
-      }
+        matchedKey: "display",
+      },
     ]);
   });
 });

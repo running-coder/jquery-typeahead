@@ -25,15 +25,15 @@ describe("Typeahead dropdownFilter option Tests", () => {
         emptyTemplate: "no result for {{query}}",
         source: {
           group1: {
-            data: ["group1-data1", "group1-data2", "group1-data3"]
+            data: ["group1-data1", "group1-data2", "group1-data3"],
           },
           group2: {
-            data: ["group2-data1", "group2-data2", "group2-data3"]
+            data: ["group2-data1", "group2-data2", "group2-data3"],
           },
           group3: {
-            data: ["group3-data1", "group3-data2", "group3-data3"]
-          }
-        }
+            data: ["group3-data1", "group3-data2", "group3-data3"],
+          },
+        },
       });
     });
 
@@ -41,7 +41,7 @@ describe("Typeahead dropdownFilter option Tests", () => {
       expect(myTypeahead.result.length).toEqual(9);
 
       let dropdownItems = myTypeahead.container.find(
-        "." + myTypeahead.options.selector.dropdownItem
+        "." + myTypeahead.options.selector.dropdownItem,
       );
 
       expect(dropdownItems.length).toEqual(4);
@@ -53,19 +53,13 @@ describe("Typeahead dropdownFilter option Tests", () => {
 
     it('Should filter results and only display "group1" results', () => {
       let dropdownItems = myTypeahead.container.find(
-        "." + myTypeahead.options.selector.dropdownItem
+        "." + myTypeahead.options.selector.dropdownItem,
       );
 
-      dropdownItems
-        .eq(0)
-        .find("a")
-        .trigger("click");
+      dropdownItems.eq(0).find("a").trigger("click");
       expect(myTypeahead.result.length).toEqual(3);
 
-      dropdownItems
-        .eq(3)
-        .find("a")
-        .trigger("click");
+      dropdownItems.eq(3).find("a").trigger("click");
       expect(myTypeahead.result.length).toEqual(9);
     });
 
@@ -93,15 +87,15 @@ describe("Typeahead dropdownFilter option Tests", () => {
         emptyTemplate: "no result for {{query}}",
         source: {
           group1: {
-            data: ["group1-data1", "group1-data2", "group1-data3"]
+            data: ["group1-data1", "group1-data2", "group1-data3"],
           },
           group2: {
-            data: ["group2-data1", "group2-data2", "group2-data3"]
+            data: ["group2-data1", "group2-data2", "group2-data3"],
           },
           group3: {
-            data: ["group3-data1", "group3-data2", "group3-data3"]
-          }
-        }
+            data: ["group3-data1", "group3-data2", "group3-data3"],
+          },
+        },
       });
     });
 
@@ -109,7 +103,7 @@ describe("Typeahead dropdownFilter option Tests", () => {
       expect(myTypeahead.result.length).toEqual(9);
 
       let dropdownItems = myTypeahead.container.find(
-        "." + myTypeahead.options.selector.dropdownItem
+        "." + myTypeahead.options.selector.dropdownItem,
       );
 
       expect(dropdownItems.length).toEqual(4);
@@ -121,19 +115,13 @@ describe("Typeahead dropdownFilter option Tests", () => {
 
     it('Should filter results and only display "group1" results', () => {
       let dropdownItems = myTypeahead.container.find(
-        "." + myTypeahead.options.selector.dropdownItem
+        "." + myTypeahead.options.selector.dropdownItem,
       );
 
-      dropdownItems
-        .eq(0)
-        .find("a")
-        .trigger("click");
+      dropdownItems.eq(0).find("a").trigger("click");
       expect(myTypeahead.result.length).toEqual(3);
 
-      dropdownItems
-        .eq(3)
-        .find("a")
-        .trigger("click");
+      dropdownItems.eq(3).find("a").trigger("click");
       expect(myTypeahead.result.length).toEqual(9);
     });
   });
@@ -154,7 +142,7 @@ describe("Typeahead dropdownFilter option Tests", () => {
         dropdownFilter: {
           key: "conference",
           template: "<strong>{{conference}}</strong> Conference Teams",
-          all: "All Conferences"
+          all: "All Conferences",
         },
         display: ["name", "city"],
         emptyTemplate: "no result for {{query}}",
@@ -167,7 +155,7 @@ describe("Typeahead dropdownFilter option Tests", () => {
                 city: "Anaheim",
                 id: "ANA",
                 conference: "Western",
-                division: "Pacific"
+                division: "Pacific",
               },
               {
                 name: "Thrashers",
@@ -175,11 +163,11 @@ describe("Typeahead dropdownFilter option Tests", () => {
                 city: "Atlanta",
                 id: "ATL",
                 conference: "Eastern",
-                division: "Southeast"
-              }
-            ]
-          }
-        }
+                division: "Southeast",
+              },
+            ],
+          },
+        },
       });
     });
 
@@ -187,7 +175,7 @@ describe("Typeahead dropdownFilter option Tests", () => {
       expect(myTypeahead.result.length).toEqual(2);
 
       let dropdownItems = myTypeahead.container.find(
-        "." + myTypeahead.options.selector.dropdownItem
+        "." + myTypeahead.options.selector.dropdownItem,
       );
 
       expect(dropdownItems.length).toEqual(3);
@@ -195,16 +183,10 @@ describe("Typeahead dropdownFilter option Tests", () => {
       expect(dropdownItems.eq(1).hasClass("conference-eastern")).toBeTruthy();
       expect(dropdownItems.eq(2).hasClass("conference-all")).toBeTruthy();
 
-      dropdownItems
-        .eq(0)
-        .find("a")
-        .trigger("click");
+      dropdownItems.eq(0).find("a").trigger("click");
       expect(myTypeahead.result.length).toEqual(1);
 
-      dropdownItems
-        .eq(2)
-        .find("a")
-        .trigger("click");
+      dropdownItems.eq(2).find("a").trigger("click");
       expect(myTypeahead.result.length).toEqual(2);
     });
   });

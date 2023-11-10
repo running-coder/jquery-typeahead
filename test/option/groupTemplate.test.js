@@ -28,8 +28,8 @@ describe("Typeahead groupTemplate option Tests", () => {
               "group_one_data_one",
               "group_one_data_two",
               "group_one_data_three",
-              "group_one_data_four"
-            ]
+              "group_one_data_four",
+            ],
           },
           group_two: {
             data: [
@@ -37,18 +37,18 @@ describe("Typeahead groupTemplate option Tests", () => {
               "group_two_data_two",
               "group_two_data_three",
               "group_two_data_four",
-              "group_two_data_five"
-            ]
+              "group_two_data_five",
+            ],
           },
           group_three: {
             data: [
               "group_three_data_one",
               "group_three_data_two",
               "group_three_data_three",
-              "group_three_data_four"
-            ]
-          }
-        }
+              "group_three_data_four",
+            ],
+          },
+        },
       });
     });
 
@@ -93,13 +93,13 @@ describe("Typeahead groupTemplate option Tests", () => {
       expect(myTypeahead.resultHtml.find("a").length).toEqual(3);
       // Test groupOrder option mixed with groupTemplate
       expect(
-        myTypeahead.resultHtml.find("td:eq(0)").attr("data-group-template")
+        myTypeahead.resultHtml.find("td:eq(0)").attr("data-group-template"),
       ).toEqual("group_two");
       expect(
-        myTypeahead.resultHtml.find("td:eq(1)").attr("data-group-template")
+        myTypeahead.resultHtml.find("td:eq(1)").attr("data-group-template"),
       ).toEqual("group_three");
       expect(
-        myTypeahead.resultHtml.find("td:eq(2)").attr("data-group-template")
+        myTypeahead.resultHtml.find("td:eq(2)").attr("data-group-template"),
       ).toEqual("group_one");
     });
   });
@@ -121,7 +121,7 @@ describe("Typeahead groupTemplate configuration using groups", () => {
       groupOrder: ["groupname3", "groupname2", "groupname1"],
       groupTemplate:
         '<div class="row"><div class="col-xl-3 col-sm-6">{{group}}</div></div>',
-      template: function() {
+      template: function () {
         return "{{id}} {{key}}";
       },
       source: {
@@ -129,37 +129,37 @@ describe("Typeahead groupTemplate configuration using groups", () => {
           data: [
             {
               id: 1,
-              key: "Test1"
-            }
-          ]
+              key: "Test1",
+            },
+          ],
         },
         groupname2: {
           data: [
             {
               id: 1,
-              key: "Test1"
-            }
-          ]
+              key: "Test1",
+            },
+          ],
         },
         groupname3: {
           data: [
             {
               id: 1,
-              key: "NO RESULTS"
-            }
-          ]
-        }
-      }
+              key: "NO RESULTS",
+            },
+          ],
+        },
+      },
     });
   });
 
-  it("Should display the right amount of results", done => {
+  it("Should display the right amount of results", (done) => {
     myTypeahead.node.val("bla");
-    myTypeahead.node.triggerHandler("input").done(function() {
+    myTypeahead.node.triggerHandler("input").done(function () {
       expect(myTypeahead.result.length).toEqual(3);
 
       myTypeahead.node.val("blabla");
-      myTypeahead.node.triggerHandler("input").done(function() {
+      myTypeahead.node.triggerHandler("input").done(function () {
         expect(myTypeahead.result.length).toEqual(3);
 
         done();

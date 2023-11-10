@@ -14,8 +14,8 @@ describe("Typeahead can not display null or boolean if the item is a string", ()
       minLength: 0,
       generateOnLoad: true,
       source: {
-        data: [null, false, true, "null", "false", "true"]
-      }
+        data: [null, false, true, "null", "false", "true"],
+      },
     });
   });
 
@@ -44,7 +44,7 @@ describe("Typeahead can display any value type Tests from inside an object", () 
         "booleanT",
         "booleanF",
         "undefined",
-        "deeper.key.level"
+        "deeper.key.level",
       ],
       source: {
         data: [
@@ -55,12 +55,12 @@ describe("Typeahead can display any value type Tests from inside an object", () 
             booleanF: false,
             deeper: {
               key: {
-                level: 42
-              }
-            }
-          }
-        ]
-      }
+                level: 42,
+              },
+            },
+          },
+        ],
+      },
     });
   });
 
@@ -68,7 +68,7 @@ describe("Typeahead can display any value type Tests from inside an object", () 
     myTypeahead.node.trigger("input");
 
     expect(myTypeahead.resultHtml.find("span").text()).toEqual(
-      "string 12345 true false 42"
+      "string 12345 true false 42",
     );
   });
 

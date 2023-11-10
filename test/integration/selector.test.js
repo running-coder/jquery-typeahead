@@ -11,7 +11,7 @@ describe("Typeahead Init from one Typeahead selector inside configuration", () =
       input: ".js-typeahead",
       minLength: 0,
       generateOnLoad: true,
-      source: ["Test init"]
+      source: ["Test init"],
     });
   });
 
@@ -37,7 +37,7 @@ describe("Typeahead Init from one Typeahead jQuery selector", () => {
     myTypeahead = $(".js-typeahead").typeahead({
       minLength: 0,
       generateOnLoad: true,
-      source: ["Test init"]
+      source: ["Test init"],
     });
   });
 
@@ -46,7 +46,7 @@ describe("Typeahead Init from one Typeahead jQuery selector", () => {
     expect(Object.keys(window.Typeahead).length).toEqual(2);
 
     expect(
-      window.Typeahead["input"] || window.Typeahead[".js-typeahead"]
+      window.Typeahead["input"] || window.Typeahead[".js-typeahead"],
     ).toBeDefined();
 
     var hasProperSelector = !!(
@@ -75,7 +75,7 @@ describe("Typeahead Init from multiple typeahead selectors", () => {
       input: ".js-typeahead",
       minLength: 0,
       generateOnLoad: true,
-      source: ["Test init"]
+      source: ["Test init"],
     });
   });
 
@@ -104,7 +104,7 @@ describe("Typeahead Init from multiple typeahead jQuery selectors", () => {
     myTypeahead = $(".js-typeahead").typeahead({
       minLength: 0,
       generateOnLoad: true,
-      source: ["Test init"]
+      source: ["Test init"],
     });
   });
 

@@ -20,10 +20,10 @@ describe("Typeahead groupOrder option Tests", () => {
           myGroup: {
             data: [
               { category: "Arizona", id: "1", name: "Phil" },
-              { category: "Indiana", id: "3", name: "George" }
-            ]
-          }
-        }
+              { category: "Indiana", id: "3", name: "George" },
+            ],
+          },
+        },
       });
     });
 
@@ -35,7 +35,7 @@ describe("Typeahead groupOrder option Tests", () => {
       expect(myTypeahead.groups).toEqual(["Indiana", "Arizona"]);
       expect(myTypeahead.resultCountPerGroup).toEqual({
         Indiana: 1,
-        Arizona: 1
+        Arizona: 1,
       });
 
       expect(myTypeahead.result[0]).toEqual({
@@ -43,7 +43,7 @@ describe("Typeahead groupOrder option Tests", () => {
         category: "Indiana",
         id: "3",
         name: "George",
-        group: "myGroup"
+        group: "myGroup",
       });
     });
   });
@@ -62,10 +62,10 @@ describe("Typeahead groupOrder option Tests", () => {
           myGroup: {
             data: [
               { category: "Arizona", id: "1", name: "Phil" },
-              { category: "Indiana", id: "3", name: "George" }
-            ]
-          }
-        }
+              { category: "Indiana", id: "3", name: "George" },
+            ],
+          },
+        },
       });
     });
 
@@ -77,14 +77,14 @@ describe("Typeahead groupOrder option Tests", () => {
       expect(myTypeahead.groups).toEqual(["Arizona", "Indiana"]);
       expect(myTypeahead.resultCountPerGroup).toEqual({
         Arizona: 1,
-        Indiana: 1
+        Indiana: 1,
       });
       expect(myTypeahead.result[0]).toEqual({
         matchedKey: "name",
         category: "Arizona",
         id: "1",
         name: "Phil",
-        group: "myGroup"
+        group: "myGroup",
       });
     });
   });
@@ -103,10 +103,10 @@ describe("Typeahead groupOrder option Tests", () => {
           myGroup: {
             data: [
               { category: "Arizona", id: "1", name: "Phil" },
-              { category: "Indiana", id: "3", name: "George" }
-            ]
-          }
-        }
+              { category: "Indiana", id: "3", name: "George" },
+            ],
+          },
+        },
       });
     });
 
@@ -118,14 +118,14 @@ describe("Typeahead groupOrder option Tests", () => {
       expect(myTypeahead.groups).toEqual(["Indiana", "Arizona"]);
       expect(myTypeahead.resultCountPerGroup).toEqual({
         Indiana: 1,
-        Arizona: 1
+        Arizona: 1,
       });
       expect(myTypeahead.result[0]).toEqual({
         matchedKey: "name",
         category: "Indiana",
         id: "3",
         name: "George",
-        group: "myGroup"
+        group: "myGroup",
       });
     });
   });

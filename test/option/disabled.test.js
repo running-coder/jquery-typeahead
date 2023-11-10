@@ -6,18 +6,18 @@ let source = {
     data: [
       {
         name: "Canada",
-        population: 36600000
+        population: 36600000,
       },
       {
         name: "United-States",
-        population: 301300000
+        population: 301300000,
       },
       {
         name: "India",
-        population: 1200000000
-      }
-    ]
-  }
+        population: 1200000000,
+      },
+    ],
+  },
 };
 
 let arrowDownEvent = $.Event("keydown");
@@ -45,13 +45,13 @@ describe("Typeahead disabled option Tests - single disabled item in the data", (
       display: ["name"],
       source,
       callback: {
-        onLeave: function(node, li, item, e) {
+        onLeave: function (node, li, item, e) {
           onLeaveItem = item;
         },
-        onEnter: function(node, li, item, e) {
+        onEnter: function (node, li, item, e) {
           onEnterItem = item;
-        }
-      }
+        },
+      },
     });
   });
 
@@ -106,7 +106,7 @@ describe("Typeahead disabled option Tests - multiple disabled items in the match
       hint: true,
       blurOnTab: false,
       display: ["name"],
-      matcher: function(item, displayKey) {
+      matcher: function (item, displayKey) {
         // Disable Canada & United-States for xyz reason
         if (item.name.length >= 6) {
           item.disabled = true;
@@ -116,13 +116,13 @@ describe("Typeahead disabled option Tests - multiple disabled items in the match
       },
       source,
       callback: {
-        onLeave: function(node, li, item, e) {
+        onLeave: function (node, li, item, e) {
           onLeaveItem = item;
         },
-        onEnter: function(node, li, item, e) {
+        onEnter: function (node, li, item, e) {
           onEnterItem = item;
-        }
-      }
+        },
+      },
     });
   });
 

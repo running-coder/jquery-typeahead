@@ -13,7 +13,7 @@ describe("Typeahead request Tests", () => {
     hasAlways = false;
 
   describe("$ajax.request as an Object", () => {
-    beforeAll(function() {
+    beforeAll(function () {
       document.body.innerHTML = '<input class="js-typeahead">';
 
       myTypeahead = $.typeahead({
@@ -24,14 +24,14 @@ describe("Typeahead request Tests", () => {
           ajax: {
             url: "http://test.com/category.json",
             path: "data",
-            beforeSend: function(jqXHR, options) {
+            beforeSend: function (jqXHR, options) {
               hasBeforeSend = true;
             },
             complete: () => {
               hasComplete = true;
             },
             callback: {
-              done: function(data) {
+              done: function (data) {
                 hasDone = true;
                 if (this.query == "sp") {
                   data.data[0].newKey = "newKey";
@@ -46,15 +46,15 @@ describe("Typeahead request Tests", () => {
               },
               always: () => {
                 hasAlways = true;
-              }
-            }
-          }
-        }
+              },
+            },
+          },
+        },
       });
     });
 
-    it("should merge Typeahead $.ajax object", done => {
-      myTypeahead.node.triggerHandler("input").done(function() {
+    it("should merge Typeahead $.ajax object", (done) => {
+      myTypeahead.node.triggerHandler("input").done(function () {
         // Always is called first, let some time for the other
         // callbacks to complete and assign their variables
         setTimeout(() => {
@@ -68,7 +68,7 @@ describe("Typeahead request Tests", () => {
           expect(
             !!~myTypeahead.requests.group.request.beforeSend
               .toString()
-              .indexOf("scope.xhr[group]")
+              .indexOf("scope.xhr[group]"),
           ).toBeTruthy();
 
           done();
@@ -76,12 +76,12 @@ describe("Typeahead request Tests", () => {
       });
     });
 
-    it("should have modified the data object `from callback.done` if query == sp", done => {
-      myTypeahead.node.triggerHandler("input").done(function() {
+    it("should have modified the data object `from callback.done` if query == sp", (done) => {
+      myTypeahead.node.triggerHandler("input").done(function () {
         expect(myTypeahead.result[0].newKey).toBeUndefined();
 
         myTypeahead.node.val("sp");
-        myTypeahead.node.triggerHandler("input").done(function() {
+        myTypeahead.node.triggerHandler("input").done(function () {
           expect(myTypeahead.result[0].newKey).toBeDefined();
           expect(myTypeahead.result[0].invalidKey).toBeUndefined();
 
@@ -92,7 +92,7 @@ describe("Typeahead request Tests", () => {
   });
 
   describe("$ajax.request as an Array", () => {
-    beforeAll(function() {
+    beforeAll(function () {
       hasBeforeSend = false;
       hasComplete = false;
       hasDone = false;
@@ -106,18 +106,18 @@ describe("Typeahead request Tests", () => {
         input: ".js-typeahead",
         minLength: 0,
         source: {
-          ajax: function(query) {
+          ajax: function (query) {
             return {
               url: `http://test.com/tag.json?q=${query}`,
               path: "data",
-              beforeSend: function(jqXHR, options) {
+              beforeSend: function (jqXHR, options) {
                 hasBeforeSend = true;
               },
               complete: () => {
                 hasComplete = true;
               },
               callback: {
-                done: function(data) {
+                done: function (data) {
                   hasDone = true;
                   return data;
                 },
@@ -129,26 +129,26 @@ describe("Typeahead request Tests", () => {
                 },
                 always: () => {
                   hasAlways = true;
-                }
-              }
+                },
+              },
             };
-          }
-        }
+          },
+        },
       });
     });
 
-    it("should merge Typeahead Array into $.ajax object", done => {
+    it("should merge Typeahead Array into $.ajax object", (done) => {
       myTypeahead.node.val("test");
-      myTypeahead.node.triggerHandler("input").done(function() {
+      myTypeahead.node.triggerHandler("input").done(function () {
         // Always is called first, let some time for the other
         // callbacks to complete and assign their variables
         setTimeout(() => {
           expect(
-            !!~myTypeahead.requests.group.request.url.indexOf("?q=test")
+            !!~myTypeahead.requests.group.request.url.indexOf("?q=test"),
           ).toBeTruthy();
           expect(myTypeahead.source.group.length).toBeGreaterThan(10);
           expect(
-            hasBeforeSend && hasComplete && hasDone && hasThen && hasAlways
+            hasBeforeSend && hasComplete && hasDone && hasThen && hasAlways,
           ).toBeTruthy();
           expect(hasComplete).toBeTruthy();
           expect(hasDone).toBeTruthy();
@@ -158,7 +158,7 @@ describe("Typeahead request Tests", () => {
           expect(
             !!~myTypeahead.requests.group.request.beforeSend
               .toString()
-              .indexOf("scope.xhr[group]")
+              .indexOf("scope.xhr[group]"),
           ).toBeTruthy();
 
           done();
@@ -177,10 +177,10 @@ describe("Typeahead request Tests", () => {
         minLength: 0,
         dynamic: true,
         source: {
-          ajax: function(query) {
+          ajax: function (query) {
             var data = {
               hi: 1,
-              hello: 2
+              hello: 2,
             };
 
             if (query == "q") {
@@ -190,30 +190,30 @@ describe("Typeahead request Tests", () => {
             return {
               url: `http://test.com/tag.json?q=${query}`,
               data: data,
-              path: "data"
+              path: "data",
             };
-          }
-        }
+          },
+        },
       });
     });
 
-    it("should merge Typeahead $.ajax.data dynamically when ajax is a function", done => {
+    it("should merge Typeahead $.ajax.data dynamically when ajax is a function", (done) => {
       myTypeahead.node.val("test");
-      myTypeahead.node.triggerHandler("input").done(function() {
+      myTypeahead.node.triggerHandler("input").done(function () {
         expect(
-          Object.keys(myTypeahead.requests.group.request.data).length
+          Object.keys(myTypeahead.requests.group.request.data).length,
         ).toEqual(2);
 
         myTypeahead.node.val("q");
-        myTypeahead.node.triggerHandler("input").done(function() {
+        myTypeahead.node.triggerHandler("input").done(function () {
           expect(
-            Object.keys(myTypeahead.requests.group.request.data).length
+            Object.keys(myTypeahead.requests.group.request.data).length,
           ).toEqual(3);
 
           myTypeahead.node.val("test");
-          myTypeahead.node.triggerHandler("input").done(function() {
+          myTypeahead.node.triggerHandler("input").done(function () {
             expect(
-              Object.keys(myTypeahead.requests.group.request.data).length
+              Object.keys(myTypeahead.requests.group.request.data).length,
             ).toEqual(2);
 
             done();

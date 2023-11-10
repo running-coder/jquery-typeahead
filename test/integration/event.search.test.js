@@ -14,7 +14,7 @@ describe("Typeahead Init from one Typeahead selector inside configuration", () =
       generateOnLoad: true,
       highlight: false,
       emptyTemplate: 'No result for "{{query}}"',
-      source: ["data1", "data2", "data3"]
+      source: ["data1", "data2", "data3"],
     });
   });
 
@@ -25,7 +25,7 @@ describe("Typeahead Init from one Typeahead selector inside configuration", () =
     expect(myTypeahead.result.length).toEqual(3);
     expect(
       myTypeahead.resultContainer.find("." + myTypeahead.options.selector.item)
-        .length
+        .length,
     ).toEqual(3);
 
     myTypeahead.node.val("dd").trigger("input");
@@ -33,12 +33,12 @@ describe("Typeahead Init from one Typeahead selector inside configuration", () =
     expect(
       myTypeahead.resultContainer
         .find("." + myTypeahead.options.selector.list)
-        .hasClass("empty")
+        .hasClass("empty"),
     ).toBeTruthy();
     expect(
       myTypeahead.resultContainer
         .find("." + myTypeahead.options.selector.empty)
-        .text()
+        .text(),
     ).toEqual('No result for "dd"');
 
     myTypeahead.node.val("").trigger("input");

@@ -39,29 +39,29 @@ describe("Typeahead $.ajax.callback.done Tests", () => {
             url: "http://test.com/game.json",
             path: "data",
             callback: {
-              done: group1DoneCallback
-            }
-          }
+              done: group1DoneCallback,
+            },
+          },
         },
         group2: {
           ajax: {
             url: "http://test.com/category.json",
             path: "data",
             callback: {
-              done: group2DoneCallback
-            }
-          }
+              done: group2DoneCallback,
+            },
+          },
         },
         group3: {
           ajax: {
             url: "http://test.com/tag.json",
             path: "data",
             callback: {
-              done: group3DoneCallback
-            }
-          }
-        }
-      }
+              done: group3DoneCallback,
+            },
+          },
+        },
+      },
     });
   });
 
@@ -69,8 +69,8 @@ describe("Typeahead $.ajax.callback.done Tests", () => {
     jest.resetAllMocks();
   });
 
-  it("Should trigger all group callbacks", done => {
-    myTypeahead.node.triggerHandler("input").done(function() {
+  it("Should trigger all group callbacks", (done) => {
+    myTypeahead.node.triggerHandler("input").done(function () {
       expect(myTypeahead.searchGroups).toEqual(["group1", "group2", "group3"]);
       expect(group1DoneCallback).toHaveBeenCalled();
       expect(group2DoneCallback).toHaveBeenCalled();
@@ -80,16 +80,13 @@ describe("Typeahead $.ajax.callback.done Tests", () => {
     });
   });
 
-  it("Should only trigger the selected group callback", done => {
+  it("Should only trigger the selected group callback", (done) => {
     let dropdownItems = myTypeahead.container.find(
-      "." + myTypeahead.options.selector.dropdownItem
+      "." + myTypeahead.options.selector.dropdownItem,
     );
-    dropdownItems
-      .eq(0)
-      .find("a")
-      .trigger("click");
+    dropdownItems.eq(0).find("a").trigger("click");
 
-    myTypeahead.node.triggerHandler("input").done(function() {
+    myTypeahead.node.triggerHandler("input").done(function () {
       expect(myTypeahead.searchGroups).toEqual(["group1"]);
       expect(group1DoneCallback).toHaveBeenCalled();
       expect(group2DoneCallback).not.toHaveBeenCalled();

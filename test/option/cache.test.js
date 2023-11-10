@@ -27,16 +27,17 @@ describe("Typeahead cache option Tests", () => {
         Object.keys(storage).forEach(function (key) {
           delete storage[key];
         });
-      }
+      },
     };
   }
 
   beforeAll(() => {
     const localStorageMock = storageMock();
     const sessionStorageMock = storageMock();
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-    Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
-
+    Object.defineProperty(window, "localStorage", { value: localStorageMock });
+    Object.defineProperty(window, "sessionStorage", {
+      value: sessionStorageMock,
+    });
   });
 
   describe("Typeahead cache option Tests - Global configuration", () => {
@@ -47,8 +48,12 @@ describe("Typeahead cache option Tests", () => {
     beforeAll(() => {
       const localStorageMock = storageMock();
       const sessionStorageMock = storageMock();
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-      Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
+      Object.defineProperty(window, "localStorage", {
+        value: localStorageMock,
+      });
+      Object.defineProperty(window, "sessionStorage", {
+        value: sessionStorageMock,
+      });
 
       document.body.innerHTML = '<input class="js-typeahead">';
 
@@ -62,14 +67,14 @@ describe("Typeahead cache option Tests", () => {
             data: function () {
               group1Counter++;
               return ["group1-item1", "group1-item2", "group1-item3"];
-            }
+            },
           },
           group2: {
             dynamic: true,
             data: function () {
               group2Counter++;
               return ["group2-item1", "group2-item2", "group2-item3"];
-            }
+            },
           },
           group3: {
             cache: false,
@@ -77,7 +82,7 @@ describe("Typeahead cache option Tests", () => {
             data: function () {
               group3Counter++;
               return ["group3-item1", "group3-item2", "group3-item3"];
-            }
+            },
           },
           group4: {
             cache: "indexedDB",
@@ -85,31 +90,31 @@ describe("Typeahead cache option Tests", () => {
             data: function () {
               group4Counter++;
               return ["group4-item1", "group4-item2", "group4-item3"];
-            }
-          }
-        }
+            },
+          },
+        },
       });
     });
 
-    it("Should store in cache the configured groups", done => {
+    it("Should store in cache the configured groups", (done) => {
       expect(group1Counter).toEqual(1);
       expect(group2Counter).toEqual(1);
       expect(group3Counter).toEqual(1);
 
       expect(
         window.localStorage.getItem(
-          "TYPEAHEAD_" + myTypeahead.selector + ":group1"
-        )
+          "TYPEAHEAD_" + myTypeahead.selector + ":group1",
+        ),
       ).not.toBe(null);
       expect(
         window.localStorage.getItem(
-          "TYPEAHEAD_" + myTypeahead.selector + ":group2"
-        )
+          "TYPEAHEAD_" + myTypeahead.selector + ":group2",
+        ),
       ).not.toBe(null);
       expect(
         window.localStorage.getItem(
-          "TYPEAHEAD_" + myTypeahead.selector + ":group3"
-        )
+          "TYPEAHEAD_" + myTypeahead.selector + ":group3",
+        ),
       ).toBe(null);
 
       myTypeahead.node
@@ -143,38 +148,38 @@ describe("Typeahead cache option Tests", () => {
             compression: true,
             data: function () {
               return ["group1-item1", "group1-item2", "group1-item3"];
-            }
+            },
           },
           group2: {
             cache: "sessionStorage",
             data: function () {
               return ["group2-item1", "group2-item2", "group2-item3"];
-            }
+            },
           },
           group3: {
             data: function () {
               return ["group3-item1", "group3-item2", "group3-item3"];
-            }
-          }
-        }
+            },
+          },
+        },
       });
     });
 
     it("Should store in cache the configured groups", () => {
       expect(
         window.localStorage.getItem(
-          "TYPEAHEAD_" + myTypeahead.selector + ":group1"
-        )
+          "TYPEAHEAD_" + myTypeahead.selector + ":group1",
+        ),
       ).not.toBe(null);
       expect(
         window.sessionStorage.getItem(
-          "TYPEAHEAD_" + myTypeahead.selector + ":group2"
-        )
+          "TYPEAHEAD_" + myTypeahead.selector + ":group2",
+        ),
       ).not.toBe(null);
       expect(
         window.sessionStorage.getItem(
-          "TYPEAHEAD_" + myTypeahead.selector + ":group3"
-        )
+          "TYPEAHEAD_" + myTypeahead.selector + ":group3",
+        ),
       ).toBe(null);
     });
 

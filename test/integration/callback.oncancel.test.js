@@ -35,19 +35,19 @@ describe("Typeahead onCancel Callback Tests", () => {
       source: [
         {
           id: "1",
-          display: "Test"
+          display: "Test",
         },
         {
           id: "2",
-          display: "callback"
-        }
+          display: "callback",
+        },
       ],
       callback: {
-        onCancel: function(node, item, event) {
+        onCancel: function (node, item, event) {
           onCancel = true;
           myItem = item;
-        }
-      }
+        },
+      },
     });
   });
 
@@ -79,12 +79,9 @@ describe("Typeahead onCancel Callback Tests", () => {
     myTypeahead.node.trigger("input");
 
     let items = myTypeahead.container.find(
-      "." + myTypeahead.options.selector.item
+      "." + myTypeahead.options.selector.item,
     );
-    items
-      .eq(0)
-      .find("a")
-      .trigger("click");
+    items.eq(0).find("a").trigger("click");
 
     myTypeahead.node.trigger($.Event("keydown", { keyCode: 27 }));
     expect(onCancel).toBeTruthy();
@@ -92,7 +89,7 @@ describe("Typeahead onCancel Callback Tests", () => {
       matchedKey: "display",
       id: "1",
       display: "Test",
-      group: "group"
+      group: "group",
     });
   });
 });

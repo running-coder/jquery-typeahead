@@ -22,36 +22,36 @@ describe("Typeahead $.ajax.callback.done Tests", () => {
             type: "GET",
             url: "http://test.com/groups.json",
             data: {
-              term: "{{query}}"
+              term: "{{query}}",
             },
             callback: {
-              done: function(data) {
+              done: function (data) {
                 return data.group1;
-              }
-            }
-          }
+              },
+            },
+          },
         },
         group2: {
           ajax: {
             type: "GET",
             url: "http://test.com/groups.json",
             data: {
-              term: "{{query}}"
+              term: "{{query}}",
             },
             callback: {
-              done: function(data) {
+              done: function (data) {
                 data.group2.shift();
                 return data.group2;
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     });
   });
 
-  it("Should display the modified data 2 different groups", done => {
-    myTypeahead.node.triggerHandler("input").done(function() {
+  it("Should display the modified data 2 different groups", (done) => {
+    myTypeahead.node.triggerHandler("input").done(function () {
       var hasDuplicatedData = false;
       var tmpResult = [];
       var stringifiedResult;

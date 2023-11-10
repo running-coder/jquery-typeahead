@@ -25,11 +25,11 @@ describe("Typeahead filter option Tests", () => {
                 familyname: "De-Flores",
                 firstname: "Nancy",
                 nickname: null,
-                birthlocation: "Somewhere Beautiful, Alabama"
-              }
-            ]
-          }
-        }
+                birthlocation: "Somewhere Beautiful, Alabama",
+              },
+            ],
+          },
+        },
       });
     });
 
@@ -61,11 +61,11 @@ describe("Typeahead filter option Tests", () => {
                 familyname: "De-Flores",
                 firstname: "Nancy",
                 nickname: null,
-                birthlocation: "Somewhere Beautiful, Alabama"
-              }
-            ]
-          }
-        }
+                birthlocation: "Somewhere Beautiful, Alabama",
+              },
+            ],
+          },
+        },
       });
     });
 

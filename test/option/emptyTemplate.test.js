@@ -15,8 +15,8 @@ describe("Typeahead emptyTemplate option Tests", () => {
         generateOnLoad: true,
         emptyTemplate: "No result for {{query}}",
         source: {
-          data: ["test"]
-        }
+          data: ["test"],
+        },
       });
     });
 
@@ -50,7 +50,7 @@ describe("Typeahead emptyTemplate option Tests", () => {
       myTypeahead.options.emptyTemplate = function (query) {
         return $("<li>", {
           text: 'Just use "' + query + '"',
-          class: "my-custom-class"
+          class: "my-custom-class",
         });
       };
     });
@@ -75,7 +75,7 @@ describe("Typeahead emptyTemplate option Tests", () => {
       myTypeahead.node.trigger("input");
 
       expect(myTypeahead.resultHtml.html()).toEqual(
-        '<li class="typeahead__empty"><div>No result for &lt;img src="" onerror="alert(\'bad code\')"&gt;</div></li>'
+        '<li class="typeahead__empty"><div>No result for &lt;img src="" onerror="alert(\'bad code\')"&gt;</div></li>',
       );
     });
   });
@@ -98,15 +98,15 @@ describe("Typeahead emptyTemplate option Tests when a response is null", () => {
           callback: {
             done: function (data, textStatus, jqXHR) {
               returnedData = data;
-            }
-          }
-        }
+            },
+          },
+        },
       },
-      emptyTemplate: "No results for {{query}}"
+      emptyTemplate: "No results for {{query}}",
     });
   });
 
-  it("Should assign the proper Typeahead selector", done => {
+  it("Should assign the proper Typeahead selector", (done) => {
     myTypeahead.node.val("Empty");
     myTypeahead.node.trigger("input");
 
@@ -141,15 +141,15 @@ describe("Typeahead emptyTemplate option Tests when a response is empty Array", 
           callback: {
             done: function (data, textStatus, jqXHR) {
               returnedData = data;
-            }
-          }
-        }
+            },
+          },
+        },
       },
-      emptyTemplate: "No results for {{query}}"
+      emptyTemplate: "No results for {{query}}",
     });
   });
 
-  it("Should assign the proper Typeahead selector", done => {
+  it("Should assign the proper Typeahead selector", (done) => {
     myTypeahead.node.val("Empty");
     myTypeahead.node.triggerHandler("input").done(function () {
       expect(returnedData).toEqual([]);

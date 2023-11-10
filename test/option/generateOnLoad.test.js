@@ -13,8 +13,8 @@ describe("Typeahead generateOnLoad option Tests", () => {
       myTypeahead = $.typeahead({
         input: ".js-typeahead",
         source: {
-          data: ["data1", "data2", "data3"]
-        }
+          data: ["data1", "data2", "data3"],
+        },
       });
     });
 
@@ -31,8 +31,8 @@ describe("Typeahead generateOnLoad option Tests", () => {
         input: ".js-typeahead",
         generateOnLoad: true,
         source: {
-          data: ["data1", "data2", "data3"]
-        }
+          data: ["data1", "data2", "data3"],
+        },
       });
     });
 
@@ -41,8 +41,8 @@ describe("Typeahead generateOnLoad option Tests", () => {
         group: [
           { display: "data1", group: "group" },
           { display: "data2", group: "group" },
-          { display: "data3", group: "group" }
-        ]
+          { display: "data3", group: "group" },
+        ],
       });
     });
   });

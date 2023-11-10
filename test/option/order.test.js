@@ -23,10 +23,10 @@ describe("Typeahead order option Tests", () => {
               { name: "ABC", id: "3" },
               { name: null, id: "4" },
               { name: false, id: "5" },
-              { name: 0, id: "6" }
-            ]
-          }
-        }
+              { name: 0, id: "6" },
+            ],
+          },
+        },
       });
     });
 
@@ -39,7 +39,7 @@ describe("Typeahead order option Tests", () => {
         { group: "myGroup", id: "6", matchedKey: "name", name: 0 },
         { group: "myGroup", id: "3", matchedKey: "name", name: "ABC" },
         { group: "myGroup", id: "1", matchedKey: "name", name: "DEF" },
-        { group: "myGroup", id: "2", matchedKey: "name", name: "HIJ" }
+        { group: "myGroup", id: "2", matchedKey: "name", name: "HIJ" },
       ]);
     });
   });
@@ -61,10 +61,10 @@ describe("Typeahead order option Tests", () => {
               { name: "ABC", id: "3" },
               { name: null, id: "4" },
               { name: false, id: "5" },
-              { name: 0, id: "6" }
-            ]
-          }
-        }
+              { name: 0, id: "6" },
+            ],
+          },
+        },
       });
     });
 
@@ -77,7 +77,7 @@ describe("Typeahead order option Tests", () => {
         { group: "myGroup", id: "3", matchedKey: "name", name: "ABC" },
         { group: "myGroup", id: "4", matchedKey: "id", name: null },
         { group: "myGroup", id: "5", matchedKey: "name", name: false },
-        { group: "myGroup", id: "6", matchedKey: "name", name: 0 }
+        { group: "myGroup", id: "6", matchedKey: "name", name: 0 },
       ]);
     });
   });
@@ -91,7 +91,7 @@ describe("Typeahead order option Tests", () => {
         minLength: 0,
         order: "asc",
         display: ["name", "id"],
-        filter: function(item, displayKey) {
+        filter: function (item, displayKey) {
           if (displayKey) {
             return true;
           }
@@ -104,10 +104,10 @@ describe("Typeahead order option Tests", () => {
               { name: "ABC", id: "3" },
               { name: null, id: "4" },
               { name: false, id: "5" },
-              { name: 0, id: "6" }
-            ]
-          }
-        }
+              { name: 0, id: "6" },
+            ],
+          },
+        },
       });
     });
 
@@ -117,7 +117,7 @@ describe("Typeahead order option Tests", () => {
       expect(myTypeahead.result).toEqual([
         { group: "myGroup", id: "3", matchedKey: "name", name: "ABC" },
         { group: "myGroup", id: "1", matchedKey: "name", name: "DEF" },
-        { group: "myGroup", id: "2", matchedKey: "name", name: "HIJ" }
+        { group: "myGroup", id: "2", matchedKey: "name", name: "HIJ" },
       ]);
     });
   });
